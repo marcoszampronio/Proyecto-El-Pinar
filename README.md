@@ -1,4 +1,4 @@
-# Complejo El Potrero — Sistema de Reservas
+# Complejo El Pinar — Sistema de Reservas
 
 Sistema de reservas para 2 canchas de fútbol 11 y 1 cancha de pádel, con
 confirmación manual por código, sección de "Buscando Rival" y panel de

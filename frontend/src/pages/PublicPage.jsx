@@ -1,135 +1,164 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import FutbolGrid from '../components/FutbolGrid';
+import Header from '../components/Header';
+import CourtSelector, { CANCHAS } from '../components/CourtSelector';
+import DateStrip from '../components/DateStrip';
+import FutbolSlots from '../components/FutbolSlots';
 import PadelPicker from '../components/PadelPicker';
 import RivalsBoard from '../components/RivalsBoard';
+import RivalsCalendar from '../components/RivalsCalendar';
 import BookingModal from '../components/BookingModal';
-
-function hoyISO() {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
-}
+import { hoyISO, sumarDias } from '../lib/fechas';
 
 export default function PublicPage() {
-  const [tab, setTab] = useState('futbol'); // 'futbol' | 'padel' | 'rivales'
+  const [vista, setVista] = useState('reservar'); // 'reservar' | 'rivales'
+  const [cancha, setCancha] = useState('C1');
   const [fecha, setFecha] = useState(hoyISO());
-  const [turnosC1, setTurnosC1] = useState([]);
-  const [turnosC2, setTurnosC2] = useState([]);
+  const [inicioTira, setInicioTira] = useState(hoyISO());
+
+  const [turnos, setTurnos] = useState([]);
   const [padel, setPadel] = useState(null);
   const [rivales, setRivales] = useState([]);
-  const [slotSeleccionado, setSlotSeleccionado] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [errorCarga, setErrorCarga] = useState(null);
+
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const [buscadorAbierto, setBuscadorAbierto] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
   useEffect(() => {
-    if (tab === 'futbol') cargarFutbol();
-    if (tab === 'padel') cargarPadel();
-    if (tab === 'rivales') cargarRivales();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, fecha]);
+    let cancelado = false;
 
-  async function cargarFutbol() {
-    setCargando(true);
-    try {
-      const [c1, c2] = await Promise.all([
-        api.disponibilidadFutbol('C1', fecha),
-        api.disponibilidadFutbol('C2', fecha),
-      ]);
-      setTurnosC1(c1.turnos);
-      setTurnosC2(c2.turnos);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setCargando(false);
+    async function cargarDisponibilidad() {
+      setCargando(true);
+      setErrorCarga(null);
+      try {
+        if (cancha === 'PAD') {
+          const data = await api.disponibilidadPadel(fecha);
+          if (!cancelado) setPadel(data);
+        } else {
+          const data = await api.disponibilidadFutbol(cancha, fecha);
+          if (!cancelado) setTurnos(data.turnos);
+        }
+      } catch (e) {
+        if (!cancelado) setErrorCarga(e.message);
+      } finally {
+        if (!cancelado) setCargando(false);
+      }
     }
+
+    cargarDisponibilidad();
+    return () => { cancelado = true; };
+  }, [cancha, fecha]);
+
+  useEffect(() => {
+    api.rivales()
+      .then((data) => setRivales(data.rivales))
+      .catch((e) => console.error(e));
+  }, []);
+
+  function moverTira(dias) {
+    const nuevo = sumarDias(inicioTira, dias);
+    setInicioTira(nuevo < hoyISO() ? hoyISO() : nuevo);
   }
 
-  async function cargarPadel() {
-    setCargando(true);
-    try {
-      const data = await api.disponibilidadPadel(fecha);
-      setPadel(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setCargando(false);
-    }
-  }
-
-  async function cargarRivales() {
-    setCargando(true);
-    try {
-      const data = await api.rivales();
-      setRivales(data.rivales);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setCargando(false);
-    }
-  }
-
-  function cerrarModalYRecargar() {
+  function recargarTodo() {
     setSlotSeleccionado(null);
-    if (tab === 'futbol') cargarFutbol();
-    if (tab === 'padel') cargarPadel();
+    api.rivales().then((data) => setRivales(data.rivales)).catch(() => {});
+    if (cancha === 'PAD') {
+      api.disponibilidadPadel(fecha).then(setPadel).catch(() => {});
+    } else {
+      api.disponibilidadFutbol(cancha, fecha).then((d) => setTurnos(d.turnos)).catch(() => {});
+    }
   }
+
+  const texto = busqueda.trim().toLowerCase();
+  const rivalesFiltrados = texto
+    ? rivales.filter((r) =>
+        `${r.team_name} ${r.category || ''}`.toLowerCase().includes(texto))
+    : rivales;
+  const rivalesDelDia = rivalesFiltrados.filter((r) => r.reservation_date === fecha);
+
+  const nombreCancha = CANCHAS.find((c) => c.id === cancha)?.nombre || cancha;
 
   return (
     <div className="app-shell">
-      <div className="marquee">
-        <div className="brand">
-          Complejo El Potrero
-          <small>Fútbol 11 · Pádel · Reservas</small>
-        </div>
+      <Header
+        busqueda={busqueda}
+        onBuscar={setBusqueda}
+        menuAbierto={menuAbierto}
+        onToggleMenu={() => setMenuAbierto((v) => !v)}
+        buscadorAbierto={buscadorAbierto}
+        onToggleBuscador={() => setBuscadorAbierto((v) => !v)}
+        onIrA={(destino) => { setVista(destino); setMenuAbierto(false); }}
+      />
+
+      {vista === 'reservar' && (
+        <CourtSelector seleccionada={cancha} onSeleccionar={setCancha} />
+      )}
+
+      <DateStrip
+        inicio={inicioTira}
+        seleccionada={fecha}
+        onSeleccionar={setFecha}
+        onMover={moverTira}
+      />
+
+      {vista === 'reservar' && (
+        <>
+          {cargando && <p className="cargando">Cargando horarios...</p>}
+          {errorCarga && <p className="error-msg" style={{ padding: '0 18px' }}>{errorCarga}</p>}
+
+          {!cargando && !errorCarga && cancha !== 'PAD' && (
+            <FutbolSlots
+              key={`${cancha}-${fecha}`}
+              nombreCancha={nombreCancha}
+              turnos={turnos}
+              onReservar={(turn) => setSlotSeleccionado({ court: cancha, date: fecha, turn })}
+            />
+          )}
+
+          {!cargando && !errorCarga && cancha === 'PAD' && padel && (
+            <PadelPicker
+              key={fecha}
+              apertura={padel.apertura}
+              cierre={padel.cierre}
+              ocupados={padel.ocupados}
+              onReservar={(rango) => setSlotSeleccionado({ court: 'PAD', date: fecha, ...rango })}
+            />
+          )}
+
+          <RivalsBoard rivales={rivalesFiltrados} />
+        </>
+      )}
+
+      {vista === 'rivales' && (
+        <>
+          <h2 className="seccion-titulo">Calendario de busqueda de rivales</h2>
+          <RivalsCalendar rivales={rivalesDelDia} />
+        </>
+      )}
+
+      <div className="acciones-fijas">
+        <button
+          className={`btn btn-navy ${vista === 'reservar' ? '' : 'inactivo'}`}
+          onClick={() => setVista('reservar')}
+          aria-pressed={vista === 'reservar'}
+        >
+          Reservar turnos
+        </button>
+        <button
+          className={`btn btn-gold ${vista === 'rivales' ? '' : 'inactivo'}`}
+          onClick={() => setVista('rivales')}
+          aria-pressed={vista === 'rivales'}
+        >
+          Busco rival
+        </button>
       </div>
-
-      <div className="tabs">
-        <button className={`tab-btn ${tab === 'futbol' ? 'active' : ''}`} onClick={() => setTab('futbol')}>Fútbol 11</button>
-        <button className={`tab-btn ${tab === 'padel' ? 'active' : ''}`} onClick={() => setTab('padel')}>Pádel</button>
-        <button className={`tab-btn ${tab === 'rivales' ? 'active' : ''}`} onClick={() => setTab('rivales')}>Buscando rival</button>
-      </div>
-
-      {tab !== 'rivales' && (
-        <input
-          className="date-input"
-          type="date"
-          value={fecha}
-          min={hoyISO()}
-          onChange={(e) => setFecha(e.target.value)}
-        />
-      )}
-
-      {cargando && <p style={{ padding: '0 20px', color: '#5C6B60' }}>Cargando...</p>}
-
-      {tab === 'futbol' && !cargando && (
-        <div className="canchas">
-          <FutbolGrid
-            court="C1"
-            nombreCancha="Cancha 1"
-            turnos={turnosC1}
-            onSelectSlot={(s) => setSlotSeleccionado({ ...s, date: fecha })}
-          />
-          <FutbolGrid
-            court="C2"
-            nombreCancha="Cancha 2"
-            turnos={turnosC2}
-            onSelectSlot={(s) => setSlotSeleccionado({ ...s, date: fecha })}
-          />
-        </div>
-      )}
-
-      {tab === 'padel' && !cargando && padel && (
-        <PadelPicker
-          apertura={padel.apertura}
-          cierre={padel.cierre}
-          ocupados={padel.ocupados}
-          onSelectRange={(r) => setSlotSeleccionado({ court: 'PAD', date: fecha, ...r })}
-        />
-      )}
-
-      {tab === 'rivales' && !cargando && <RivalsBoard rivales={rivales} />}
 
       {slotSeleccionado && (
-        <BookingModal slotInfo={slotSeleccionado} onClose={cerrarModalYRecargar} />
+        <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />
       )}
     </div>
   );

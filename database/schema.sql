@@ -1,5 +1,5 @@
 -- ============================================================
--- ESQUEMA DE BASE DE DATOS - Complejo El Potrero
+-- ESQUEMA DE BASE DE DATOS - Complejo El Pinar
 -- Ejecutar esto en Supabase: Dashboard > SQL Editor > New query
 -- ============================================================
 

@@ -1,33 +1,37 @@
-const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
+import { Avatar, IconoContacto } from './Iconos';
+import { fechaLarga, hhmm } from '../lib/fechas';
+
+const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
 
 export default function RivalsBoard({ rivales }) {
-  if (!rivales.length) {
-    return (
-      <div className="rivals-list">
-        <p style={{ color: '#5C6B60', fontStyle: 'italic' }}>
-          No hay equipos buscando rival por ahora.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="rivals-list">
-      {rivales.map((r, i) => (
-        <div className="rival-card" key={i}>
-          <h4>{r.team_name} {r.category ? `· ${r.category}` : ''}</h4>
-          <p>{NOMBRE_CANCHA[r.court]} — {r.reservation_date} de {r.start_time.slice(0, 5)} a {r.end_time.slice(0, 5)}</p>
+    <section className="panel-rivales">
+      <h2 className="seccion-titulo" style={{ margin: '0 0 4px' }}>
+        Busqueda de rivales activos
+      </h2>
+
+      {!rivales.length && <p className="vacio">No hay equipos buscando rival por ahora.</p>}
+
+      {rivales.map((r) => (
+        <article className="rival-item" key={`${r.court}-${r.reservation_date}-${r.start_time}`}>
+          <span className="avatar"><Avatar /></span>
+          <div className="datos">
+            <p className="titulo">
+              {NOMBRE_CANCHA[r.court] || r.court} / {fechaLarga(r.reservation_date)} {hhmm(r.start_time)} — {r.team_name}
+            </p>
+            <p className="detalle">{r.category ? `Categoria: ${r.category}` : 'Sin categoria indicada'}</p>
+          </div>
           <a
-            className="btn btn-ghost"
-            style={{ display: 'inline-block', marginTop: 8, textDecoration: 'none', textAlign: 'center' }}
-            href={`https://wa.me/${r.contact_phone.replace(/\D/g, '')}`}
+            className="contacto-btn"
+            href={`https://wa.me/${(r.contact_phone || '').replace(/\D/g, '')}`}
             target="_blank"
             rel="noreferrer"
+            aria-label={`Contactar a ${r.team_name} por WhatsApp`}
           >
-            Contactar por WhatsApp
+            <IconoContacto />
           </a>
-        </div>
+        </article>
       ))}
-    </div>
+    </section>
   );
 }

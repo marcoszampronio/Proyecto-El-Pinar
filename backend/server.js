@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.json({ ok: true, mensaje: 'API de Complejo El Potrero funcionando.' });
+  res.json({ ok: true, mensaje: 'API de Complejo El Pinar funcionando.' });
 });
 
 app.use('/api/availability', availabilityRoutes);

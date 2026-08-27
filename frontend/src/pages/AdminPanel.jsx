@@ -147,7 +147,7 @@ export default function AdminPanel() {
   return (
     <div className="app-shell">
       <div className="admin-header">
-        <strong>Complejo El Potrero — Panel</strong>
+        <strong>Complejo El Pinar — Panel</strong>
         <button className="btn btn-ghost" style={{ color: '#fff', borderColor: '#fff' }} onClick={() => supabase.auth.signOut()}>
           Salir
         </button>

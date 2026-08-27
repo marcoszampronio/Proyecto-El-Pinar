@@ -7,14 +7,28 @@ async function tokenAdmin() {
   return data?.session?.access_token || null;
 }
 
+// Lee la respuesta aunque el servidor devuelva HTML o este caido,
+// para que el usuario vea un mensaje entendible y no un error de parseo.
+async function leerRespuesta(res) {
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+  if (!res.ok) {
+    throw new Error(data?.error || 'No pudimos conectarnos con el servidor. Probá de nuevo en unos minutos.');
+  }
+  if (!data) throw new Error('Respuesta invalida del servidor.');
+  return data;
+}
+
 async function requestPublico(path, options = {}) {
   const res = await fetch(`${API_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Error de conexion.');
-  return data;
+  return leerRespuesta(res);
 }
 
 async function requestAdmin(path, options = {}) {
@@ -26,9 +40,7 @@ async function requestAdmin(path, options = {}) {
     },
     ...options,
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Error de conexion.');
-  return data;
+  return leerRespuesta(res);
 }
 
 export const api = {

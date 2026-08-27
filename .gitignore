@@ -1,0 +1,24 @@
+# Variables de entorno (NUNCA subir al repo)
+.env
+*.env.local
+
+# Dependencias instaladas
+node_modules/
+**/node_modules/
+
+# Build del frontend
+frontend/dist/
+frontend/.vite/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+*.swp

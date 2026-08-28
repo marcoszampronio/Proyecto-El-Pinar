@@ -13,7 +13,6 @@ export default function PublicPage() {
   const [vista, setVista] = useState('reservar'); // 'reservar' | 'rivales'
   const [cancha, setCancha] = useState('C1');
   const [fecha, setFecha] = useState(hoyISO());
-  const [inicioTira, setInicioTira] = useState(hoyISO());
 
   const [turnos, setTurnos] = useState([]);
   const [padel, setPadel] = useState(null);
@@ -57,10 +56,6 @@ export default function PublicPage() {
       .catch((e) => console.error(e));
   }, []);
 
-  function moverTira(dias) {
-    const nuevo = sumarDias(inicioTira, dias);
-    setInicioTira(nuevo < hoyISO() ? hoyISO() : nuevo);
-  }
 
   function recargarTodo() {
     setSlotSeleccionado(null);
@@ -98,11 +93,9 @@ export default function PublicPage() {
       )}
 
       <DateStrip
-        inicio={inicioTira}
-        seleccionada={fecha}
-        onSeleccionar={setFecha}
-        onMover={moverTira}
-      />
+  seleccionada={fecha}
+  onSeleccionar={setFecha}
+/>
 
       {vista === 'reservar' && (
         <>

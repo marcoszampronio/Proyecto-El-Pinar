@@ -25,15 +25,16 @@ function validarDatosCliente(body) {
 function armarMensajeWhatsapp(reserva) {
   const cancha = reserva.court === 'PAD' ? 'Paddle' : `Cancha ${reserva.court.slice(1)}`;
   return (
-    `Hola! Quiero confirmar mi reserva en El Pinar.\n` +
-    `📋 *Código:* ${reserva.code}\n` +
-    `⚽ *Cancha:* ${cancha}\n` +
-    `📅 *Fecha:* ${reserva.reservation_date}\n` +
-    `🕐 *Horario:* ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs\n` +
-    `👤 *Nombre:* ${reserva.client_name}\n\n` +
+    `Hola! Quiero confirmar mi reserva en El Pinar.\n\n` +
+    `▶ CÓDIGO: ${reserva.code} ◀\n\n` +
+    `Cancha: ${cancha}\n` +
+    `Fecha: ${reserva.reservation_date}\n` +
+    `Horario: ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs\n` +
+    `Nombre: ${reserva.client_name}\n\n` +
     `Adjunto el comprobante de pago.`
   );
 }
+
 
 router.post('/futbol', async (req, res) => {
   const body = req.body;

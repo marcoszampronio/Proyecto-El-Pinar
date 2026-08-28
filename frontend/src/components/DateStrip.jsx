@@ -1,47 +1,50 @@
 import { hoyISO, nombreDia, numeroDia, sumarDias, esDiaHabilitado } from '../lib/fechas';
 
-const DIAS_VISIBLES = 7;
+function proximasFechasHabilitadas(cantidad) {
+  var fechas = [];
+  var cursor = hoyISO();
+  var intentos = 0;
+  while (fechas.length < cantidad && intentos < 60) {
+    if (esDiaHabilitado(cursor)) {
+      fechas.push(cursor);
+    }
+    cursor = sumarDias(cursor, 1);
+    intentos++;
+  }
+  return fechas;
+}
 
-export default function DateStrip({ inicio, seleccionada, onSeleccionar, onMover }) {
-  const hoy = hoyISO();
-  const dias = Array.from({ length: DIAS_VISIBLES }, (_, i) => sumarDias(inicio, i));
+function formatearDia(iso) {
+  var d = new Date(iso + 'T00:00:00');
+  var dia = String(d.getDate()).padStart(2, '0');
+  var mes = String(d.getMonth() + 1).padStart(2, '0');
+  var DIAS = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
+  return {
+    nombre: DIAS[d.getDay()],
+    numero: dia + '/' + mes,
+  };
+}
+
+export default function DateStrip({ seleccionada, onSeleccionar }) {
+  var fechas = proximasFechasHabilitadas(9);
 
   return (
     <div className="fechas">
-      <button
-        className="fechas-flecha"
-        onClick={() => onMover(-DIAS_VISIBLES)}
-        disabled={inicio <= hoy}
-        aria-label="Semana anterior"
-      >
-        ‹
-      </button>
-
       <div className="fechas-dias">
-        {dias.map((dia) => {
-          const habilitado = esDiaHabilitado(dia);
-          const pasado = dia < hoy;
-          const deshabilitado = pasado || !habilitado;
-
+        {fechas.map(function(dia) {
+          var info = formatearDia(dia);
           return (
             <button
               key={dia}
-              className={`dia-btn ${dia === seleccionada ? 'activo' : ''} ${!habilitado ? 'no-habilitado' : ''}`}
-              onClick={() => !deshabilitado && onSeleccionar(dia)}
-              disabled={deshabilitado}
-              aria-pressed={dia === seleccionada}
-              title={!habilitado ? 'Solo Mar, Mié y Jue' : ''}
+              className={'dia-btn' + (dia === seleccionada ? ' activo' : '')}
+              onClick={function() { onSeleccionar(dia); }}
             >
-              <span className="dia-nombre">{nombreDia(dia)}</span>
-              <span className="dia-numero">{numeroDia(dia)}</span>
+              <span className="dia-nombre">{info.nombre}</span>
+              <span className="dia-numero">{info.numero}</span>
             </button>
           );
         })}
       </div>
-
-      <button className="fechas-flecha" onClick={() => onMover(DIAS_VISIBLES)} aria-label="Semana siguiente">
-        ›
-      </button>
     </div>
   );
 }

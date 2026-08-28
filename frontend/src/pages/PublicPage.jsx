@@ -5,7 +5,6 @@ import CourtSelector, { CANCHAS } from '../components/CourtSelector';
 import DateStrip from '../components/DateStrip';
 import FutbolSlots from '../components/FutbolSlots';
 import PadelPicker from '../components/PadelPicker';
-import RivalsBoard from '../components/RivalsBoard';
 import RivalsCalendar from '../components/RivalsCalendar';
 import BookingModal from '../components/BookingModal';
 import { hoyISO, sumarDias } from '../lib/fechas';
@@ -128,8 +127,6 @@ export default function PublicPage() {
               onReservar={(rango) => setSlotSeleccionado({ court: 'PAD', date: fecha, ...rango })}
             />
           )}
-
-          <RivalsBoard rivales={rivalesFiltrados} />
         </>
       )}
 

@@ -24,8 +24,17 @@ async function leerRespuesta(res) {
   return data;
 }
 
+// fetch tira "Failed to fetch" cuando el backend no esta levantado.
+async function pedir(url, options) {
+  try {
+    return await fetch(url, options);
+  } catch {
+    throw new Error(`No pudimos conectarnos con el servidor (${API_URL}). Verificá que el backend esté corriendo con npm run dev.`);
+  }
+}
+
 async function requestPublico(path, options = {}) {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await pedir(`${API_URL}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...options,
   });
@@ -34,7 +43,7 @@ async function requestPublico(path, options = {}) {
 
 async function requestAdmin(path, options = {}) {
   const token = await tokenAdmin();
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await pedir(`${API_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,

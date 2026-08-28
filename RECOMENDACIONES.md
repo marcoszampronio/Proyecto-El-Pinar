@@ -8,9 +8,9 @@ Al final está el detalle de lo que ya quedó implementado en el rediseño.
 
 ## 1. Bugs y riesgos (prioridad alta)
 
-### 1.1 Marca inconsistente: "El Potrero" vs "El Pinar"
-La web y el backend decían "Complejo El Potrero" mientras los emails decían "El Pinar".
-**Solución:** unificar todo a "El Pinar". *(Hecho)*
+### 1.1 Marca inconsistente
+La web, el panel, el backend y el schema usaban un nombre de complejo distinto al de los emails.
+**Solución:** todo unificado a "Complejo El Pinar". *(Hecho)*
 
 ### 1.2 La fecha del día se calculaba en UTC
 `hoyISO()` usaba `new Date().toISOString()`, que devuelve la fecha en UTC.

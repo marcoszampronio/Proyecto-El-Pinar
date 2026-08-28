@@ -508,3 +508,9 @@ button { font-family: inherit; }
 .slot.pendiente { background: rgba(192, 154, 70, 0.18); color: var(--muted); }
 .slot.confirmada { background: rgba(46, 125, 91, 0.15); color: var(--ok); }
 .btn-primary { background: var(--navy); color: var(--gold-soft); }
+;
+.dia-btn.no-habilitado {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}

@@ -1,143 +1,142 @@
-import { Router } from 'express';
-import { supabaseAdmin } from '../lib/supabaseAdmin.js';
-import {
-  TURNOS_FUTBOL,
-  PADEL_APERTURA,
-  PADEL_CIERRE,
-  generarCodigoFutbol,
-  generarCodigoPadel,
-  esDiaHabilitado,
-} from '../lib/codeGenerator.js';
-import 'dotenv/config';
+import { useState } from 'react';
+import { api } from '../api';
 
-const router = Router();
+const CATEGORIAS = ['M30', 'M40', 'Libre'];
 
-function validarDatosCliente(body) {
-  if (!body.clientName || !body.clientPhone) return 'Completá tu nombre y teléfono.';
-  if (!body.clientEmail) return 'Completá tu email para recibir la confirmación.';
-  if (body.lookingForRival) {
-    if (!body.teamName) return 'Completá el nombre de tu equipo.';
-    if (!body.category) return 'Elegí la categoría del equipo.';
+export default function BookingModal({ slotInfo, onClose }) {
+  const [form, setForm] = useState({
+    clientName: '', clientPhone: '', clientEmail: '',
+    lookingForRival: false, teamName: '', category: '',
+  });
+  const [resultado, setResultado] = useState(null);
+  const [error, setError] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const esCanchaFutbol = slotInfo.court !== 'PAD';
+
+  function actualizar(campo, valor) {
+    setForm((f) => ({ ...f, [campo]: valor }));
   }
-  return null;
-}
 
-function armarMensajeWhatsapp(reserva) {
-  const cancha = reserva.court === 'PAD' ? 'Paddle' : `Cancha ${reserva.court.slice(1)}`;
+  async function enviarSolicitud() {
+    setError(null);
+    if (!form.clientName.trim()) return setError('Completá tu nombre.');
+    if (!form.clientPhone.trim()) return setError('Completá tu teléfono.');
+    if (!form.clientEmail.trim()) return setError('Completá tu email.');
+    if (form.lookingForRival && !form.teamName.trim()) return setError('Completá el nombre de tu equipo.');
+    if (form.lookingForRival && !form.category) return setError('Elegí la categoría del equipo.');
+
+    setEnviando(true);
+    try {
+      const payload = {
+        clientName: form.clientName.trim(),
+        clientPhone: form.clientPhone.trim(),
+        clientEmail: form.clientEmail.trim(),
+        lookingForRival: form.lookingForRival,
+        teamName: form.teamName.trim() || null,
+        category: form.category || null,
+        date: slotInfo.date,
+      };
+      const data = esCanchaFutbol
+        ? await api.reservarFutbol({ ...payload, court: slotInfo.court, turn: slotInfo.turn })
+        : await api.reservarPadel({ ...payload, startTime: slotInfo.startTime, endTime: slotInfo.endTime });
+      setResultado(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  const linkWhatsapp = resultado
+    ? `https://wa.me/${resultado.numeroWhatsapp}?text=${encodeURIComponent(resultado.mensajeWhatsapp)}`
+    : null;
+
   return (
-    `Hola! Quiero confirmar mi reserva en El Pinar.\n` +
-    `📋 *Código:* ${reserva.code}\n` +
-    `⚽ *Cancha:* ${cancha}\n` +
-    `📅 *Fecha:* ${reserva.reservation_date}\n` +
-    `🕐 *Horario:* ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs\n` +
-    `👤 *Nombre:* ${reserva.client_name}\n\n` +
-    `Adjunto el comprobante de pago.`
+    <div className="overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        {!resultado ? (
+          <>
+            <h3 className="modal-titulo">Solicitar turno</h3>
+            <p className="modal-sub">
+              {esCanchaFutbol
+                ? `Cancha ${slotInfo.court.slice(1)} · ${slotInfo.turn} · ${slotInfo.date}`
+                : `Paddle · ${slotInfo.startTime?.slice(0,5)} a ${slotInfo.endTime?.slice(0,5)} · ${slotInfo.date}`}
+            </p>
+
+            <div className="field">
+              <label>Nombre completo</label>
+              <input value={form.clientName} onChange={(e) => actualizar('clientName', e.target.value)} placeholder="Tu nombre y apellido" />
+            </div>
+            <div className="field">
+              <label>Teléfono / WhatsApp</label>
+              <input value={form.clientPhone} onChange={(e) => actualizar('clientPhone', e.target.value)} placeholder="Ej: 3434551234" type="tel" />
+            </div>
+            <div className="field">
+              <label>Email</label>
+              <input value={form.clientEmail} onChange={(e) => actualizar('clientEmail', e.target.value)} placeholder="Para recibir la confirmación" type="email" />
+            </div>
+
+            <div className="field-check">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={form.lookingForRival}
+                  onChange={(e) => actualizar('lookingForRival', e.target.checked)}
+                />
+                Estoy buscando rival
+              </label>
+            </div>
+
+            {form.lookingForRival && (
+              <>
+                <div className="field">
+                  <label>Nombre del equipo</label>
+                  <input value={form.teamName} onChange={(e) => actualizar('teamName', e.target.value)} placeholder="Ej: Los Pibes FC" />
+                </div>
+                <div className="field">
+                  <label>Categoría</label>
+                  <select value={form.category} onChange={(e) => actualizar('category', e.target.value)}>
+                    <option value="">Seleccioná una categoría</option>
+                    {CATEGORIAS.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+
+            {error && <p className="error-msg">{error}</p>}
+
+            <div className="modal-actions">
+              <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+              <button className="btn btn-primary" onClick={enviarSolicitud} disabled={enviando}>
+                {enviando ? 'Enviando...' : 'Continuar'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 className="modal-titulo">¡Ya casi!</h3>
+            <p style={{ fontSize: 14, marginBottom: 8 }}>
+              Transferí el monto al alias:<br />
+              <strong style={{ fontSize: 16 }}>{resultado.aliasTransferencia || 'Consultá el alias por WhatsApp'}</strong>
+            </p>
+            <div className="codigo-box">
+              <div style={{ fontSize: 12, marginBottom: 6, opacity: 0.8 }}>Tu código de reserva</div>
+              <div className="codigo">{resultado.reserva.code}</div>
+              <div style={{ fontSize: 11, marginTop: 6, opacity: 0.7 }}>Guardá este código — lo vas a necesitar para confirmar</div>
+            </div>
+            <p style={{ fontSize: 13, color: '#5C6B60', marginBottom: 16 }}>
+              Enviá el comprobante de pago junto con este código por WhatsApp para confirmar tu turno.
+            </p>
+            <div className="modal-actions">
+              <button className="btn btn-ghost" onClick={onClose}>Cerrar</button>
+              <a className="btn btn-primary" style={{ textDecoration: 'none', textAlign: 'center' }} href={linkWhatsapp} target="_blank" rel="noreferrer">
+                📲 Enviar WhatsApp
+              </a>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
-
-router.post('/futbol', async (req, res) => {
-  const body = req.body;
-  if (!esDiaHabilitado(body.date)) {
-    return res.status(400).json({ error: 'Solo se puede reservar los martes, miércoles y jueves.' });
-  }
-  const errorCliente = validarDatosCliente(body);
-  if (errorCliente) return res.status(400).json({ error: errorCliente });
-  if (!['C1', 'C2'].includes(body.court)) return res.status(400).json({ error: 'Cancha inválida.' });
-  const turnoInfo = TURNOS_FUTBOL[body.turn];
-  if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
-
-  const code = generarCodigoFutbol({ court: body.court, date: body.date, turn: body.turn });
-
-  const { data, error } = await supabaseAdmin
-    .from('reservations')
-    .insert({
-      code,
-      court: body.court,
-      reservation_date: body.date,
-      start_time: turnoInfo.start,
-      end_time: turnoInfo.end,
-      turn: body.turn,
-      client_name: body.clientName,
-      client_phone: body.clientPhone,
-      client_email: body.clientEmail,
-      category: body.category || null,
-      team_name: body.teamName || null,
-      looking_for_rival: !!body.lookingForRival,
-      status: 'pendiente',
-    })
-    .select()
-    .single();
-
-  if (error) {
-    if (error.code === '23505') return res.status(409).json({ error: 'Ese horario ya no está disponible. Elegí otro.' });
-    return res.status(500).json({ error: error.message });
-  }
-
-  res.json({
-    reserva: data,
-    mensajeWhatsapp: armarMensajeWhatsapp(data),
-    numeroWhatsapp: process.env.WHATSAPP_NUMERO,
-    aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
-  });
-});
-
-router.post('/padel', async (req, res) => {
-  const body = req.body;
-  if (!esDiaHabilitado(body.date)) {
-    return res.status(400).json({ error: 'Solo se puede reservar los martes, miércoles y jueves.' });
-  }
-  const errorCliente = validarDatosCliente(body);
-  if (errorCliente) return res.status(400).json({ error: errorCliente });
-  if (!body.startTime || !body.endTime) return res.status(400).json({ error: 'Faltan horarios.' });
-  if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
-    return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
-  }
-
-  const { data: existentes, error: errorConsulta } = await supabaseAdmin
-    .from('reservations')
-    .select('start_time, end_time')
-    .eq('reservation_date', body.date)
-    .eq('court', 'PAD')
-    .neq('status', 'cancelada');
-
-  if (errorConsulta) return res.status(500).json({ error: errorConsulta.message });
-
-  const seSolapa = existentes.some((r) => body.startTime < r.end_time && body.endTime > r.start_time);
-  if (seSolapa) return res.status(409).json({ error: 'Ese rango se solapa con otra reserva.' });
-
-  const code = generarCodigoPadel({ date: body.date, startTime: body.startTime, endTime: body.endTime });
-
-  const { data, error } = await supabaseAdmin
-    .from('reservations')
-    .insert({
-      code,
-      court: 'PAD',
-      reservation_date: body.date,
-      start_time: body.startTime,
-      end_time: body.endTime,
-      turn: null,
-      client_name: body.clientName,
-      client_phone: body.clientPhone,
-      client_email: body.clientEmail,
-      category: body.category || null,
-      team_name: body.teamName || null,
-      looking_for_rival: !!body.lookingForRival,
-      status: 'pendiente',
-    })
-    .select()
-    .single();
-
-  if (error) {
-    if (error.code === '23505') return res.status(409).json({ error: 'Ese horario ya no está disponible.' });
-    return res.status(500).json({ error: error.message });
-  }
-
-  res.json({
-    reserva: data,
-    mensajeWhatsapp: armarMensajeWhatsapp(data),
-    numeroWhatsapp: process.env.WHATSAPP_NUMERO,
-    aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
-  });
-});
-
-export default router;

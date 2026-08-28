@@ -143,7 +143,7 @@ export default function PublicPage() {
           onClick={() => setVista('reservar')}
           aria-pressed={vista === 'reservar'}
         >
-          Reservar turnos
+          Reservas
         </button>
         <button
           className={`btn btn-gold ${vista === 'rivales' ? 'activo' : ''}`}

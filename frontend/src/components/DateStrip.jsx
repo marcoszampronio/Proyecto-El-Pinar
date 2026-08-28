@@ -1,4 +1,4 @@
-import { hoyISO, nombreDia, numeroDia, sumarDias } from '../lib/fechas';
+import { hoyISO, nombreDia, numeroDia, sumarDias, esDiaHabilitado } from '../lib/fechas';
 
 const DIAS_VISIBLES = 7;
 
@@ -18,18 +18,25 @@ export default function DateStrip({ inicio, seleccionada, onSeleccionar, onMover
       </button>
 
       <div className="fechas-dias">
-        {dias.map((dia) => (
-          <button
-            key={dia}
-            className={`dia-btn ${dia === seleccionada ? 'activo' : ''}`}
-            onClick={() => onSeleccionar(dia)}
-            disabled={dia < hoy}
-            aria-pressed={dia === seleccionada}
-          >
-            <span className="dia-nombre">{nombreDia(dia)}</span>
-            <span className="dia-numero">{numeroDia(dia)}</span>
-          </button>
-        ))}
+        {dias.map((dia) => {
+          const habilitado = esDiaHabilitado(dia);
+          const pasado = dia < hoy;
+          const deshabilitado = pasado || !habilitado;
+
+          return (
+            <button
+              key={dia}
+              className={`dia-btn ${dia === seleccionada ? 'activo' : ''} ${!habilitado ? 'no-habilitado' : ''}`}
+              onClick={() => !deshabilitado && onSeleccionar(dia)}
+              disabled={deshabilitado}
+              aria-pressed={dia === seleccionada}
+              title={!habilitado ? 'Solo Mar, Mié y Jue' : ''}
+            >
+              <span className="dia-nombre">{nombreDia(dia)}</span>
+              <span className="dia-numero">{numeroDia(dia)}</span>
+            </button>
+          );
+        })}
       </div>
 
       <button className="fechas-flecha" onClick={() => onMover(DIAS_VISIBLES)} aria-label="Semana siguiente">

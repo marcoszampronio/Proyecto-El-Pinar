@@ -71,7 +71,7 @@ export default function PadelPicker({ apertura, cierre, ocupados, onReservar }) 
       </div>
 
       <div className="duracion">
-        <label htmlFor="duracion-padel">Duracion</label>
+        <label htmlFor="duracion-padel">Duración</label>
         <select
           id="duracion-padel"
           value={duracion}

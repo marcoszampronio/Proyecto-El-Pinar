@@ -7,7 +7,7 @@ export default function RivalsBoard({ rivales }) {
   return (
     <section className="panel-rivales">
       <h2 className="seccion-titulo" style={{ margin: '0 0 4px' }}>
-        Busqueda de rivales activos
+        Búsqueda de rivales activos
       </h2>
 
       {!rivales.length && <p className="vacio">No hay equipos buscando rival por ahora.</p>}
@@ -19,7 +19,7 @@ export default function RivalsBoard({ rivales }) {
             <p className="titulo">
               {NOMBRE_CANCHA[r.court] || r.court} / {fechaLarga(r.reservation_date)} {hhmm(r.start_time)} — {r.team_name}
             </p>
-            <p className="detalle">{r.category ? `Categoria: ${r.category}` : 'Sin categoria indicada'}</p>
+            <p className="detalle">{r.category ? `Categoría: ${r.category}` : 'Sin categoría indicada'}</p>
           </div>
           <a
             className="contacto-btn"

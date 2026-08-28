@@ -2,8 +2,8 @@ import { CanchaFutbol, CanchaPadel, Avatar, IconoContacto } from './Iconos';
 import { hhmm } from '../lib/fechas';
 
 const COLUMNAS = [
-  { id: 'C1', nombre: 'Futbol 1' },
-  { id: 'C2', nombre: 'Futbol 2' },
+  { id: 'C1', nombre: 'Fútbol 1' },
+  { id: 'C2', nombre: 'Fútbol 2' },
   { id: 'PAD', nombre: 'Paddle' },
 ];
 
@@ -52,9 +52,9 @@ function CeldaRivales({ rivales }) {
   return (
     <div className="rival-chip">
       <Avatar size={30} />
-      {rivales.length > 1 && <div className="meta">{rivales.length} busquedas activas</div>}
+      {rivales.length > 1 && <div className="meta">{rivales.length} búsquedas activas</div>}
       <div className="nombre">{principal.team_name}</div>
-      <div className="meta">{principal.category || 'Sin categoria'}</div>
+      <div className="meta">{principal.category || 'Sin categoría'}</div>
       <a
         href={`https://wa.me/${(principal.contact_phone || '').replace(/\D/g, '')}`}
         target="_blank"

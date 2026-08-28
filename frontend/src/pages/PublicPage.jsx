@@ -135,21 +135,21 @@ export default function PublicPage() {
 
       {vista === 'rivales' && (
         <>
-          <h2 className="seccion-titulo">Calendario de busqueda de rivales</h2>
+          <h2 className="seccion-titulo">Calendario de búsqueda de rivales</h2>
           <RivalsCalendar rivales={rivalesDelDia} />
         </>
       )}
 
       <div className="acciones-fijas">
         <button
-          className={`btn btn-navy ${vista === 'reservar' ? '' : 'inactivo'}`}
+          className={`btn btn-navy ${vista === 'reservar' ? 'activo' : ''}`}
           onClick={() => setVista('reservar')}
           aria-pressed={vista === 'reservar'}
         >
           Reservar turnos
         </button>
         <button
-          className={`btn btn-gold ${vista === 'rivales' ? '' : 'inactivo'}`}
+          className={`btn btn-gold ${vista === 'rivales' ? 'activo' : ''}`}
           onClick={() => setVista('rivales')}
           aria-pressed={vista === 'rivales'}
         >

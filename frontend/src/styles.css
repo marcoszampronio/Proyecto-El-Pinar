@@ -34,9 +34,12 @@ button { font-family: inherit; }
   margin: 0 auto;
   min-height: 100vh;
   background: var(--cream);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='320' viewBox='0 0 260 320'%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.13' stroke-width='6'%3E%3Cpath d='M130 20 L60 300 L200 300 Z'/%3E%3Cpath d='M130 90 L70 220 L190 220 Z'/%3E%3Cpath d='M130 160 L85 250 L175 250 Z'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right -60px bottom 80px;
+  /* marcas de agua: pino a la derecha y arco de futbol abajo */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='320' viewBox='0 0 260 320'%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.13' stroke-width='6'%3E%3Cpath d='M130 20 L60 300 L200 300 Z'/%3E%3Cpath d='M130 90 L70 220 L190 220 Z'/%3E%3Cpath d='M130 160 L85 250 L175 250 Z'/%3E%3C/g%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='200' viewBox='0 0 320 200'%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.16' stroke-width='4'%3E%3Cpath d='M40 190 L70 30 L250 30 L280 190'/%3E%3Cpath d='M70 30 L70 190 M250 30 L250 190'/%3E%3C/g%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.09' stroke-width='2'%3E%3Cpath d='M100 30 L92 190 M130 30 L124 190 M160 30 L160 190 M190 30 L196 190 M220 30 L228 190'/%3E%3Cpath d='M62 70 L258 70 M58 110 L262 110 M52 150 L268 150'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: right -60px bottom 220px, center bottom 0;
   padding-bottom: 120px;
   position: relative;
 }
@@ -298,10 +301,8 @@ button { font-family: inherit; }
   z-index: 15;
 }
 .acciones-fijas .btn { padding: 15px 10px; font-size: 15px; text-transform: uppercase; }
-.acciones-fijas .btn.inactivo {
-  background: none;
-  border: 2px solid var(--gold);
-  color: var(--gold-dark);
+.acciones-fijas .btn.activo {
+  box-shadow: 0 0 0 3px var(--cream), 0 0 0 5px var(--gold);
 }
 
 /* ---------- rivales ---------- */

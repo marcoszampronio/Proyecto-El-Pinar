@@ -27,8 +27,8 @@ export default function Header({ busqueda, onBuscar, menuAbierto, onToggleMenu, 
             autoFocus
             value={busqueda}
             onChange={(e) => onBuscar(e.target.value)}
-            placeholder="Buscar equipo o categoria..."
-            aria-label="Buscar equipo o categoria"
+            placeholder="Buscar equipo o categoría..."
+            aria-label="Buscar equipo o categoría"
           />
         </div>
       )}

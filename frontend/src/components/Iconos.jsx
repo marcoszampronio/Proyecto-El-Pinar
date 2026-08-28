@@ -32,17 +32,15 @@ export function CanchaFutbol({ activa = false }) {
   );
 }
 
-export function CanchaPadel({ activa = false }) {
-  const relleno = activa ? '#123C6E' : 'none';
-  const linea = activa ? '#E4CF9C' : '#123C6E';
+export function CanchaPadel() {
   return (
     <svg viewBox="0 0 100 150" aria-hidden="true">
-      <rect x="2" y="24" width="96" height="102" rx="4" fill={relleno} stroke={linea} strokeWidth="3" />
-      <line x1="2" y1="75" x2="98" y2="75" stroke={linea} strokeWidth="3" />
-      <line x1="2" y1="48" x2="98" y2="48" stroke={linea} strokeWidth="2" />
-      <line x1="2" y1="102" x2="98" y2="102" stroke={linea} strokeWidth="2" />
-      <line x1="50" y1="24" x2="50" y2="48" stroke={linea} strokeWidth="2" />
-      <line x1="50" y1="102" x2="50" y2="126" stroke={linea} strokeWidth="2" />
+      <rect width="100" height="150" fill="#7AC74F" />
+      <rect x="15" y="15" width="70" height="120" fill="#2D68C4" stroke="white" strokeWidth="2" />
+      <line x1="12" y1="75" x2="88" y2="75" stroke="#111" strokeWidth="3" strokeDasharray="2,2" />
+      <line x1="15" y1="45" x2="85" y2="45" stroke="white" strokeWidth="2" />
+      <line x1="15" y1="105" x2="85" y2="105" stroke="white" strokeWidth="2" />
+      <line x1="50" y1="45" x2="50" y2="105" stroke="white" strokeWidth="2" />
     </svg>
   );
 }

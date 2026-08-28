@@ -1,9 +1,9 @@
 import { CanchaFutbol, CanchaPadel } from './Iconos';
 
 export const CANCHAS = [
-  { id: 'C1', tipo: 'Football', nombre: 'Cancha 1' },
-  { id: 'C2', tipo: 'Football', nombre: 'Cancha 2' },
-  { id: 'PAD', tipo: '', nombre: 'Paddle' },
+  { id: 'C1', nombre: 'Cancha 1' },
+  { id: 'C2', nombre: 'Cancha 2' },
+  { id: 'PAD', nombre: 'Paddle' },
 ];
 
 export default function CourtSelector({ seleccionada, onSeleccionar }) {
@@ -18,8 +18,7 @@ export default function CourtSelector({ seleccionada, onSeleccionar }) {
             onClick={() => onSeleccionar(cancha.id)}
             aria-pressed={activa}
           >
-            {cancha.id === 'PAD' ? <CanchaPadel activa={activa} /> : <CanchaFutbol activa={activa} />}
-            {cancha.tipo && <span className="tipo">{cancha.tipo}</span>}
+            {cancha.id === 'PAD' ? <CanchaPadel /> : <CanchaFutbol activa={activa} />}
             <span className="nombre">{cancha.nombre}</span>
           </button>
         );

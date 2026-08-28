@@ -132,16 +132,9 @@ button { font-family: inherit; }
 }
 .cancha-card:hover { transform: translateY(-2px); }
 .cancha-card svg { width: 100%; height: auto; max-height: 150px; }
-.cancha-card .tipo {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-top: 8px;
-  color: var(--muted);
-}
 .cancha-card .nombre {
   display: block;
+  margin-top: 8px;
   font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;

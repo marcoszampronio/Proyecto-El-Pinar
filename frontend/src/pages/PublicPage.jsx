@@ -7,12 +7,12 @@ import FutbolSlots from '../components/FutbolSlots';
 import PadelPicker from '../components/PadelPicker';
 import RivalsCalendar from '../components/RivalsCalendar';
 import BookingModal from '../components/BookingModal';
-import { hoyISO, sumarDias } from '../lib/fechas';
+import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
 
 export default function PublicPage() {
   const [vista, setVista] = useState('reservar'); // 'reservar' | 'rivales'
   const [cancha, setCancha] = useState('C1');
-  const [fecha, setFecha] = useState(hoyISO());
+  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
 
   const [turnos, setTurnos] = useState([]);
   const [padel, setPadel] = useState(null);
@@ -113,7 +113,7 @@ export default function PublicPage() {
 
           {!cargando && !errorCarga && cancha === 'PAD' && padel && (
             <PadelPicker
-              key={fecha}
+              key={`${cancha}-${fecha}`}
               apertura={padel.apertura}
               cierre={padel.cierre}
               ocupados={padel.ocupados}

@@ -2,11 +2,183 @@ import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
+import { TURNOS_FUTBOL } from '../lib/codeGenerator.js';
+import { contarParrillasRango } from '../lib/parrilla.js';
 
 const router = Router();
 
 // Todas las rutas de este archivo requieren estar logueado como admin
 router.use(requireAdmin);
+
+const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
+
+// Deja el telefono en formato que entiende wa.me (Argentina: 549 + area + numero).
+// Es "best effort": si el cliente cargo algo raro, se devuelve igual lo que se pudo
+// armar y el panel lo muestra para que Mateo lo revise antes de enviar.
+function normalizarTelefonoAR(raw) {
+  let d = String(raw || '').replace(/\D/g, '');
+  if (!d) return null;
+  if (d.startsWith('54')) {
+    if (!d.startsWith('549')) d = '549' + d.slice(2);
+    return d;
+  }
+  if (d.startsWith('0')) d = d.slice(1);
+  return '549' + d;
+}
+
+function armarMensajeSuspension(reserva) {
+  const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
+  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  return (
+    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
+    `Por lluvia, SE SUSPENDE el turno del ${reserva.reservation_date} ` +
+    `(${cancha}, ${horario}).\n\n` +
+    `Tu reserva ${reserva.code} queda cancelada. Escribinos por aca para reprogramar. ` +
+    `Disculpa las molestias.`
+  );
+}
+
+function armarMensajeCancelacionTurno(reserva) {
+  const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
+  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  return (
+    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
+    `Tu turno ${reserva.code} del ${reserva.reservation_date} ` +
+    `(${cancha}, ${horario}) queda CANCELADO.\n\n` +
+    `Cualquier duda o para reprogramar, escribinos por aca.`
+  );
+}
+
+// Datos de una reserva para mostrar en la agenda del panel (con link de WhatsApp
+// de cancelacion ya armado).
+function resumenAgenda(r) {
+  if (!r) return null;
+  const mensaje = armarMensajeCancelacionTurno(r);
+  const tel = normalizarTelefonoAR(r.client_phone);
+  return {
+    id: r.id,
+    code: r.code,
+    court: r.court,
+    start_time: r.start_time,
+    end_time: r.end_time,
+    turn: r.turn,
+    status: r.status,
+    client_name: r.client_name,
+    client_phone: r.client_phone,
+    client_email: r.client_email,
+    looking_for_rival: r.looking_for_rival,
+    team_name: r.team_name,
+    category: r.category,
+    parrilla: r.parrilla,
+    mensajeCancelacion: mensaje,
+    linkWhatsappCancelacion: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}` : null,
+  };
+}
+
+// GET /api/admin/agenda/:date - vista de calendario del dia: grilla de futbol
+// (C1/C2 x T1/T2/T3, libre u ocupado) + lista de padel + parrillas usadas.
+router.get('/agenda/:date', async (req, res) => {
+  const date = req.params.date;
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .select('*')
+    .eq('reservation_date', date)
+    .neq('status', 'cancelada')
+    .order('start_time', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  const futbol = {};
+  for (const court of ['C1', 'C2']) {
+    futbol[court] = Object.entries(TURNOS_FUTBOL).map(([turn, h]) => {
+      const r = data.find((x) => x.court === court && x.turn === turn);
+      return {
+        turn,
+        start: h.start,
+        end: h.end,
+        label: h.label,
+        status: r ? r.status : 'libre',
+        reserva: resumenAgenda(r),
+      };
+    });
+  }
+
+  const padel = data.filter((x) => x.court === 'PAD').map(resumenAgenda);
+  const conParrilla = data.filter((x) => x.parrilla).map(resumenAgenda);
+
+  res.json({
+    date,
+    futbol,
+    padel,
+    parrilla: { capacidad: 2, usadas: conParrilla.length, reservas: conParrilla },
+  });
+});
+
+// GET /api/admin/dia/:date - reservas activas de un dia (para la vista previa
+// de "suspender por lluvia": Mateo ve a quien va a afectar antes de confirmar)
+router.get('/dia/:date', async (req, res) => {
+  const date = req.params.date;
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .select('*')
+    .eq('reservation_date', date)
+    .in('status', ['pendiente', 'confirmada'])
+    .order('start_time', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ date, reservas: data });
+});
+
+// POST /api/admin/suspender/:date - cancela todas las reservas activas de ese dia
+// y devuelve, por cada cliente, el link de WhatsApp con el mensaje de suspension listo.
+router.post('/suspender/:date', async (req, res) => {
+  const date = req.params.date;
+
+  const { data: afectadas, error: errorBusqueda } = await supabaseAdmin
+    .from('reservations')
+    .select('*')
+    .eq('reservation_date', date)
+    .in('status', ['pendiente', 'confirmada'])
+    .order('start_time', { ascending: true });
+
+  if (errorBusqueda) return res.status(500).json({ error: errorBusqueda.message });
+  if (!afectadas.length) {
+    return res.json({ date, canceladas: 0, clientes: [] });
+  }
+
+  const ids = afectadas.map((r) => r.id);
+  const { error: errorUpdate } = await supabaseAdmin
+    .from('reservations')
+    .update({
+      status: 'cancelada',
+      cancelled_at: new Date().toISOString(),
+      cancelled_by: req.adminEmail,
+    })
+    .in('id', ids);
+
+  if (errorUpdate) return res.status(500).json({ error: errorUpdate.message });
+
+  const clientes = afectadas.map((r) => {
+    const mensaje = armarMensajeSuspension(r);
+    const telefono = normalizarTelefonoAR(r.client_phone);
+    return {
+      code: r.code,
+      nombre: r.client_name,
+      telefonoOriginal: r.client_phone,
+      telefono,
+      court: r.court,
+      start_time: r.start_time,
+      end_time: r.end_time,
+      mensaje,
+      linkWhatsapp: telefono
+        ? `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`
+        : null,
+    };
+  });
+
+  res.json({ date, canceladas: afectadas.length, clientes });
+});
 
 // GET /api/admin/search/:code
 // Busca una reserva por codigo y le dice al frontend que accion corresponde
@@ -99,30 +271,135 @@ router.get('/pending', async (req, res) => {
   res.json({ pendientes: data });
 });
 
-// GET /api/admin/stats?dias=7
-router.get('/stats', async (req, res) => {
-  const dias = Number(req.query.dias || 7);
-  const desde = new Date();
-  const hasta = new Date();
-  hasta.setDate(hasta.getDate() + dias);
-
+// GET /api/admin/contactos - base de contactos de clientes (deduplicada por telefono).
+// Sirve para avisos masivos: cada contacto trae su link de WhatsApp listo.
+router.get('/contactos', async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('reservations')
-    .select('court, status, reservation_date')
-    .gte('reservation_date', desde.toISOString().slice(0, 10))
-    .lte('reservation_date', hasta.toISOString().slice(0, 10));
+    .select('client_name, client_phone, client_email, reservation_date, status, court, created_at')
+    .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const confirmadas = data.filter((r) => r.status === 'confirmada');
+  const mapa = new Map();
+  for (const r of data) {
+    const clave = String(r.client_phone || '').replace(/\D/g, '') || (r.client_email || '').toLowerCase() || r.client_name;
+    if (!clave) continue;
+    if (!mapa.has(clave)) {
+      mapa.set(clave, {
+        nombre: r.client_name,
+        telefono: r.client_phone,
+        telefonoWa: normalizarTelefonoAR(r.client_phone),
+        email: r.client_email || null,
+        totalReservas: 0,
+        confirmadas: 0,
+        canceladas: 0,
+        ultimaReserva: r.reservation_date,
+        canchasUsadas: new Set(),
+      });
+    }
+    const c = mapa.get(clave);
+    c.totalReservas++;
+    if (r.status === 'confirmada') c.confirmadas++;
+    if (r.status === 'cancelada') c.canceladas++;
+    if (r.reservation_date > c.ultimaReserva) c.ultimaReserva = r.reservation_date;
+    c.canchasUsadas.add(r.court);
+  }
+
+  const contactos = [...mapa.values()]
+    .map((c) => ({ ...c, canchasUsadas: [...c.canchasUsadas] }))
+    .sort((a, b) => b.confirmadas - a.confirmadas || b.totalReservas - a.totalReservas);
+
+  res.json({ total: contactos.length, contactos });
+});
+
+const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DIAS_HABILITADOS = [2, 3, 4]; // mar, mié, jue
+
+function isoHoy(offsetDias = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDias);
+  return d.toISOString().slice(0, 10);
+}
+
+// GET /api/admin/stats?dias=7 - dashboard: ventana futura (agenda) + histórico 30 días.
+router.get('/stats', async (req, res) => {
+  const dias = Number(req.query.dias || 7);
+  const hoy = isoHoy(0);
+  const finVentana = isoHoy(dias);
+  const hace30 = isoHoy(-30);
+
+  const [futuro, historico, parrillasVentana, parrillas30] = await Promise.all([
+    supabaseAdmin
+      .from('reservations')
+      .select('court, status, reservation_date, turn, looking_for_rival')
+      .gte('reservation_date', hoy)
+      .lte('reservation_date', finVentana),
+    supabaseAdmin
+      .from('reservations')
+      .select('status, reservation_date, client_phone')
+      .gte('reservation_date', hace30)
+      .lt('reservation_date', hoy),
+    contarParrillasRango(hoy, isoHoy(dias + 1)),
+    contarParrillasRango(hace30, hoy),
+  ]);
+
+  if (futuro.error) return res.status(500).json({ error: futuro.error.message });
+  if (historico.error) return res.status(500).json({ error: historico.error.message });
+
+  // ---- Ventana futura ----
+  const fData = futuro.data;
+  const activas = fData.filter((r) => r.status !== 'cancelada');
+  const confirmadas = fData.filter((r) => r.status === 'confirmada');
   const porCancha = { C1: 0, C2: 0, PAD: 0 };
-  confirmadas.forEach((r) => { porCancha[r.court] = (porCancha[r.court] || 0) + 1; });
+  activas.forEach((r) => { if (porCancha[r.court] != null) porCancha[r.court]++; });
+
+  // ocupación de turnos de fútbol: turnos ocupados / (3 turnos x 2 canchas x días hábiles)
+  let diasHabiles = 0;
+  for (let i = 0; i <= dias; i++) {
+    const d = new Date(hoy + 'T00:00:00');
+    d.setDate(d.getDate() + i);
+    if (DIAS_HABILITADOS.includes(d.getDay())) diasHabiles++;
+  }
+  const turnosFutbolPosibles = diasHabiles * 3 * 2;
+  const turnosFutbolOcupados = activas.filter((r) => r.court === 'C1' || r.court === 'C2').length;
+  const ocupacionFutbol = turnosFutbolPosibles
+    ? Math.round((turnosFutbolOcupados / turnosFutbolPosibles) * 100)
+    : 0;
+
+  // ---- Histórico 30 días ----
+  const hData = historico.data;
+  const hConfirmadas = hData.filter((r) => r.status === 'confirmada').length;
+  const hCanceladas = hData.filter((r) => r.status === 'cancelada').length;
+  const clientesUnicos = new Set(
+    hData.map((r) => String(r.client_phone || '').replace(/\D/g, '')).filter(Boolean)
+  ).size;
+  const porDiaSemana = DIAS_SEMANA.map((nombre, idx) => ({
+    dia: nombre,
+    reservas: hData.filter((r) => new Date(r.reservation_date + 'T00:00:00').getDay() === idx && r.status !== 'cancelada').length,
+  })).filter((d) => DIAS_HABILITADOS.includes(DIAS_SEMANA.indexOf(d.dia)));
 
   res.json({
     rangoDias: dias,
-    totalConfirmadas: confirmadas.length,
-    totalPendientes: data.filter((r) => r.status === 'pendiente').length,
-    reservasPorCancha: porCancha,
+    ventana: {
+      confirmadas: confirmadas.length,
+      pendientes: fData.filter((r) => r.status === 'pendiente').length,
+      reservasPorCancha: porCancha,
+      parrillasReservadas: parrillasVentana,
+      equiposBuscandoRival: activas.filter((r) => r.looking_for_rival && r.status === 'confirmada').length,
+      ocupacionFutbolPct: ocupacionFutbol,
+      turnosFutbolOcupados,
+      turnosFutbolPosibles,
+    },
+    historico30: {
+      totalActivas: hData.filter((r) => r.status !== 'cancelada').length,
+      confirmadas: hConfirmadas,
+      canceladas: hCanceladas,
+      tasaCancelacionPct: hData.length ? Math.round((hCanceladas / hData.length) * 100) : 0,
+      clientesUnicos,
+      parrillas: parrillas30,
+      porDiaSemana,
+    },
   });
 });
 

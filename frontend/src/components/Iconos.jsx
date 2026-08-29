@@ -16,11 +16,11 @@ export function IconoLupa({ size = 24 }) {
 }
 
 export function CanchaFutbol({ activa = false }) {
-  const relleno = activa ? '#123C6E' : 'none';
-  const linea = activa ? '#E4CF9C' : '#123C6E';
+  const cesped = activa ? '#2E7D32' : '#5FA845';
+  const linea = '#FFFFFF';
   return (
     <svg viewBox="0 0 100 150" aria-hidden="true">
-      <rect x="2" y="2" width="96" height="146" rx="6" fill={relleno} stroke={linea} strokeWidth="3" />
+      <rect x="2" y="2" width="96" height="146" rx="6" fill={cesped} stroke={activa ? '#1B5E20' : '#4C9138'} strokeWidth="3" />
       <line x1="2" y1="75" x2="98" y2="75" stroke={linea} strokeWidth="2" />
       <circle cx="50" cy="75" r="16" fill="none" stroke={linea} strokeWidth="2" />
       <circle cx="50" cy="75" r="2.5" fill={linea} />
@@ -41,6 +41,26 @@ export function CanchaPadel() {
       <line x1="15" y1="45" x2="85" y2="45" stroke="white" strokeWidth="2" />
       <line x1="15" y1="105" x2="85" y2="105" stroke="white" strokeWidth="2" />
       <line x1="50" y1="45" x2="50" y2="105" stroke="white" strokeWidth="2" />
+    </svg>
+  );
+}
+
+export function CanchaParrilla({ activa = false }) {
+  const relleno = activa ? '#123C6E' : '#F0E6CE';
+  const linea = activa ? '#E4CF9C' : '#123C6E';
+  return (
+    <svg viewBox="0 0 100 150" aria-hidden="true">
+      <rect x="2" y="2" width="96" height="146" rx="6" fill={relleno} stroke={linea} strokeWidth="3" />
+      {/* campana de la parrilla */}
+      <rect x="24" y="58" width="52" height="34" rx="4" fill="none" stroke={linea} strokeWidth="3" />
+      <line x1="30" y1="70" x2="70" y2="70" stroke={linea} strokeWidth="2" />
+      <line x1="30" y1="80" x2="70" y2="80" stroke={linea} strokeWidth="2" />
+      {/* patas */}
+      <line x1="30" y1="92" x2="26" y2="118" stroke={linea} strokeWidth="3" />
+      <line x1="70" y1="92" x2="74" y2="118" stroke={linea} strokeWidth="3" />
+      {/* humo */}
+      <path d="M42 50c0-6 6-6 6-12s-6-6-6-12" fill="none" stroke={linea} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M56 50c0-6 6-6 6-12s-6-6-6-12" fill="none" stroke={linea} strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
 }

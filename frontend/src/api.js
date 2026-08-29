@@ -60,6 +60,10 @@ export const api = {
   disponibilidadPadel: (date) =>
     requestPublico(`/availability/padel?date=${date}`),
 
+  // cuántas parrillas quedan para esa fecha (capacidad total: 2)
+  disponibilidadParrilla: (date) =>
+    requestPublico(`/availability/parrilla?date=${date}`),
+
   reservarFutbol: (payload) =>
     requestPublico('/reservations/futbol', { method: 'POST', body: JSON.stringify(payload) }),
 
@@ -73,4 +77,10 @@ export const api = {
   adminCancelar: (code) => requestAdmin(`/admin/cancel/${encodeURIComponent(code)}`, { method: 'POST' }),
   adminPendientes: () => requestAdmin('/admin/pending'),
   adminStats: (dias = 7) => requestAdmin(`/admin/stats?dias=${dias}`),
+  adminContactos: () => requestAdmin('/admin/contactos'),
+  adminBackupAhora: () => requestAdmin('/admin/export/backup-ahora', { method: 'POST' }),
+  adminAgenda: (date) => requestAdmin(`/admin/agenda/${date}`),
+  adminReservasDelDia: (date) => requestAdmin(`/admin/dia/${date}`),
+  adminSuspenderPorLluvia: (date) =>
+    requestAdmin(`/admin/suspender/${date}`, { method: 'POST' }),
 };

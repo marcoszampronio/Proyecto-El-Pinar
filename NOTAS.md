@@ -11,8 +11,12 @@ toda la conversación original.
 - **Hosting sugerido**: Netlify (frontend) + Railway/Render (backend)
 
 ## Decisiones de negocio importantes
-- Hay 3 "canchas": `C1`, `C2` (fútbol 11, turnos fijos T1/T2/T3) y `PAD`
-  (pádel, horario flexible elegido por el cliente).
+- Hay 4 espacios reservables: `C1`, `C2` (fútbol 11, turnos fijos T1/T2/T3),
+  `PAD` (pádel, rango flexible 20:00–23:30) y `PAR` (parrilla, rango flexible
+  11:00–23:30). Todos se reservan solo martes/miércoles/jueves.
+- Migraciones pendientes de correr en Supabase (carpeta `database/migrations/`):
+  `2026-08-29_fix_rivals_view.sql` (hecha), `2026-08-29_agregar_parrilla.sql`
+  (habilita `PAR`), `2026-08-29_anti_solape_flexible.sql` (opcional, robustez).
 - El cliente **paga primero** (transferencia externa al sistema) y después
   envía el comprobante + código por WhatsApp de forma manual.
 - El código de reserva es **determinístico** (no aleatorio): se arma solo
@@ -32,9 +36,17 @@ toda la conversación original.
   alguien, solo agregarlo en Supabase Auth + esa variable).
 
 ## Lo que falta para producción (ver también CHECKLIST_PROYECTO.md)
-- [ ] Backup automático diario a Google Drive (hoy no está implementado).
-- [ ] Botón de exportar historial a Excel desde el panel.
-- [ ] Borrado/archivado automático de reservas después de X tiempo.
+- [x] Backup automático diario: el backend manda el CSV completo por email a
+      `ADMIN_EMAILS` todos los días a las 3:00 ART (`backend/lib/backupDiario.js`).
+      Se puede disparar a mano desde el panel (Estadísticas → "Enviar backup ahora").
+      Se descartó Google Drive por la complejidad de la service account.
+- [ ] Deploy: ver `DEPLOY.md` (Render para backend, Netlify para frontend).
+- [x] Botón de exportar historial a Excel desde el panel.
+- [x] Expiración automática de reservas pendientes sin comprobante (60 min,
+      `backend/lib/expirarPendientes.js`, corre cada 15 min).
+- [x] Rate limit en la creación de reservas (`express-rate-limit`, 8 cada 15 min).
+- [x] `helmet` para cabeceras de seguridad + CORS restringible por `CORS_ORIGINS`.
+- [x] Escapado seguro del CSV (evita CSV injection en Excel).
 - [ ] Definir alias de transferencia y número de WhatsApp reales en el
       archivo `.env` del backend.
 - [ ] Configurar SMTP real para que los emails salgan de verdad (hoy están

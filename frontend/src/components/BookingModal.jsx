@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
@@ -11,12 +11,22 @@ export default function BookingModal({ slotInfo, onClose }) {
     lookingForRival: false,
     teamName: '',
     category: '',
+    parrilla: false,
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
+  const [parrilla, setParrilla] = useState(null); // { disponibles, capacidad }
 
   const esCanchaFutbol = slotInfo.court !== 'PAD';
+
+  useEffect(() => {
+    api.disponibilidadParrilla(slotInfo.date)
+      .then(setParrilla)
+      .catch(() => setParrilla(null));
+  }, [slotInfo.date]);
+
+  const parrillaDisponible = parrilla ? parrilla.disponibles > 0 : true;
 
   function actualizar(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }));
@@ -24,15 +34,15 @@ export default function BookingModal({ slotInfo, onClose }) {
 
   async function enviarSolicitud() {
     setError(null);
-    if (!form.clientName.trim()) { setError('Completa tu nombre.'); return; }
-    if (!form.clientPhone.trim()) { setError('Completa tu telefono.'); return; }
-    if (!form.clientEmail.trim()) { setError('Completa tu email.'); return; }
+    if (!form.clientName.trim()) { setError('Completá tu nombre.'); return; }
+    if (!form.clientPhone.trim()) { setError('Completá tu teléfono.'); return; }
+    if (!form.clientEmail.trim()) { setError('Completá tu email.'); return; }
     if (esCanchaFutbol && form.lookingForRival && !form.teamName.trim()) {
-      setError('Completa el nombre de tu equipo.');
+      setError('Completá el nombre de tu equipo.');
       return;
     }
     if (esCanchaFutbol && form.lookingForRival && !form.category) {
-      setError('Elegi la categoria del equipo.');
+      setError('Elegí la categoría del equipo.');
       return;
     }
 
@@ -45,6 +55,7 @@ export default function BookingModal({ slotInfo, onClose }) {
         lookingForRival: esCanchaFutbol ? form.lookingForRival : false,
         teamName: esCanchaFutbol ? (form.teamName.trim() || null) : null,
         category: esCanchaFutbol ? (form.category || null) : null,
+        parrilla: form.parrilla,
         date: slotInfo.date,
       };
 
@@ -73,8 +84,8 @@ export default function BookingModal({ slotInfo, onClose }) {
           <h3 className="modal-titulo">Solicitar turno</h3>
           <p className="modal-sub">
             {esCanchaFutbol
-              ? 'Cancha ' + slotInfo.court.slice(1) + ' - ' + slotInfo.turn + ' - ' + slotInfo.date
-              : 'Paddle - ' + (slotInfo.startTime ? slotInfo.startTime.slice(0, 5) : '') + ' a ' + (slotInfo.endTime ? slotInfo.endTime.slice(0, 5) : '') + ' - ' + slotInfo.date}
+              ? 'Cancha ' + slotInfo.court.slice(1) + ' · ' + slotInfo.turn + ' · ' + slotInfo.date
+              : 'Paddle · ' + (slotInfo.startTime ? slotInfo.startTime.slice(0, 5) : '') + ' a ' + (slotInfo.endTime ? slotInfo.endTime.slice(0, 5) : '') + ' · ' + slotInfo.date}
           </p>
 
           <div className="field">
@@ -87,7 +98,7 @@ export default function BookingModal({ slotInfo, onClose }) {
           </div>
 
           <div className="field">
-            <label>Telefono / WhatsApp</label>
+            <label>Teléfono / WhatsApp</label>
             <input
               value={form.clientPhone}
               onChange={(e) => actualizar('clientPhone', e.target.value)}
@@ -101,7 +112,7 @@ export default function BookingModal({ slotInfo, onClose }) {
             <input
               value={form.clientEmail}
               onChange={(e) => actualizar('clientEmail', e.target.value)}
-              placeholder="Para recibir la confirmacion"
+              placeholder="Para recibir la confirmación"
               type="email"
             />
           </div>
@@ -130,12 +141,12 @@ export default function BookingModal({ slotInfo, onClose }) {
                     />
                   </div>
                   <div className="field">
-                    <label>Categoria</label>
+                    <label>Categoría</label>
                     <select
                       value={form.category}
                       onChange={(e) => actualizar('category', e.target.value)}
                     >
-                      <option value="">Selecciona una categoria</option>
+                      <option value="">Seleccioná una categoría</option>
                       {CATEGORIAS.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
@@ -145,6 +156,26 @@ export default function BookingModal({ slotInfo, onClose }) {
               )}
             </div>
           )}
+
+          {/* Parrilla: adicional opcional, por cantidad (hay 2 por noche) */}
+          <div className="field-check">
+            <label style={{ opacity: parrillaDisponible ? 1 : 0.5 }}>
+              <input
+                type="checkbox"
+                checked={form.parrilla}
+                disabled={!parrillaDisponible}
+                onChange={(e) => actualizar('parrilla', e.target.checked)}
+              />
+              {' Sumar parrilla para el asado 🔥'}
+            </label>
+            <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 2 }}>
+              {parrilla == null
+                ? ''
+                : parrilla.disponibles > 0
+                ? `Quedan ${parrilla.disponibles} de ${parrilla.capacidad} parrillas para esa fecha`
+                : 'No quedan parrillas para esa fecha'}
+            </div>
+          </div>
 
           {error && <p className="error-msg">{error}</p>}
 
@@ -162,24 +193,30 @@ export default function BookingModal({ slotInfo, onClose }) {
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal-titulo">Ya casi!</h3>
+        <h3 className="modal-titulo">¡Ya casi!</h3>
         <p style={{ fontSize: 14, marginBottom: 8 }}>
-          {'Transfeiri el monto al alias:'}<br />
+          {'Transferí el monto al alias:'}<br />
           <strong style={{ fontSize: 16 }}>
-            {resultado.aliasTransferencia || 'Consulta el alias por WhatsApp'}
+            {resultado.aliasTransferencia || 'Consultá el alias por WhatsApp'}
           </strong>
         </p>
 
         <div className="codigo-box">
-          <div style={{ fontSize: 12, marginBottom: 6, opacity: 0.8 }}>Tu codigo de reserva</div>
+          <div style={{ fontSize: 12, marginBottom: 6, opacity: 0.8 }}>Tu código de reserva</div>
           <div className="codigo">{resultado.reserva.code}</div>
           <div style={{ fontSize: 11, marginTop: 6, opacity: 0.7 }}>
-            Guarda este codigo - lo vas a necesitar para confirmar
+            Guardá este código — lo vas a necesitar para confirmar
           </div>
         </div>
 
+        {resultado.reserva.parrilla && (
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#B45309', margin: '0 0 10px' }}>
+            🔥 Incluye parrilla para asado
+          </p>
+        )}
+
         <p style={{ fontSize: 13, color: '#5C6B60', marginBottom: 16 }}>
-          Envia el comprobante de pago junto con este codigo por WhatsApp para confirmar tu turno.
+          Enviá el comprobante de pago junto con este código por WhatsApp para confirmar tu turno.
         </p>
 
         <div className="modal-actions">

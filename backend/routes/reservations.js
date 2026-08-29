@@ -8,6 +8,7 @@ import {
   generarCodigoPadel,
   esDiaHabilitado,
 } from '../lib/codeGenerator.js';
+import { validarParrillaDisponible } from '../lib/parrilla.js';
 import 'dotenv/config';
 
 const router = Router();
@@ -22,19 +23,30 @@ function validarDatosCliente(body) {
   return null;
 }
 
+const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
+
 function armarMensajeWhatsapp(reserva) {
-  const cancha = reserva.court === 'PAD' ? 'Paddle' : `Cancha ${reserva.court.slice(1)}`;
+  const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
   return (
     `Hola! Quiero confirmar mi reserva en El Pinar.\n\n` +
     `▶ CÓDIGO: ${reserva.code} ◀\n\n` +
     `Cancha: ${cancha}\n` +
     `Fecha: ${reserva.reservation_date}\n` +
-    `Horario: ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs\n` +
-    `Nombre: ${reserva.client_name}\n\n` +
-    `Adjunto el comprobante de pago.`
+    `Horario: ${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs\n` +
+    `Nombre: ${reserva.client_name}\n` +
+    (reserva.parrilla ? `Incluye PARRILLA para asado\n` : '') +
+    `\nAdjunto el comprobante de pago.`
   );
 }
 
+function respuestaReserva(res, data) {
+  res.json({
+    reserva: data,
+    mensajeWhatsapp: armarMensajeWhatsapp(data),
+    numeroWhatsapp: process.env.WHATSAPP_NUMERO,
+    aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
+  });
+}
 
 router.post('/futbol', async (req, res) => {
   const body = req.body;
@@ -46,6 +58,11 @@ router.post('/futbol', async (req, res) => {
   if (!['C1', 'C2'].includes(body.court)) return res.status(400).json({ error: 'Cancha inválida.' });
   const turnoInfo = TURNOS_FUTBOL[body.turn];
   if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
+
+  if (body.parrilla) {
+    const { error: errorParrilla } = await validarParrillaDisponible(body.date);
+    if (errorParrilla) return res.status(409).json({ error: errorParrilla });
+  }
 
   const code = generarCodigoFutbol({ court: body.court, date: body.date, turn: body.turn });
 
@@ -64,6 +81,7 @@ router.post('/futbol', async (req, res) => {
       category: body.category || null,
       team_name: body.teamName || null,
       looking_for_rival: !!body.lookingForRival,
+      ...(body.parrilla ? { parrilla: true } : {}),
       status: 'pendiente',
     })
     .select()
@@ -74,12 +92,7 @@ router.post('/futbol', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  res.json({
-    reserva: data,
-    mensajeWhatsapp: armarMensajeWhatsapp(data),
-    numeroWhatsapp: process.env.WHATSAPP_NUMERO,
-    aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
-  });
+  respuestaReserva(res, data);
 });
 
 router.post('/padel', async (req, res) => {
@@ -92,6 +105,11 @@ router.post('/padel', async (req, res) => {
   if (!body.startTime || !body.endTime) return res.status(400).json({ error: 'Faltan horarios.' });
   if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
     return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
+  }
+
+  if (body.parrilla) {
+    const { error: errorParrilla } = await validarParrillaDisponible(body.date);
+    if (errorParrilla) return res.status(409).json({ error: errorParrilla });
   }
 
   const { data: existentes, error: errorConsulta } = await supabaseAdmin
@@ -120,9 +138,10 @@ router.post('/padel', async (req, res) => {
       client_name: body.clientName,
       client_phone: body.clientPhone,
       client_email: body.clientEmail,
-      category: body.category || null,
-      team_name: body.teamName || null,
-      looking_for_rival: !!body.lookingForRival,
+      category: null,
+      team_name: null,
+      looking_for_rival: false,
+      ...(body.parrilla ? { parrilla: true } : {}),
       status: 'pendiente',
     })
     .select()
@@ -133,12 +152,7 @@ router.post('/padel', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  res.json({
-    reserva: data,
-    mensajeWhatsapp: armarMensajeWhatsapp(data),
-    numeroWhatsapp: process.env.WHATSAPP_NUMERO,
-    aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
-  });
+  respuestaReserva(res, data);
 });
 
 export default router;

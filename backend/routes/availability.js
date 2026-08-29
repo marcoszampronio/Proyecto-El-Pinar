@@ -1,6 +1,12 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
-import { TURNOS_FUTBOL, PADEL_APERTURA, PADEL_CIERRE } from '../lib/codeGenerator.js';
+import {
+  TURNOS_FUTBOL,
+  PADEL_APERTURA,
+  PADEL_CIERRE,
+  CAPACIDAD_PARRILLA,
+} from '../lib/codeGenerator.js';
+import { contarParrillas } from '../lib/parrilla.js';
 
 const router = Router();
 
@@ -51,6 +57,24 @@ router.get('/padel', async (req, res) => {
     apertura: PADEL_APERTURA,
     cierre: PADEL_CIERRE,
     ocupados: data, // el frontend calcula los huecos libres visualmente
+  });
+});
+
+// GET /api/availability/parrilla?date=2026-08-30
+// Cuántas de las 2 parrillas quedan para esa fecha.
+router.get('/parrilla', async (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ error: 'Falta el parametro date.' });
+
+  const { count, error, columnaFalta } = await contarParrillas(date);
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json({
+    date,
+    capacidad: CAPACIDAD_PARRILLA,
+    ocupadas: count,
+    disponibles: columnaFalta ? 0 : Math.max(0, CAPACIDAD_PARRILLA - count),
+    habilitada: !columnaFalta,
   });
 });
 

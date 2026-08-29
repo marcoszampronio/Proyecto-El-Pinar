@@ -21,7 +21,7 @@ function getTransporter() {
   return transporter;
 }
 
-async function enviar({ to, subject, html }) {
+async function enviar({ to, subject, html, attachments }) {
   const t = getTransporter();
   if (!t) {
     console.log('[mailer] SMTP no configurado. Simulando envio a:', to);
@@ -29,10 +29,26 @@ async function enviar({ to, subject, html }) {
     return { simulado: true };
   }
   return t.sendMail({
-    from: '"Complejo El Pinar" <turnoselpinar@gmail.com>',
+    from: `"Complejo El Pinar" <${process.env.SMTP_USER || 'turnoselpinar@gmail.com'}>`,
     to,
     subject,
     html,
+    attachments,
+  });
+}
+
+// Backup diario: manda el CSV completo de reservas por email a los admins.
+export async function enviarBackup({ para, csv, fecha, total }) {
+  return enviar({
+    to: para,
+    subject: `Backup reservas El Pinar — ${fecha}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;font-size:14px;color:#333;">
+        <p>Backup automático del ${fecha}.</p>
+        <p><strong>${total}</strong> reserva(s) en total. El detalle va adjunto en el CSV
+        (se abre con Excel). Guardalo o arrastralo a tu Drive si querés tener copia ahí.</p>
+      </div>`,
+    attachments: [{ filename: `reservas-${fecha}.csv`, content: csv, contentType: 'text/csv; charset=utf-8' }],
   });
 }
 
@@ -54,6 +70,7 @@ export async function enviarEmailConfirmacion(reserva) {
           <p style="margin:4px 0;"><strong>Cancha:</strong> ${cancha}</p>
           <p style="margin:4px 0;"><strong>Fecha:</strong> ${reserva.reservation_date}</p>
           <p style="margin:4px 0;"><strong>Horario:</strong> ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs</p>
+          ${reserva.parrilla ? '<p style="margin:4px 0;"><strong>Parrilla:</strong> incluida para asado 🔥</p>' : ''}
           <p style="margin:4px 0;"><strong>Código de reserva:</strong> <span style="font-family:monospace;font-weight:bold;">${reserva.code}</span></p>
         </div>
 

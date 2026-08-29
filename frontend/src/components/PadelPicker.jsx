@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { hhmm } from '../lib/fechas';
 
 const PASO_MINUTOS = 30;
-const DURACIONES = [30, 60, 90, 120];
+const DURACIONES_DEFAULT = [30, 60, 90, 120];
 
 function aMinutos(hora) {
   const [h, m] = hora.slice(0, 5).split(':').map(Number);
@@ -19,9 +19,17 @@ function seSolapa(inicio, fin, ocupados) {
   return ocupados.some((o) => inicio < aMinutos(o.end_time) && fin > aMinutos(o.start_time));
 }
 
-export default function PadelPicker({ apertura, cierre, ocupados, onReservar }) {
+export default function PadelPicker({
+  apertura,
+  cierre,
+  ocupados,
+  onReservar,
+  titulo = 'Paddle',
+  duraciones = DURACIONES_DEFAULT,
+}) {
+  const DURACIONES = duraciones;
   const [inicio, setInicio] = useState(null);
-  const [duracion, setDuracion] = useState(60);
+  const [duracion, setDuracion] = useState(DURACIONES[0] ?? 60);
 
   const bloques = useMemo(() => {
     const desde = aMinutos(apertura);
@@ -49,7 +57,7 @@ export default function PadelPicker({ apertura, cierre, ocupados, onReservar }) 
 
   return (
     <>
-      <h2 className="seccion-titulo">Horarios disponibles: Paddle</h2>
+      <h2 className="seccion-titulo">Horarios disponibles: {titulo}</h2>
 
       <div className="chips">
         {bloques.map((b) => (

@@ -1,0 +1,17 @@
+# Configuración de deploy en Netlify (frontend)
+# En Netlify: "Add new site" > conectar el repo > Base directory: frontend
+
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA: cualquier ruta (ej /panel) sirve index.html y React Router se encarga.
+# (también está frontend/public/_redirects como respaldo)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

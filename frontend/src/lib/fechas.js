@@ -1,5 +1,7 @@
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const DIAS_LARGO = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
 // Dias habilitados: 2=Martes, 3=Miercoles, 4=Jueves
 const DIAS_HABILITADOS = [2, 3, 4];
@@ -32,6 +34,21 @@ export function fechaLarga(iso) {
   const fecha = desdeISO(iso);
   return `${nombreDia(iso)} ${fecha.getDate()} de ${MESES[fecha.getMonth()]}`;
 }
+// "martes 1 de septiembre" / con año: "martes 1 de septiembre de 2026"
+export function fechaLargaCompleta(iso, conAnio = false) {
+  const f = desdeISO(iso);
+  const base = `${DIAS_LARGO[f.getDay()]} ${f.getDate()} de ${MESES_LARGO[f.getMonth()]}`;
+  return conAnio ? `${base} de ${f.getFullYear()}` : base;
+}
+export function partesFecha(iso) {
+  const f = desdeISO(iso);
+  return {
+    diaSemana: DIAS_LARGO[f.getDay()],
+    diaNum: f.getDate(),
+    mes: MESES_LARGO[f.getMonth()],
+    anio: f.getFullYear(),
+  };
+}
 export function hhmm(hora) {
   return hora ? hora.slice(0, 5) : '';
 }
@@ -46,4 +63,22 @@ export function proximoDiaHabilitado(iso) {
     fecha = sumarDias(fecha, 1);
   }
   return iso;
+}
+
+// Lunes de la semana que contiene a ese ISO
+export function lunesDeLaSemana(iso) {
+  const d = desdeISO(iso);
+  const dow = d.getDay(); // 0=Dom ... 6=Sab
+  const restar = dow === 0 ? 6 : dow - 1;
+  return sumarDias(iso, -restar);
+}
+
+// Los 5 dias habiles (Lun a Vie) de la semana que contiene a ese ISO
+export function semanaLaboral(iso) {
+  const lunes = lunesDeLaSemana(iso);
+  return [0, 1, 2, 3, 4].map((n) => sumarDias(lunes, n));
+}
+
+export function esPasado(iso) {
+  return iso < hoyISO();
 }

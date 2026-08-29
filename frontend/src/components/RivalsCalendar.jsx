@@ -1,10 +1,9 @@
-import { CanchaFutbol, CanchaPadel, Avatar, IconoContacto } from './Iconos';
+import { CanchaFutbol, Avatar, IconoContacto } from './Iconos';
 import { hhmm } from '../lib/fechas';
 
 const COLUMNAS = [
-  { id: 'C1', nombre: 'Fútbol 1' },
-  { id: 'C2', nombre: 'Fútbol 2' },
-  { id: 'PAD', nombre: 'Paddle' },
+  { id: 'C1', nombre: 'Cancha 1' },
+  { id: 'C2', nombre: 'Cancha 2' },
 ];
 
 const HORAS = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'];
@@ -16,7 +15,7 @@ export default function RivalsCalendar({ rivales }) {
         <span />
         {COLUMNAS.map((c) => (
           <span className="col" key={c.id}>
-            {c.id === 'PAD' ? <CanchaPadel /> : <CanchaFutbol />}
+            <CanchaFutbol />
             {c.nombre}
           </span>
         ))}

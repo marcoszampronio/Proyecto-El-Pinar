@@ -7,7 +7,7 @@
 create table if not exists reservations (
   id uuid primary key default gen_random_uuid(),
   code text not null,
-  court text not null check (court in ('C1', 'C2', 'PAD')),
+  court text not null check (court in ('C1', 'C2', 'PAD', 'PAR')), -- PAR quedó sin uso; la parrilla ahora es la columna 'parrilla'
   reservation_date date not null,
   start_time time not null,
   end_time time not null,
@@ -16,6 +16,8 @@ create table if not exists reservations (
   client_phone text not null,
   client_email text,
   category text, -- categoria del equipo (opcional)
+  team_name text, -- nombre del equipo cuando busca rival (opcional)
+  parrilla boolean not null default false, -- adicional opcional: reservó parrilla (hay 2 por noche)
   status text not null default 'pendiente' check (status in ('pendiente', 'confirmada', 'cancelada')),
   looking_for_rival boolean not null default false,
   created_at timestamptz not null default now(),
@@ -79,7 +81,7 @@ select
   reservation_date,
   start_time,
   end_time,
-  client_name as team_name,
+  coalesce(team_name, client_name) as team_name,
   category,
   client_phone as contact_phone
 from reservations

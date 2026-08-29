@@ -1,0 +1,38 @@
+# Blueprint de Render para el backend.
+# En Render: New > Blueprint > conectar el repo. Después cargá las variables
+# marcadas como sync:false en el dashboard (Environment).
+
+services:
+  - type: web
+    name: el-pinar-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: PORT
+        value: "3001"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: WHATSAPP_NUMERO
+        sync: false
+      - key: ALIAS_TRANSFERENCIA
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

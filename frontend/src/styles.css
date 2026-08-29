@@ -336,43 +336,91 @@ button { font-family: inherit; }
 }
 .vacio { color: var(--muted); font-style: italic; padding: 12px 0; }
 
-/* ---------- lista de "busco rival" (por semana) ---------- */
-.rivales-lista { padding: 0 16px 20px; }
-.rivales-dia { margin-bottom: 18px; }
-.rivales-dia-titulo {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--navy);
-  border-bottom: 1.5px solid var(--linea);
-  padding-bottom: 4px;
+/* ---------- "busco rival" en grilla semanal ---------- */
+.rivales-cal { padding: 4px 12px 20px; }
+.rivales-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--navy);
+  border-radius: 12px;
+  padding: 6px;
+  margin-bottom: 10px;
 }
-.rival-card {
+.rivales-cal-flecha {
+  flex: 0 0 40px;
+  height: 40px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--gold-soft);
+  font-size: 20px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.rivales-cal-flecha:disabled { opacity: 0.3; cursor: default; }
+.rivales-cal-rango {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.rivales-cal-vacio {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 10px;
+}
+
+.rivales-grid {
+  display: grid;
+  gap: 4px;
+}
+.rivales-grid-esq { }
+.rivales-grid-dia {
+  text-align: center;
+  padding: 4px 0;
+  line-height: 1.1;
+  color: var(--navy);
+}
+.rivales-grid-dia span { display: block; font-size: 11px; text-transform: uppercase; }
+.rivales-grid-dia strong { display: block; font-size: 15px; }
+.rivales-grid-hora {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+.rivales-grid-celda {
+  min-height: 58px;
   background: var(--cream-card);
   border: 1px solid var(--linea);
-  border-radius: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
-  box-shadow: var(--sombra);
-}
-.rival-card-top {
+  border-radius: 8px;
+  padding: 3px;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
+  flex-direction: column;
+  gap: 3px;
 }
-.rival-card-cancha { font-size: 14px; font-weight: 700; color: var(--navy); }
-.rival-card-hora { font-size: 13px; font-weight: 600; color: var(--muted); }
-.rival-card-equipo { font-size: 14px; color: var(--ink); margin: 4px 0 10px; }
-.rival-card-cat { color: var(--muted); }
-.rival-card-wa {
+.rivales-chip {
   display: block;
-  width: 100%;
-  text-align: center;
+  background: rgba(192, 154, 70, 0.16);
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  padding: 4px 5px;
   text-decoration: none;
-  padding: 11px;
-  font-size: 14px;
+  color: var(--navy);
+  line-height: 1.15;
 }
+.rivales-chip-eq {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rivales-chip-meta { display: block; font-size: 10px; color: var(--muted); }
 
 /* ---------- modal ---------- */
 .overlay {

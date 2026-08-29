@@ -16,9 +16,20 @@ function getTransporter() {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
+      // Que no se cuelgue si Gmail no responde (credencial mala, red, etc.)
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
   return transporter;
+}
+
+function conTimeout(promesa, ms, mensaje) {
+  return Promise.race([
+    promesa,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(mensaje)), ms)),
+  ]);
 }
 
 // Chequea si el SMTP está bien configurado y puede conectar con Gmail.
@@ -29,7 +40,7 @@ export async function verificarSmtp() {
   }
   try {
     const t = getTransporter();
-    await t.verify();
+    await conTimeout(t.verify(), 15000, 'El servidor de mail no respondió (timeout)');
     return { configurado: true, usuario, ok: true, error: null };
   } catch (e) {
     return { configurado: true, usuario, ok: false, error: e.message };

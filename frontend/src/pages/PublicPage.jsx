@@ -25,13 +25,10 @@ export default function PublicPage() {
   const [busqueda, setBusqueda] = useState('');
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
-  const [tardando, setTardando] = useState(false);
   const [reintento, setReintento] = useState(0);
 
   useEffect(() => {
     let cancelado = false;
-    setTardando(false);
-    const avisoLento = setTimeout(() => { if (!cancelado) setTardando(true); }, 3500);
 
     async function cargarDisponibilidad() {
       setCargando(true);
@@ -52,7 +49,7 @@ export default function PublicPage() {
     }
 
     cargarDisponibilidad();
-    return () => { cancelado = true; clearTimeout(avisoLento); };
+    return () => { cancelado = true; };
   }, [cancha, fecha, reintento]);
 
   useEffect(() => {
@@ -104,14 +101,7 @@ export default function PublicPage() {
 
       {vista === 'reservar' && (
         <>
-          {cargando && (
-            <p className="cargando">
-              Cargando horarios…
-              {tardando && (
-                <><br /><span style={{ fontSize: 13 }}>La primera carga del día puede tardar unos segundos.</span></>
-              )}
-            </p>
-          )}
+          {cargando && <p className="cargando">Cargando horarios…</p>}
           {errorCarga && (
             <p className="error-msg" style={{ padding: '0 18px' }}>
               {errorCarga}{' '}

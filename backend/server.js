@@ -9,6 +9,7 @@ import reservationsRoutes from './routes/reservations.js';
 import rivalsRoutes from './routes/rivals.js';
 import adminRoutes from './routes/admin.js';
 import exportRoutes from './routes/export.js';
+import statusRoutes from './routes/status.js';
 import { expirarPendientesVencidas } from './lib/expirarPendientes.js';
 import { iniciarBackupDiario } from './lib/backupDiario.js';
 
@@ -40,6 +41,7 @@ app.get('/', (req, res) => {
   res.json({ ok: true, mensaje: 'API de Complejo El Pinar funcionando.' });
 });
 
+app.use('/api/status', statusRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/reservations', reservationsRoutes);
 app.use('/api/rivals', rivalsRoutes);

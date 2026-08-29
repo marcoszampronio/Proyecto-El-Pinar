@@ -6,6 +6,10 @@ const HORA_BACKUP_ART = 3;
 
 let ultimoBackupISO = null; // fecha del último backup enviado (para no repetir)
 
+export function estadoBackup() {
+  return { ultimoEnvio: ultimoBackupISO, horaProgramadaART: HORA_BACKUP_ART };
+}
+
 function fechaArgentinaISO() {
   const ahora = new Date();
   const art = new Date(ahora.getTime() - 3 * 60 * 60 * 1000);

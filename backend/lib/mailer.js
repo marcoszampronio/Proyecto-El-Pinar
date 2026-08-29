@@ -21,6 +21,21 @@ function getTransporter() {
   return transporter;
 }
 
+// Chequea si el SMTP está bien configurado y puede conectar con Gmail.
+export async function verificarSmtp() {
+  const usuario = process.env.SMTP_USER || null;
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return { configurado: false, usuario, ok: false, error: 'Faltan SMTP_USER o SMTP_PASS' };
+  }
+  try {
+    const t = getTransporter();
+    await t.verify();
+    return { configurado: true, usuario, ok: true, error: null };
+  } catch (e) {
+    return { configurado: true, usuario, ok: false, error: e.message };
+  }
+}
+
 async function enviar({ to, subject, html, attachments }) {
   const t = getTransporter();
   if (!t) {

@@ -152,6 +152,84 @@ function ExportPanel() {
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel', PAR: 'Parrilla' };
 
+function Semaforo({ ok, label, detalle }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0' }}>
+      <span style={{ fontSize: 15, lineHeight: 1.3 }}>{ok ? '🟢' : '🔴'}</span>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
+        {detalle && <div style={{ fontSize: 12, color: '#5C6B60' }}>{detalle}</div>}
+      </div>
+    </div>
+  );
+}
+
+function EstadoSistema() {
+  const [d, setD] = useState(null);
+  const [error, setError] = useState(null);
+  const [cargando, setCargando] = useState(false);
+
+  async function cargar() {
+    setCargando(true);
+    setError(null);
+    try {
+      setD(await api.adminDiagnostico());
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); }, []);
+
+  return (
+    <div className="stat-card" style={{ margin: '12px 20px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ margin: 0 }}>Estado del sistema</h3>
+        <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12 }} onClick={cargar} disabled={cargando}>
+          {cargando ? '...' : 'Actualizar'}
+        </button>
+      </div>
+      {error && <p className="error-msg">{error}</p>}
+      {d && (
+        <div style={{ marginTop: 8 }}>
+          <Semaforo ok label="Backend en línea" detalle={`Prendido hace ${Math.round(d.uptimeSegundos / 60)} min`} />
+          <Semaforo ok={d.baseDatos.ok} label="Base de datos" detalle={d.baseDatos.ok ? 'Conecta OK' : d.baseDatos.error} />
+          <Semaforo
+            ok={d.email.ok}
+            label="Email (envío de confirmaciones y backup)"
+            detalle={
+              d.email.ok
+                ? `Configurado con ${d.email.usuario}`
+                : d.email.configurado
+                ? `Falla: ${d.email.error}`
+                : 'Sin configurar — los emails NO se envían'
+            }
+          />
+          <Semaforo
+            ok={!!d.email.ok}
+            label="Backup diario"
+            detalle={
+              d.backup.ultimoEnvio
+                ? `Último: ${d.backup.ultimoEnvio}. Automático a las ${d.backup.horaProgramadaART}:00`
+                : `Todavía no se envió ninguno hoy. Automático a las ${d.backup.horaProgramadaART}:00`
+            }
+          />
+          <Semaforo
+            ok={d.corsOrigenes.length > 0}
+            label="CORS (seguridad)"
+            detalle={d.corsOrigenes.length ? d.corsOrigenes.join(', ') : 'Abierto a cualquier origen — conviene restringirlo'}
+          />
+          <p style={{ fontSize: 12, color: '#5C6B60', marginBottom: 0, marginTop: 6 }}>
+            Un turno queda reservado {d.ventanaPendientesMin} min esperando el comprobante.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DetalleReserva({ reserva, onCancelado }) {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState(null);
@@ -812,6 +890,7 @@ export default function AdminPanel() {
             </div>
           </div>
 
+          <EstadoSistema />
           <ExportPanel />
         </>
       )}

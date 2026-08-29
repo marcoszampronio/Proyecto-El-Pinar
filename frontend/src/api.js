@@ -100,6 +100,7 @@ export const api = {
   adminStats: (dias = 7) => requestAdmin(`/admin/stats?dias=${dias}`),
   adminContactos: () => requestAdmin('/admin/contactos'),
   adminBackupAhora: () => requestAdmin('/admin/export/backup-ahora', { method: 'POST' }),
+  adminDiagnostico: () => requestAdmin('/status/diagnostico'),
   adminAgenda: (date) => requestAdmin(`/admin/agenda/${date}`),
   adminReservasDelDia: (date) => requestAdmin(`/admin/dia/${date}`),
   adminSuspenderPorLluvia: (date) =>

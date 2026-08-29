@@ -1,23 +1,34 @@
-name: Mantener el backend despierto
+name: Mantener backend despierto
 
 # El plan gratis de Render duerme el backend tras 15 min sin trafico.
-# Este ping cada ~10 min lo mantiene despierto para que los clientes no
-# tengan que esperar el arranque en frio.
+# Este ping cada 10 min (lunes a viernes) lo mantiene despierto para que los
+# clientes no esperen el arranque en frio.
 #
-# Nota: GitHub corre los cron "cuando puede" (a veces con retraso) y desactiva
-# el workflow si el repo queda 60 dias sin actividad. Para algo mas confiable,
-# sumar un monitor en https://uptimerobot.com apuntando a la misma URL.
+# Ademas sirve de monitoreo: si el backend no responde, este workflow queda
+# en ROJO en la pestana "Actions" del repo.
+#
+# Para monitoreo 24/7 con avisos por mail, sumar https://uptimerobot.com
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch:
+    - cron: '*/10 * * * 1-5'   # cada 10 min, lunes a viernes (hora UTC)
+  workflow_dispatch:            # tambien se puede correr a mano
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping backend
+      - name: Ping /api/status
         run: |
-          curl -sS --max-time 90 --retry 3 --retry-delay 15 \
-            https://proyecto-el-pinar.onrender.com/ || true
+          echo "Pinging backend..."
+          CODE=$(curl -sS -o /tmp/resp.json -w "%{http_code}" \
+            --max-time 90 --retry 4 --retry-delay 15 --retry-all-errors \
+            https://proyecto-el-pinar.onrender.com/api/status)
+          echo "HTTP $CODE"
+          cat /tmp/resp.json || true
+          echo
+          if [ "$CODE" != "200" ]; then
+            echo "::error::El backend respondio $CODE (esperaba 200)"
+            exit 1
+          fi
+          echo "Backend OK"

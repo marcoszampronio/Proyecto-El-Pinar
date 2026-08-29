@@ -336,56 +336,43 @@ button { font-family: inherit; }
 }
 .vacio { color: var(--muted); font-style: italic; padding: 12px 0; }
 
-/* ---------- calendario de rivales ---------- */
-.calendario {
-  padding: 0 12px;
-}
-.calendario-head {
-  display: grid;
-  grid-template-columns: 56px repeat(2, 1fr);
-  align-items: end;
-  gap: 4px;
-  padding-bottom: 6px;
-}
-.calendario-head .col {
-  text-align: center;
-  font-size: 12px;
+/* ---------- lista de "busco rival" (por semana) ---------- */
+.rivales-lista { padding: 0 16px 20px; }
+.rivales-dia { margin-bottom: 18px; }
+.rivales-dia-titulo {
+  margin: 0 0 8px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--navy);
-  text-transform: uppercase;
+  border-bottom: 1.5px solid var(--linea);
+  padding-bottom: 4px;
 }
-.calendario-head .col svg { display: block; margin: 0 auto 4px; height: 34px; width: auto; }
-.calendario-grid {
-  display: grid;
-  grid-template-columns: 56px repeat(2, 1fr);
-  border-top: 1px solid var(--linea);
-}
-.calendario-hora {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--navy);
-  padding: 6px 6px 0 2px;
-  border-bottom: 1px solid var(--linea);
-  min-height: 62px;
-}
-.calendario-celda {
-  border-left: 1px solid var(--linea);
-  border-bottom: 1px solid var(--linea);
-  min-height: 62px;
-  padding: 4px;
-}
-.rival-chip {
+.rival-card {
   background: var(--cream-card);
   border: 1px solid var(--linea);
-  border-radius: 10px;
-  padding: 6px 4px;
-  text-align: center;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
   box-shadow: var(--sombra);
-  height: 100%;
 }
-.rival-chip .nombre { font-size: 12px; font-weight: 700; color: var(--navy); }
-.rival-chip .meta { font-size: 10px; color: var(--muted); }
-.rival-chip a { color: var(--gold-dark); }
+.rival-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.rival-card-cancha { font-size: 14px; font-weight: 700; color: var(--navy); }
+.rival-card-hora { font-size: 13px; font-weight: 600; color: var(--muted); }
+.rival-card-equipo { font-size: 14px; color: var(--ink); margin: 4px 0 10px; }
+.rival-card-cat { color: var(--muted); }
+.rival-card-wa {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  padding: 11px;
+  font-size: 14px;
+}
 
 /* ---------- modal ---------- */
 .overlay {

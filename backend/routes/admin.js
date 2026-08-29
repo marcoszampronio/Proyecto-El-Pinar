@@ -4,6 +4,7 @@ import { requireAdmin } from '../middleware/auth.js';
 import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
 import { TURNOS_FUTBOL } from '../lib/codeGenerator.js';
 import { contarParrillasRango } from '../lib/parrilla.js';
+import { normalizarTelefonoAR } from '../lib/telefono.js';
 
 const router = Router();
 
@@ -11,20 +12,6 @@ const router = Router();
 router.use(requireAdmin);
 
 const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
-
-// Deja el telefono en formato que entiende wa.me (Argentina: 549 + area + numero).
-// Es "best effort": si el cliente cargo algo raro, se devuelve igual lo que se pudo
-// armar y el panel lo muestra para que Mateo lo revise antes de enviar.
-function normalizarTelefonoAR(raw) {
-  let d = String(raw || '').replace(/\D/g, '');
-  if (!d) return null;
-  if (d.startsWith('54')) {
-    if (!d.startsWith('549')) d = '549' + d.slice(2);
-    return d;
-  }
-  if (d.startsWith('0')) d = d.slice(1);
-  return '549' + d;
-}
 
 function armarMensajeSuspension(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;

@@ -1,67 +1,57 @@
-import { CanchaFutbol, Avatar, IconoContacto } from './Iconos';
-import { hhmm } from '../lib/fechas';
+import { hhmm, fechaLargaCompleta } from '../lib/fechas';
 
-const COLUMNAS = [
-  { id: 'C1', nombre: 'Cancha 1' },
-  { id: 'C2', nombre: 'Cancha 2' },
-];
-
-const HORAS = ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30'];
-
+// Agrupa la lista de "busco rival" por fecha y la muestra como semana.
 export default function RivalsCalendar({ rivales }) {
-  return (
-    <section className="calendario">
-      <div className="calendario-head">
-        <span />
-        {COLUMNAS.map((c) => (
-          <span className="col" key={c.id}>
-            <CanchaFutbol />
-            {c.nombre}
-          </span>
-        ))}
-      </div>
+  if (!rivales || rivales.length === 0) {
+    return (
+      <p style={{ padding: '8px 20px', color: 'var(--muted)', fontSize: 14 }}>
+        No hay equipos buscando rival por ahora.
+      </p>
+    );
+  }
 
-      <div className="calendario-grid">
-        {HORAS.map((hora) => (
-          <Fila key={hora} hora={hora} rivales={rivales} />
-        ))}
-      </div>
-    </section>
-  );
-}
+  const porDia = {};
+  for (const r of rivales) {
+    (porDia[r.reservation_date] = porDia[r.reservation_date] || []).push(r);
+  }
+  const fechas = Object.keys(porDia).sort();
 
-function Fila({ hora, rivales }) {
   return (
-    <>
-      <div className="calendario-hora">{hora}</div>
-      {COLUMNAS.map((c) => {
-        const enCelda = rivales.filter((r) => r.court === c.id && hhmm(r.start_time) === hora);
+    <div className="rivales-lista">
+      {fechas.map((fecha) => {
+        const titulo = fechaLargaCompleta(fecha);
         return (
-          <div className="calendario-celda" key={c.id}>
-            {enCelda.length > 0 && <CeldaRivales rivales={enCelda} />}
-          </div>
+        <div key={fecha} className="rivales-dia">
+          <h3 className="rivales-dia-titulo">{titulo.charAt(0).toUpperCase() + titulo.slice(1)}</h3>
+          {porDia[fecha].map((r, i) => (
+            <RivalCard key={`${fecha}-${i}`} r={r} />
+          ))}
+        </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
-function CeldaRivales({ rivales }) {
-  const principal = rivales[0];
+function RivalCard({ r }) {
+  const nombre = r.team_name || 'Equipo';
   return (
-    <div className="rival-chip">
-      <Avatar size={30} />
-      {rivales.length > 1 && <div className="meta">{rivales.length} búsquedas activas</div>}
-      <div className="nombre">{principal.team_name}</div>
-      <div className="meta">{principal.category || 'Sin categoría'}</div>
-      <a
-        href={`https://wa.me/${(principal.contact_phone || '').replace(/\D/g, '')}`}
-        target="_blank"
-        rel="noreferrer"
-        aria-label={`Contactar a ${principal.team_name} por WhatsApp`}
-      >
-        <IconoContacto size={16} />
-      </a>
+    <div className="rival-card">
+      <div className="rival-card-top">
+        <span className="rival-card-cancha">{r.canchaNombre || r.court}</span>
+        <span className="rival-card-hora">{hhmm(r.start_time)}–{hhmm(r.end_time)}</span>
+      </div>
+      <div className="rival-card-equipo">
+        {nombre}
+        {r.category ? <span className="rival-card-cat"> · {r.category}</span> : null}
+      </div>
+      {r.linkWhatsapp ? (
+        <a className="btn btn-gold rival-card-wa" href={r.linkWhatsapp} target="_blank" rel="noreferrer">
+          Escribir por WhatsApp
+        </a>
+      ) : (
+        <span style={{ fontSize: 12, color: 'var(--danger)' }}>Sin número de contacto</span>
+      )}
     </div>
   );
 }

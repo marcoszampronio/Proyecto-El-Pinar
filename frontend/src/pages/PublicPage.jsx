@@ -74,8 +74,6 @@ export default function PublicPage() {
     ? rivales.filter((r) =>
         `${r.team_name} ${r.category || ''}`.toLowerCase().includes(texto))
     : rivales;
-  const rivalesDelDia = rivalesFiltrados.filter((r) => r.reservation_date === fecha);
-
   const nombreCancha = CANCHAS.find((c) => c.id === cancha)?.nombre || cancha;
 
   return (
@@ -91,13 +89,11 @@ export default function PublicPage() {
       />
 
       {vista === 'reservar' && (
-        <CourtSelector seleccionada={cancha} onSeleccionar={setCancha} />
+        <>
+          <CourtSelector seleccionada={cancha} onSeleccionar={setCancha} />
+          <DateStrip seleccionada={fecha} onSeleccionar={setFecha} />
+        </>
       )}
-
-      <DateStrip
-  seleccionada={fecha}
-  onSeleccionar={setFecha}
-/>
 
       {vista === 'reservar' && (
         <>
@@ -137,8 +133,8 @@ export default function PublicPage() {
 
       {vista === 'rivales' && (
         <>
-          <h2 className="seccion-titulo">Calendario de búsqueda de rivales</h2>
-          <RivalsCalendar rivales={rivalesDelDia} />
+          <h2 className="seccion-titulo">Equipos buscando rival</h2>
+          <RivalsCalendar rivales={rivalesFiltrados} />
         </>
       )}
 

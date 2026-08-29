@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
-import { verificarSmtp } from '../lib/mailer.js';
+import { verificarEmail } from '../lib/mailer.js';
 import { estadoBackup } from '../lib/backupDiario.js';
 
 const router = Router();
@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
 // GET /api/status/diagnostico - detalle para el panel (requiere admin).
 router.get('/diagnostico', requireAdmin, async (req, res) => {
   const [smtp, db] = await Promise.all([
-    verificarSmtp(),
+    verificarEmail(),
     supabaseAdmin
       .from('reservations')
       .select('id', { count: 'exact', head: true })

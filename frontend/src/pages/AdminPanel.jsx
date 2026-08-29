@@ -201,10 +201,10 @@ function EstadoSistema() {
             label="Email (envío de confirmaciones y backup)"
             detalle={
               d.email.ok
-                ? `Configurado con ${d.email.usuario}`
+                ? `OK vía ${d.email.proveedor}, sale de ${d.email.remitente}`
                 : d.email.configurado
-                ? `Falla: ${d.email.error}`
-                : 'Sin configurar — los emails NO se envían'
+                ? `${d.email.proveedor}: ${d.email.error}`
+                : d.email.error || 'Sin configurar — los emails NO se envían'
             }
           />
           <Semaforo

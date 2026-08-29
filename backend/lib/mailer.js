@@ -1,29 +1,18 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
-let transporter = null;
+// Proveedor de email. Render (y muchos hosts) bloquean SMTP, asi que en
+// produccion se usa la API HTTP de Brevo. SMTP queda como opcion para local
+// o para hosts que lo permitan.
+//
+//   BREVO_API_KEY   -> usa la API de Brevo (recomendado en Render)
+//   SMTP_USER/PASS  -> usa SMTP (Gmail, etc.)
+//   nada            -> simula el envio (lo imprime en consola)
+//
+// EMAIL_FROM / EMAIL_FROM_NAME: direccion y nombre del remitente.
 
-function getTransporter() {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return null;
-  }
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-      // Que no se cuelgue si Gmail no responde (credencial mala, red, etc.)
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-    });
-  }
-  return transporter;
-}
+const FROM_EMAIL = process.env.EMAIL_FROM || process.env.SMTP_USER || 'no-reply@elpinar.app';
+const FROM_NAME = process.env.EMAIL_FROM_NAME || 'Complejo El Pinar';
 
 function conTimeout(promesa, ms, mensaje) {
   return Promise.race([
@@ -32,30 +21,104 @@ function conTimeout(promesa, ms, mensaje) {
   ]);
 }
 
-// Chequea si el SMTP está bien configurado y puede conectar con Gmail.
-export async function verificarSmtp() {
-  const usuario = process.env.SMTP_USER || null;
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    return { configurado: false, usuario, ok: false, error: 'Faltan SMTP_USER o SMTP_PASS' };
+// ---------- Brevo (API HTTP) ----------
+async function enviarViaBrevo({ to, subject, html, attachments }) {
+  const destinatarios = (Array.isArray(to) ? to : [to]).filter(Boolean).map((email) => ({ email }));
+  const body = {
+    sender: { name: FROM_NAME, email: FROM_EMAIL },
+    to: destinatarios,
+    subject,
+    htmlContent: html,
+  };
+  if (attachments && attachments.length) {
+    body.attachment = attachments.map((a) => ({
+      name: a.filename,
+      content: Buffer.from(a.content).toString('base64'),
+    }));
   }
-  try {
-    const t = getTransporter();
-    await conTimeout(t.verify(), 15000, 'El servidor de mail no respondió (timeout)');
-    return { configurado: true, usuario, ok: true, error: null };
-  } catch (e) {
-    return { configurado: true, usuario, ok: false, error: e.message };
+
+  const res = await conTimeout(
+    fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify(body),
+    }),
+    15000,
+    'Brevo no respondió (timeout)'
+  );
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`Brevo respondió ${res.status}: ${txt.slice(0, 200)}`);
   }
+  return { via: 'brevo' };
 }
 
+// ---------- SMTP ----------
+let transporter = null;
+function getTransporter() {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: false,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+    });
+  }
+  return transporter;
+}
+
+// ---------- Chequeo de estado ----------
+export async function verificarEmail() {
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const res = await conTimeout(
+        fetch('https://api.brevo.com/v3/account', {
+          headers: { 'api-key': process.env.BREVO_API_KEY, accept: 'application/json' },
+        }),
+        10000,
+        'Brevo no respondió (timeout)'
+      );
+      if (res.ok) return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: true, error: null };
+      return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: false, error: `API key rechazada (${res.status})` };
+    } catch (e) {
+      return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: false, error: e.message };
+    }
+  }
+  const usuario = process.env.SMTP_USER || null;
+  if (!usuario || !process.env.SMTP_PASS) {
+    return { configurado: false, proveedor: null, remitente: null, ok: false, error: 'Sin configurar (falta BREVO_API_KEY o SMTP_USER/PASS)' };
+  }
+  try {
+    await conTimeout(getTransporter().verify(), 15000, 'El servidor SMTP no respondió (timeout)');
+    return { configurado: true, proveedor: 'SMTP', remitente: usuario, ok: true, error: null };
+  } catch (e) {
+    return { configurado: true, proveedor: 'SMTP', remitente: usuario, ok: false, error: e.message };
+  }
+}
+// alias viejo
+export const verificarSmtp = verificarEmail;
+
+// ---------- Envío ----------
 async function enviar({ to, subject, html, attachments }) {
+  if (process.env.BREVO_API_KEY) {
+    return enviarViaBrevo({ to, subject, html, attachments });
+  }
   const t = getTransporter();
   if (!t) {
-    console.log('[mailer] SMTP no configurado. Simulando envio a:', to);
-    console.log('[mailer] Asunto:', subject);
+    console.log('[mailer] Sin proveedor de email. Simulando envio a:', to, '|', subject);
     return { simulado: true };
   }
   return t.sendMail({
-    from: `"Complejo El Pinar" <${process.env.SMTP_USER || 'turnoselpinar@gmail.com'}>`,
+    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
     to,
     subject,
     html,

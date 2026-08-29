@@ -698,6 +698,12 @@ export default function AdminPanel() {
               </p>
               <p style={{ fontSize: 13 }}>Tel: {resultado.reserva.client_phone}</p>
 
+              {resultado.vencioPorSistema && (
+                <p style={{ fontSize: 12, color: 'var(--gold-dark, #A57F2E)', marginTop: 4 }}>
+                  Este turno se había liberado por falta de comprobante. Si el turno sigue libre,
+                  al confirmar se reactiva.
+                </p>
+              )}
               {resultado.accionSugerida === 'confirmar' && (
                 <div className="modal-actions">
                   <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Sí, confirmar</button>

@@ -196,11 +196,13 @@ router.get('/search/:code', async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   if (!data) return res.status(404).json({ error: 'No se encontro ninguna reserva con ese codigo.' });
 
+  const vencioPorSistema = data.status === 'cancelada' && (data.cancelled_by || '').startsWith('sistema');
+
   let accionSugerida = 'ninguna';
-  if (data.status === 'pendiente') accionSugerida = 'confirmar';
+  if (data.status === 'pendiente' || vencioPorSistema) accionSugerida = 'confirmar';
   if (data.status === 'confirmada') accionSugerida = 'cancelar';
 
-  res.json({ reserva: data, accionSugerida });
+  res.json({ reserva: data, accionSugerida, vencioPorSistema });
 });
 
 // POST /api/admin/confirm/:code
@@ -211,20 +213,56 @@ router.post('/confirm/:code', async (req, res) => {
     .from('reservations')
     .select('*')
     .eq('code', code)
-    .eq('status', 'pendiente')
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (errorBusqueda) return res.status(500).json({ error: errorBusqueda.message });
-  if (!reserva) return res.status(404).json({ error: 'No hay una reserva pendiente con ese codigo.' });
+  if (!reserva) return res.status(404).json({ error: 'No se encontró ninguna reserva con ese código.' });
+
+  if (reserva.status === 'confirmada') {
+    return res.status(409).json({ error: 'Esta reserva ya estaba confirmada.' });
+  }
+
+  if (reserva.status === 'cancelada') {
+    const vencioPorSistema = (reserva.cancelled_by || '').startsWith('sistema');
+    if (!vencioPorSistema) {
+      return res.status(409).json({ error: 'Esta reserva fue cancelada. El cliente tiene que reservar de nuevo.' });
+    }
+    // El turno se liberó por falta de comprobante. Se puede reactivar solo si
+    // nadie más lo tomó mientras tanto.
+    const { data: choque } = await supabaseAdmin
+      .from('reservations')
+      .select('id')
+      .eq('reservation_date', reserva.reservation_date)
+      .eq('court', reserva.court)
+      .eq('start_time', reserva.start_time)
+      .neq('status', 'cancelada')
+      .maybeSingle();
+    if (choque) {
+      return res.status(409).json({ error: 'Ese turno ya lo tomó otra persona. El cliente tiene que elegir otro horario.' });
+    }
+  }
 
   const { data: actualizada, error } = await supabaseAdmin
     .from('reservations')
-    .update({ status: 'confirmada', confirmed_at: new Date().toISOString(), confirmed_by: req.adminEmail })
+    .update({
+      status: 'confirmada',
+      confirmed_at: new Date().toISOString(),
+      confirmed_by: req.adminEmail,
+      cancelled_at: null,
+      cancelled_by: null,
+    })
     .eq('id', reserva.id)
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    if (error.code === '23505' || error.code === '23P01') {
+      return res.status(409).json({ error: 'Ese turno ya no está libre. El cliente tiene que elegir otro horario.' });
+    }
+    return res.status(500).json({ error: error.message });
+  }
 
   enviarEmailConfirmacion(actualizada).catch((e) => console.error('Error enviando email:', e));
 

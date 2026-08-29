@@ -33,14 +33,20 @@ button { font-family: inherit; }
   max-width: 520px;
   margin: 0 auto;
   min-height: 100vh;
-  background: var(--cream);
-  /* marcas de agua: pino a la derecha y arco de futbol abajo */
+  background-color: var(--cream);
+  /* césped cortado en franjas (sutil) + líneas de cancha como marca de agua */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='320' viewBox='0 0 260 320'%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.13' stroke-width='6'%3E%3Cpath d='M130 20 L60 300 L200 300 Z'/%3E%3Cpath d='M130 90 L70 220 L190 220 Z'/%3E%3Cpath d='M130 160 L85 250 L175 250 Z'/%3E%3C/g%3E%3C/svg%3E"),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='200' viewBox='0 0 320 200'%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.16' stroke-width='4'%3E%3Cpath d='M40 190 L70 30 L250 30 L280 190'/%3E%3Cpath d='M70 30 L70 190 M250 30 L250 190'/%3E%3C/g%3E%3Cg fill='none' stroke='%23C09A46' stroke-opacity='0.09' stroke-width='2'%3E%3Cpath d='M100 30 L92 190 M130 30 L124 190 M160 30 L160 190 M190 30 L196 190 M220 30 L228 190'/%3E%3Cpath d='M62 70 L258 70 M58 110 L262 110 M52 150 L268 150'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: no-repeat, no-repeat;
-  background-position: right -60px bottom 220px, center bottom 0;
-  padding-bottom: 120px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420' viewBox='0 0 420 420'%3E%3Cg fill='none' stroke='%23123C6E' stroke-opacity='0.06' stroke-width='3'%3E%3Ccircle cx='210' cy='210' r='140'/%3E%3Cline x1='0' y1='210' x2='420' y2='210'/%3E%3Cpath d='M0 90 L90 90 L90 330 L0 330'/%3E%3Cpath d='M420 90 L330 90 L330 330 L420 330'/%3E%3C/g%3E%3Ccircle cx='210' cy='210' r='5' fill='%23123C6E' fill-opacity='0.06'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      118deg,
+      rgba(18, 60, 110, 0.028) 0 46px,
+      rgba(18, 60, 110, 0) 46px 92px
+    );
+  background-repeat: no-repeat, repeat;
+  background-position: center 120px, 0 0;
+  background-size: 420px 420px, auto;
+  background-attachment: fixed, scroll;
+  padding-bottom: 128px;
   position: relative;
 }
 
@@ -297,8 +303,8 @@ button { font-family: inherit; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 14px 16px 18px;
-  background: linear-gradient(180deg, rgba(250, 243, 227, 0), var(--cream) 35%);
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(250, 243, 227, 0), var(--cream) 30%);
   z-index: 15;
 }
 .acciones-fijas .btn { padding: 15px 10px; font-size: 15px; text-transform: uppercase; }

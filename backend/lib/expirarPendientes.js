@@ -1,6 +1,8 @@
 import { supabaseAdmin } from './supabaseAdmin.js';
 
-const MINUTOS_PARA_VENCER = 60;
+// Cuánto se "reserva" un turno esperando el comprobante antes de liberarlo solo.
+// Configurable con la variable de entorno PENDING_EXPIRE_MIN (minutos).
+const MINUTOS_PARA_VENCER = Number(process.env.PENDING_EXPIRE_MIN || 180);
 
 // Cancela las reservas que quedaron en "pendiente" y nunca se confirmaron
 // (el cliente no mando el comprobante). Asi el horario vuelve a quedar libre.

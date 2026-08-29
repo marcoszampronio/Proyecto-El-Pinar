@@ -87,8 +87,21 @@ export async function verificarEmail() {
         10000,
         'Brevo no respondió (timeout)'
       );
-      if (res.ok) return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: true, error: null };
-      return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: false, error: `API key rechazada (${res.status})` };
+      if (res.ok) {
+        const acc = await res.json().catch(() => ({}));
+        const email = acc?.email ? ` (cuenta ${acc.email})` : '';
+        return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: true, error: null, detalle: email };
+      }
+      const txt = await res.text().catch(() => '');
+      let msg = txt;
+      try { msg = JSON.parse(txt).message || txt; } catch { /* txt como está */ }
+      const pista = res.status === 401
+        ? ' — revisá que sea la API key v3 (empieza con "xkeysib-"), de la pestaña API Keys, sin espacios'
+        : '';
+      return {
+        configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: false,
+        error: `${res.status}: ${String(msg).slice(0, 120)}${pista}`,
+      };
     } catch (e) {
       return { configurado: true, proveedor: 'Brevo', remitente: FROM_EMAIL, ok: false, error: e.message };
     }

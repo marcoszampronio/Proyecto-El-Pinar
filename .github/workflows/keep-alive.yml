@@ -1,0 +1,23 @@
+name: Mantener el backend despierto
+
+# El plan gratis de Render duerme el backend tras 15 min sin trafico.
+# Este ping cada ~10 min lo mantiene despierto para que los clientes no
+# tengan que esperar el arranque en frio.
+#
+# Nota: GitHub corre los cron "cuando puede" (a veces con retraso) y desactiva
+# el workflow si el repo queda 60 dias sin actividad. Para algo mas confiable,
+# sumar un monitor en https://uptimerobot.com apuntando a la misma URL.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend
+        run: |
+          curl -sS --max-time 90 --retry 3 --retry-delay 15 \
+            https://proyecto-el-pinar.onrender.com/ || true

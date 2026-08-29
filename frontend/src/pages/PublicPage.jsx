@@ -25,8 +25,13 @@ export default function PublicPage() {
   const [busqueda, setBusqueda] = useState('');
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
+  const [tardando, setTardando] = useState(false);
+  const [reintento, setReintento] = useState(0);
+
   useEffect(() => {
     let cancelado = false;
+    setTardando(false);
+    const avisoLento = setTimeout(() => { if (!cancelado) setTardando(true); }, 3500);
 
     async function cargarDisponibilidad() {
       setCargando(true);
@@ -47,8 +52,8 @@ export default function PublicPage() {
     }
 
     cargarDisponibilidad();
-    return () => { cancelado = true; };
-  }, [cancha, fecha]);
+    return () => { cancelado = true; clearTimeout(avisoLento); };
+  }, [cancha, fecha, reintento]);
 
   useEffect(() => {
     api.rivales()
@@ -99,8 +104,25 @@ export default function PublicPage() {
 
       {vista === 'reservar' && (
         <>
-          {cargando && <p className="cargando">Cargando horarios...</p>}
-          {errorCarga && <p className="error-msg" style={{ padding: '0 18px' }}>{errorCarga}</p>}
+          {cargando && (
+            <p className="cargando">
+              Cargando horarios…
+              {tardando && (
+                <><br /><span style={{ fontSize: 13 }}>La primera carga del día puede tardar unos segundos.</span></>
+              )}
+            </p>
+          )}
+          {errorCarga && (
+            <p className="error-msg" style={{ padding: '0 18px' }}>
+              {errorCarga}{' '}
+              <button
+                onClick={() => setReintento((n) => n + 1)}
+                style={{ background: 'none', border: 'none', color: 'var(--navy)', textDecoration: 'underline', cursor: 'pointer', font: 'inherit' }}
+              >
+                Reintentar
+              </button>
+            </p>
+          )}
 
           {!cargando && !errorCarga && cancha !== 'PAD' && (
             <FutbolSlots

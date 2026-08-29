@@ -24,20 +24,41 @@ async function leerRespuesta(res) {
   return data;
 }
 
-// fetch tira "Failed to fetch" cuando el backend no esta levantado.
-async function pedir(url, options) {
-  try {
-    return await fetch(url, options);
-  } catch {
-    throw new Error(`No pudimos conectarnos con el servidor (${API_URL}). Verificá que el backend esté corriendo con npm run dev.`);
+const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// El backend gratis de Render se "duerme" tras 15 min sin uso y tarda ~40-60s
+// en despertar (mientras tanto la request puede colgarse o devolver 502/503).
+// Por eso reintentamos con paciencia antes de mostrar un error.
+async function pedir(url, options, { reintentos = 4, esperaMs = 4000, reintentarRed = true } = {}) {
+  for (let intento = 0; ; intento++) {
+    try {
+      const res = await fetch(url, options);
+      // 502/503/504 = el proxy de Render respondió antes de llegar a la app
+      // (backend arrancando): reintentar siempre, no hubo procesamiento.
+      if ([502, 503, 504].includes(res.status) && intento < reintentos) {
+        await dormir(esperaMs);
+        continue;
+      }
+      return res;
+    } catch (e) {
+      // Error de red: reintentar solo si es seguro (GET). En un POST el pedido
+      // podría haber llegado igual, así que no reintentamos a ciegas.
+      if (reintentarRed && intento < reintentos) {
+        await dormir(esperaMs);
+        continue;
+      }
+      throw new Error('No pudimos conectarnos con el servidor. Esperá unos segundos y recargá la página.');
+    }
   }
 }
 
 async function requestPublico(path, options = {}) {
-  const res = await pedir(`${API_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const esPost = (options.method || 'GET').toUpperCase() !== 'GET';
+  const res = await pedir(
+    `${API_URL}${path}`,
+    { headers: { 'Content-Type': 'application/json' }, ...options },
+    { reintentarRed: !esPost }
+  );
   return leerRespuesta(res);
 }
 

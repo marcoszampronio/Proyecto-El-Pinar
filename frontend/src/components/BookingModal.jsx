@@ -102,9 +102,12 @@ export default function BookingModal({ slotInfo, onClose }) {
             <input
               value={form.clientPhone}
               onChange={(e) => actualizar('clientPhone', e.target.value)}
-              placeholder="Ej: 3434551234"
+              placeholder="Ej: 343 5134744"
               type="tel"
             />
+            <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 2 }}>
+              Con característica. Sin +54. El 0 y el 15 podés ponerlos o no.
+            </div>
           </div>
 
           <div className="field">

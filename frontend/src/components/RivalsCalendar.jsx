@@ -42,8 +42,8 @@ function RivalCard({ r }) {
         <span className="rival-card-hora">{hhmm(r.start_time)}–{hhmm(r.end_time)}</span>
       </div>
       <div className="rival-card-equipo">
-        {nombre}
-        {r.category ? <span className="rival-card-cat"> · {r.category}</span> : null}
+        <strong>{nombre}</strong>
+        {r.category ? <span className="rival-card-cat"> — {r.category}</span> : null}
       </div>
       {r.linkWhatsapp ? (
         <a className="btn btn-gold rival-card-wa" href={r.linkWhatsapp} target="_blank" rel="noreferrer">

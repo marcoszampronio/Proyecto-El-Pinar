@@ -1,5 +1,6 @@
-# Configuración de deploy en Netlify (frontend)
-# En Netlify: "Add new site" > conectar el repo > Base directory: frontend
+# Configuración de deploy en Netlify (frontend).
+# Está en la raíz del repo para que Netlify lo detecte solo: al conectar el
+# repo no hace falta configurar build ni publish a mano.
 
 [build]
   base = "frontend"

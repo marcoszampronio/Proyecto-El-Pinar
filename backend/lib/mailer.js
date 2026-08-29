@@ -154,6 +154,36 @@ export async function enviarBackup({ para, csv, fecha, total }) {
   });
 }
 
+// Aviso a los administradores: entró una nueva solicitud de reserva (pendiente).
+export async function enviarAvisoNuevaReserva(reserva) {
+  const para = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim()).filter(Boolean);
+  if (!para.length) return { omitido: 'sin ADMIN_EMAILS' };
+
+  const cancha = reserva.court === 'PAD' ? 'Pádel' : `Cancha ${reserva.court.slice(1)}`;
+  const hs = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)}`;
+  const extras = [
+    reserva.looking_for_rival ? `Busca rival: ${reserva.team_name || '(sin nombre)'}${reserva.category ? ` — ${reserva.category}` : ''}` : null,
+    reserva.parrilla ? 'Pidió parrilla 🔥' : null,
+  ].filter(Boolean);
+
+  return enviar({
+    to: para,
+    subject: `🔔 Nueva solicitud: ${cancha} ${reserva.reservation_date} ${reserva.start_time.slice(0, 5)}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+        <h2 style="margin-top:0;color:#123C6E;">Nueva solicitud de reserva</h2>
+        <p style="color:#555;">Alguien reservó y va a mandar el comprobante por WhatsApp. Está <strong>pendiente de tu confirmación</strong>.</p>
+        <div style="background:#f6f4ea;border-radius:8px;padding:14px;margin:14px 0;">
+          <p style="margin:4px 0;"><strong>${cancha}</strong> · ${reserva.reservation_date} · ${hs} hs</p>
+          <p style="margin:4px 0;">${reserva.client_name} · ${reserva.client_phone}${reserva.client_email ? ` · ${reserva.client_email}` : ''}</p>
+          ${extras.map((x) => `<p style="margin:4px 0;color:#7A6A4F;">${x}</p>`).join('')}
+          <p style="margin:8px 0 0;"><strong>Código:</strong> <span style="font-family:monospace;">${reserva.code}</span></p>
+        </div>
+        <p style="color:#555;font-size:13px;">Entrá al panel, pegá el código y confirmá (o cancelá) cuando te llegue el comprobante.</p>
+      </div>`,
+  });
+}
+
 export async function enviarEmailConfirmacion(reserva) {
   if (!reserva.client_email) return { omitido: 'sin email' };
 

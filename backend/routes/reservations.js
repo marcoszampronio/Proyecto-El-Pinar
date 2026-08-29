@@ -9,6 +9,7 @@ import {
   esDiaHabilitado,
 } from '../lib/codeGenerator.js';
 import { validarParrillaDisponible } from '../lib/parrilla.js';
+import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
 import 'dotenv/config';
 
 const router = Router();
@@ -40,6 +41,9 @@ function armarMensajeWhatsapp(reserva) {
 }
 
 function respuestaReserva(res, data) {
+  // Aviso a los admins de que entró una solicitud (no bloquea la respuesta).
+  enviarAvisoNuevaReserva(data).catch((e) => console.error('[aviso reserva] error:', e.message));
+
   res.json({
     reserva: data,
     mensajeWhatsapp: armarMensajeWhatsapp(data),

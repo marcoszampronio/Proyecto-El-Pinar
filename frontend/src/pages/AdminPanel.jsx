@@ -817,6 +817,8 @@ export default function AdminPanel() {
         </>
       )}
 
+      {tab === 'stats' && <EstadoSistema />}
+
       {tab === 'stats' && stats && (
         <>
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
@@ -890,10 +892,11 @@ export default function AdminPanel() {
             </div>
           </div>
 
-          <EstadoSistema />
           <ExportPanel />
         </>
       )}
+
+      {tab === 'stats' && !stats && <ExportPanel />}
     </div>
   );
 }

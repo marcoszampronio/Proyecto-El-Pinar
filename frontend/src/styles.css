@@ -424,6 +424,18 @@ button { font-family: inherit; }
 .field .check { display: flex; align-items: center; gap: 8px; text-transform: none; font-size: 14px; color: var(--ink); }
 .field .check input { width: auto; }
 
+/* telefono partido: +54 9 [area] 15 [numero] */
+.tel-split { display: flex; align-items: center; gap: 6px; }
+.tel-fijo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tel-split input { width: 100%; }
+.tel-area { flex: 0 0 62px; text-align: center; }
+.tel-num { flex: 1 1 auto; }
+
 .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
 .modal-actions .btn, .modal-actions a.btn { flex: 1; text-align: center; text-decoration: none; }
 

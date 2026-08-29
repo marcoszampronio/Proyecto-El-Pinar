@@ -6,7 +6,8 @@ const CATEGORIAS = ['M30', 'M40', 'Libre'];
 export default function BookingModal({ slotInfo, onClose }) {
   const [form, setForm] = useState({
     clientName: '',
-    clientPhone: '',
+    phoneArea: '',
+    phoneNum: '',
     clientEmail: '',
     lookingForRival: false,
     teamName: '',
@@ -32,10 +33,14 @@ export default function BookingModal({ slotInfo, onClose }) {
     setForm((f) => ({ ...f, [campo]: valor }));
   }
 
+  const area = form.phoneArea.replace(/\D/g, '');
+  const num = form.phoneNum.replace(/\D/g, '');
+  const telefonoCompleto = area && num ? `54 9 ${area} ${num}` : '';
+
   async function enviarSolicitud() {
     setError(null);
     if (!form.clientName.trim()) { setError('Completá tu nombre.'); return; }
-    if (!form.clientPhone.trim()) { setError('Completá tu teléfono.'); return; }
+    if (area.length < 2 || num.length < 6) { setError('Completá tu teléfono: característica y número.'); return; }
     if (!form.clientEmail.trim()) { setError('Completá tu email.'); return; }
     if (esCanchaFutbol && form.lookingForRival && !form.teamName.trim()) {
       setError('Completá el nombre de tu equipo.');
@@ -50,7 +55,7 @@ export default function BookingModal({ slotInfo, onClose }) {
     try {
       const payload = {
         clientName: form.clientName.trim(),
-        clientPhone: form.clientPhone.trim(),
+        clientPhone: telefonoCompleto,
         clientEmail: form.clientEmail.trim(),
         lookingForRival: esCanchaFutbol ? form.lookingForRival : false,
         teamName: esCanchaFutbol ? (form.teamName.trim() || null) : null,
@@ -99,14 +104,28 @@ export default function BookingModal({ slotInfo, onClose }) {
 
           <div className="field">
             <label>Teléfono / WhatsApp</label>
-            <input
-              value={form.clientPhone}
-              onChange={(e) => actualizar('clientPhone', e.target.value)}
-              placeholder="Ej: 343 5134744"
-              type="tel"
-            />
-            <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 2 }}>
-              Con característica. Sin +54. El 0 y el 15 podés ponerlos o no.
+            <div className="tel-split">
+              <span className="tel-fijo">+54&nbsp;9</span>
+              <input
+                className="tel-area"
+                value={form.phoneArea}
+                onChange={(e) => actualizar('phoneArea', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="343"
+                inputMode="numeric"
+                aria-label="Característica"
+              />
+              <span className="tel-fijo">15</span>
+              <input
+                className="tel-num"
+                value={form.phoneNum}
+                onChange={(e) => actualizar('phoneNum', e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="5134744"
+                inputMode="numeric"
+                aria-label="Número"
+              />
+            </div>
+            <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 4 }}>
+              Poné la característica de tu zona y los números de tu celular (lo que va después del 15).
             </div>
           </div>
 

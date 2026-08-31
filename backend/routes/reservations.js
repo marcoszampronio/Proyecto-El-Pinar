@@ -28,6 +28,7 @@ const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
 
 function armarMensajeWhatsapp(reserva) {
   const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
+  const alias = process.env.ALIAS_TRANSFERENCIA;
   return (
     `Hola! Quiero confirmar mi reserva en El Pinar.\n\n` +
     `▶ CÓDIGO: ${reserva.code} ◀\n\n` +
@@ -36,7 +37,8 @@ function armarMensajeWhatsapp(reserva) {
     `Horario: ${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs\n` +
     `Nombre: ${reserva.client_name}\n` +
     (reserva.parrilla ? `Incluye PARRILLA para asado\n` : '') +
-    `\nAdjunto el comprobante de pago.`
+    (alias ? `\nAlias para transferir: ${alias}\n` : '') +
+    `\nEn breve adjunto el comprobante de pago.`
   );
 }
 

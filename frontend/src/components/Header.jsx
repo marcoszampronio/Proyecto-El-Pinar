@@ -17,7 +17,6 @@ export default function Header({ busqueda, onBuscar, menuAbierto, onToggleMenu, 
         <nav className="menu-lateral">
           <button onClick={() => onIrA('reservar')}>Reservar turnos</button>
           <button onClick={() => onIrA('rivales')}>Busco rival</button>
-          <a href="/panel">Panel del complejo</a>
         </nav>
       )}
 

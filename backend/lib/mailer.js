@@ -217,7 +217,7 @@ export async function enviarEmailConfirmacion(reserva) {
         <p style="color:#555;font-size:14px;">Guardá este email como comprobante. Si necesitás cancelar, escribinos por WhatsApp con tu código de reserva.</p>
         <p style="color:#2E6B4F;font-weight:bold;">¡Te esperamos!</p>
         <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
-        <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · turnoselpinar@gmail.com</p>
+        <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · ${FROM_EMAIL}</p>
       </div>
     `,
   });
@@ -246,7 +246,7 @@ export async function enviarEmailCancelacion(reserva) {
 
         <p style="color:#555;font-size:14px;">Si tenés alguna duda, escribinos por WhatsApp.</p>
         <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
-        <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · turnoselpinar@gmail.com</p>
+        <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · ${FROM_EMAIL}</p>
       </div>
     `,
   });

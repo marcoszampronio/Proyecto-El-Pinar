@@ -3,6 +3,24 @@ import { api } from '../api';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
 
+function BotonCopiar({ texto }) {
+  const [copiado, setCopiado] = useState(false);
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      /* algunos navegadores sin permiso: no hacemos nada */
+    }
+  }
+  return (
+    <button type="button" className="btn-copiar" onClick={copiar} aria-label="Copiar">
+      {copiado ? '✓ Copiado' : '📋 Copiar'}
+    </button>
+  );
+}
+
 export default function BookingModal({ slotInfo, onClose }) {
   const [form, setForm] = useState({
     clientName: '',
@@ -216,17 +234,23 @@ export default function BookingModal({ slotInfo, onClose }) {
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3 className="modal-titulo">¡Ya casi!</h3>
-        <p style={{ fontSize: 14, marginBottom: 8 }}>
-          {'Transferí el monto al alias:'}<br />
-          <strong style={{ fontSize: 16 }}>
-            {resultado.aliasTransferencia || 'Consultá el alias por WhatsApp'}
-          </strong>
-        </p>
+        <p style={{ fontSize: 14, marginBottom: 6 }}>Transferí el monto al alias:</p>
+        {resultado.aliasTransferencia ? (
+          <div className="dato-copiable">
+            <strong>{resultado.aliasTransferencia}</strong>
+            <BotonCopiar texto={resultado.aliasTransferencia} />
+          </div>
+        ) : (
+          <p style={{ fontSize: 14, marginTop: 0 }}><strong>Consultá el alias por WhatsApp</strong></p>
+        )}
 
         <div className="codigo-box">
           <div style={{ fontSize: 12, marginBottom: 6, opacity: 0.8 }}>Tu código de reserva</div>
           <div className="codigo">{resultado.reserva.code}</div>
-          <div style={{ fontSize: 11, marginTop: 6, opacity: 0.7 }}>
+          <div style={{ marginTop: 8 }}>
+            <BotonCopiar texto={resultado.reserva.code} />
+          </div>
+          <div style={{ fontSize: 11, marginTop: 8, opacity: 0.7 }}>
             Guardá este código — lo vas a necesitar para confirmar
           </div>
         </div>

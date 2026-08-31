@@ -1,4 +1,8 @@
 :root {
+  /* La web es siempre clara. Evita que el navegador del celular (modo oscuro
+     forzado) invierta los colores y se vea rojizo. */
+  color-scheme: light only;
+
   --navy-900: #0A2A52;
   --navy: #123C6E;
   --navy-soft: #1B4E88;
@@ -291,8 +295,10 @@ button { font-family: inherit; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, rgba(250, 243, 227, 0), var(--cream) 30%);
+  /* padding-bottom generoso: sube los botones para que el badge de Netlify
+     (esquina inferior derecha) no tape el de "Busco rival". */
+  padding: 14px 16px calc(52px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(250, 243, 227, 0), var(--cream) 22%);
   z-index: 15;
 }
 .acciones-fijas .btn { padding: 15px 10px; font-size: 15px; text-transform: uppercase; }
@@ -501,6 +507,37 @@ button { font-family: inherit; }
   font-weight: 700;
   letter-spacing: 1px;
   color: var(--cream);
+}
+
+.dato-copiable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--cream-card);
+  border: 1.5px solid var(--gold);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.dato-copiable strong { font-size: 16px; color: var(--navy); word-break: break-all; }
+
+.btn-copiar {
+  flex: 0 0 auto;
+  border: 1.5px solid var(--gold);
+  background: var(--cream);
+  color: var(--navy);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.codigo-box .btn-copiar {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--gold-soft);
+  color: var(--gold-soft);
 }
 
 .error-msg { color: var(--danger); font-size: 13px; margin-top: 8px; }

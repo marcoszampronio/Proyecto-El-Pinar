@@ -209,11 +209,10 @@ function EstadoSistema() {
           />
           <Semaforo
             ok={!!d.email.ok}
-            label="Backup diario"
+            label="Backup por email"
             detalle={
-              d.backup.ultimoEnvio
-                ? `Último: ${d.backup.ultimoEnvio}. Automático a las ${d.backup.horaProgramadaART}:00`
-                : `Todavía no se envió ninguno hoy. Automático a las ${d.backup.horaProgramadaART}:00`
+              (d.backup.ultimoEnvio ? `Último: ${d.backup.ultimoEnvio}. ` : '') +
+              `Automático ${d.backup.frecuencia || 'cada viernes'} a las ${d.backup.horaProgramadaART}:00`
             }
           />
           <Semaforo

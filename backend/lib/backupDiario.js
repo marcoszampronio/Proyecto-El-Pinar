@@ -4,20 +4,31 @@ import { enviarBackup } from './mailer.js';
 // Hora (0-23, horario de Argentina UTC-3) a la que se manda el backup.
 const HORA_BACKUP_ART = 3;
 
+// Día de la semana en que se manda (0=Dom ... 5=Vie ... 6=Sáb).
+// BACKUP_DIA_SEMANA: un número 0-6, o "todos" para que sea diario.
+const DIA_BACKUP = String(process.env.BACKUP_DIA_SEMANA ?? '5').trim().toLowerCase();
+
+const NOMBRES_DIA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+
 let ultimoBackupISO = null; // fecha del último backup enviado (para no repetir)
 
 export function estadoBackup() {
-  return { ultimoEnvio: ultimoBackupISO, horaProgramadaART: HORA_BACKUP_ART };
+  return {
+    ultimoEnvio: ultimoBackupISO,
+    horaProgramadaART: HORA_BACKUP_ART,
+    frecuencia: DIA_BACKUP === 'todos' ? 'diario' : `cada ${NOMBRES_DIA[Number(DIA_BACKUP)] || '?'}`,
+  };
 }
 
 function fechaArgentinaISO() {
-  const ahora = new Date();
-  const art = new Date(ahora.getTime() - 3 * 60 * 60 * 1000);
+  const art = new Date(Date.now() - 3 * 60 * 60 * 1000);
   return art.toISOString().slice(0, 10);
 }
 function horaArgentina() {
-  const art = new Date(Date.now() - 3 * 60 * 60 * 1000);
-  return art.getUTCHours();
+  return new Date(Date.now() - 3 * 60 * 60 * 1000).getUTCHours();
+}
+function diaSemanaArgentina() {
+  return new Date(Date.now() - 3 * 60 * 60 * 1000).getUTCDay();
 }
 
 // Genera el CSV y lo manda por email a los ADMIN_EMAILS.
@@ -27,6 +38,9 @@ export async function ejecutarBackupDiario({ forzar = false } = {}) {
   if (!forzar) {
     if (ultimoBackupISO === hoy) return { omitido: 'ya se envió hoy' };
     if (horaArgentina() !== HORA_BACKUP_ART) return { omitido: 'fuera de horario' };
+    if (DIA_BACKUP !== 'todos' && diaSemanaArgentina() !== Number(DIA_BACKUP)) {
+      return { omitido: 'no es el día de backup' };
+    }
   }
 
   const para = (process.env.ADMIN_EMAILS || '')

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
+import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
+const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
 
 function BotonCopiar({ texto }) {
   const [copiado, setCopiado] = useState(false);
@@ -244,25 +246,16 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p style={{ fontSize: 14, marginTop: 0 }}><strong>Consultá el alias por WhatsApp</strong></p>
         )}
 
-        <div className="codigo-box">
-          <div style={{ fontSize: 12, marginBottom: 6, opacity: 0.8 }}>Tu código de reserva</div>
-          <div className="codigo">{resultado.reserva.code}</div>
-          <div style={{ marginTop: 8 }}>
-            <BotonCopiar texto={resultado.reserva.code} />
-          </div>
-          <div style={{ fontSize: 11, marginTop: 8, opacity: 0.7 }}>
-            Guardá este código — lo vas a necesitar para confirmar
-          </div>
+        <div className="resumen-reserva">
+          <div className="resumen-titulo">Tu reserva</div>
+          <p><strong>{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</strong></p>
+          <p>{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</p>
+          <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
+          {resultado.reserva.parrilla && <p style={{ color: '#B45309', fontWeight: 600 }}>🔥 Con parrilla para asado</p>}
         </div>
 
-        {resultado.reserva.parrilla && (
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#B45309', margin: '0 0 10px' }}>
-            🔥 Incluye parrilla para asado
-          </p>
-        )}
-
         <p style={{ fontSize: 13, color: '#5C6B60', marginBottom: 16 }}>
-          Enviá el comprobante de pago junto con este código por WhatsApp para confirmar tu turno.
+          Enviá el comprobante de pago por WhatsApp para confirmar tu turno.
         </p>
 
         <div className="modal-actions">

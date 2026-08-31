@@ -179,7 +179,15 @@ export async function enviarAvisoNuevaReserva(reserva) {
           ${extras.map((x) => `<p style="margin:4px 0;color:#7A6A4F;">${x}</p>`).join('')}
           <p style="margin:8px 0 0;"><strong>Código:</strong> <span style="font-family:monospace;">${reserva.code}</span></p>
         </div>
-        <p style="color:#555;font-size:13px;">Entrá al panel, pegá el código y confirmá (o cancelá) cuando te llegue el comprobante.</p>
+        ${process.env.PANEL_URL ? `
+        <p style="text-align:center;margin:18px 0;">
+          <a href="${process.env.PANEL_URL}?tab=buscar&code=${encodeURIComponent(reserva.code)}"
+             style="background:#123C6E;color:#E4CF9C;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;display:inline-block;">
+            Abrir en el panel
+          </a>
+        </p>
+        <p style="color:#999;font-size:12px;">El link te lleva directo a esta reserva. Confirmá o cancelá cuando te llegue el comprobante.</p>
+        ` : `<p style="color:#555;font-size:13px;">Entrá al panel, pegá el código y confirmá (o cancelá) cuando te llegue el comprobante.</p>`}
       </div>`,
   });
 }

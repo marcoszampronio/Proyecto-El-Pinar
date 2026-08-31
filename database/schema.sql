@@ -40,23 +40,11 @@ create index if not exists idx_status on reservations (status);
 -- ============================================================
 -- Seguridad a nivel de fila (RLS)
 -- ============================================================
+-- Todo el acceso a los datos pasa por el backend, que usa la service_role key
+-- (ignora RLS) y chequea ADMIN_EMAILS. Con RLS activado y SIN politicas, nadie
+-- con la clave publica (anon) ni una cuenta comun puede leer/escribir la tabla.
 alter table reservations enable row level security;
-
--- El publico puede INSERTAR una solicitud de reserva (queda pendiente)
-create policy "publico_puede_reservar"
-  on reservations for insert
-  to anon
-  with check (status = 'pendiente');
-
--- El publico puede LEER solo lo necesario para ver disponibilidad
--- (se filtra que columnas exponer desde el backend, no directo a esta tabla)
-
--- Los administradores autenticados pueden hacer todo
-create policy "admins_full_access"
-  on reservations for all
-  to authenticated
-  using (true)
-  with check (true);
+alter table admins enable row level security;
 
 -- ============================================================
 -- Vista publica de disponibilidad (sin datos personales)

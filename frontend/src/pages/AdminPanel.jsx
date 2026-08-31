@@ -634,8 +634,19 @@ function SuspensionPanel() {
   );
 }
 
+// Lee ?tab= y ?code= de la URL (para los links de los emails).
+function paramsUrl() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    return { tab: p.get('tab'), code: p.get('code') };
+  } catch {
+    return {};
+  }
+}
+
 export default function AdminPanel() {
-  const [tab, setTab] = useState('buscar'); // 'buscar' | 'stats'
+  const inicial = paramsUrl();
+  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'lluvia', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
   const [codigo, setCodigo] = useState('');
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -646,6 +657,9 @@ export default function AdminPanel() {
 
   useEffect(() => {
     cargarPendientes();
+    // Si el email trae ?code=, buscar esa reserva automáticamente.
+    if (inicial.code) buscar(inicial.code);
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {

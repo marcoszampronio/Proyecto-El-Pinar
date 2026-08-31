@@ -817,14 +817,17 @@ export default function AdminPanel() {
             <h3 style={{ marginTop: 0 }}>Pendientes de confirmación</h3>
             {pendientes.length === 0 && <p style={{ color: '#5C6B60' }}>No hay reservas pendientes.</p>}
             {pendientes.map((p) => (
-              <div
+              <button
                 key={p.id}
-                style={{ padding: 10, borderRadius: 8, background: '#FCE4B8', marginBottom: 8, cursor: 'pointer' }}
-                onClick={() => buscar(p.code)}
+                className="pendiente-item"
+                onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               >
                 <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13 }}>{p.code}</div>
-                <div style={{ fontSize: 12, color: '#7A4A00' }}>{p.client_name} · {p.reservation_date}</div>
-              </div>
+                <div style={{ fontSize: 12, color: '#7A4A00' }}>
+                  {p.client_name} · {NOMBRE_CANCHA[p.court] || p.court} · {p.reservation_date}
+                </div>
+                <div style={{ fontSize: 11, color: '#7A4A00', marginTop: 2, fontWeight: 600 }}>Tocá para confirmar / cancelar →</div>
+              </button>
             ))}
           </div>
         </>

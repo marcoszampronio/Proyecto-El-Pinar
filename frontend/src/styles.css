@@ -577,6 +577,19 @@ button { font-family: inherit; }
   font-size: 13px;
 }
 .tab-btn.active { background: var(--navy); color: var(--gold-soft); border-color: var(--navy); }
+.pendiente-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #FCE4B8;
+  border: 1px solid #E8C98A;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+.pendiente-item:active { background: #F7D89A; }
 .slot {
   display: flex;
   align-items: center;

@@ -685,7 +685,7 @@ export default function AdminPanel() {
   }
 
   async function buscar(codigoBuscado) {
-    const c = (codigoBuscado || codigo).trim().toUpperCase();
+    const c = (codigoBuscado || codigo).trim();
     if (!c) return;
     setError(null);
     setAviso(null);

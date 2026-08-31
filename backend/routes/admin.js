@@ -170,12 +170,12 @@ router.post('/suspender/:date', async (req, res) => {
 // GET /api/admin/search/:code
 // Busca una reserva por codigo y le dice al frontend que accion corresponde
 router.get('/search/:code', async (req, res) => {
-  const code = req.params.code.trim().toUpperCase();
+  const code = req.params.code.trim();
 
   const { data, error } = await supabaseAdmin
     .from('reservations')
     .select('*')
-    .eq('code', code)
+    .ilike('code', code)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -194,12 +194,12 @@ router.get('/search/:code', async (req, res) => {
 
 // POST /api/admin/confirm/:code
 router.post('/confirm/:code', async (req, res) => {
-  const code = req.params.code.trim().toUpperCase();
+  const code = req.params.code.trim();
 
   const { data: reserva, error: errorBusqueda } = await supabaseAdmin
     .from('reservations')
     .select('*')
-    .eq('code', code)
+    .ilike('code', code)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -258,12 +258,12 @@ router.post('/confirm/:code', async (req, res) => {
 
 // POST /api/admin/cancel/:code
 router.post('/cancel/:code', async (req, res) => {
-  const code = req.params.code.trim().toUpperCase();
+  const code = req.params.code.trim();
 
   const { data: reserva, error: errorBusqueda } = await supabaseAdmin
     .from('reservations')
     .select('*')
-    .eq('code', code)
+    .ilike('code', code)
     .neq('status', 'cancelada')
     .maybeSingle();
 

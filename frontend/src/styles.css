@@ -295,10 +295,8 @@ button { font-family: inherit; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  /* padding-bottom generoso: sube los botones para que el badge de Netlify
-     (esquina inferior derecha) no tape el de "Busco rival". */
-  padding: 14px 16px calc(52px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, rgba(250, 243, 227, 0), var(--cream) 22%);
+  padding: 14px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(250, 243, 227, 0), var(--cream) 30%);
   z-index: 15;
 }
 .acciones-fijas .btn { padding: 15px 10px; font-size: 15px; text-transform: uppercase; }

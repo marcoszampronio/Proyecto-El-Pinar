@@ -8,7 +8,7 @@ toda la conversación original.
 - **Frontend**: React + Vite (sin framework de UI, CSS propio en `styles.css`)
 - **Backend**: Node.js + Express (API REST simple)
 - **Base de datos**: Supabase (Postgres + Auth)
-- **Hosting sugerido**: Netlify (frontend) + Railway/Render (backend)
+- **Hosting**: Cloudflare Pages (frontend) + Render (backend) + Supabase (base)
 
 ## Decisiones de negocio importantes
 - Hay 4 espacios reservables: `C1`, `C2` (fútbol 11, turnos fijos T1/T2/T3),
@@ -40,7 +40,7 @@ toda la conversación original.
       `ADMIN_EMAILS` todos los días a las 3:00 ART (`backend/lib/backupDiario.js`).
       Se puede disparar a mano desde el panel (Estadísticas → "Enviar backup ahora").
       Se descartó Google Drive por la complejidad de la service account.
-- [ ] Deploy: ver `DEPLOY.md` (Render para backend, Netlify para frontend).
+- [x] Deploy: Render (backend) + Cloudflare Pages (frontend). Ver `DEPLOY.md`.
 - [x] Botón de exportar historial a Excel desde el panel.
 - [x] Expiración automática de reservas pendientes sin comprobante (60 min,
       `backend/lib/expirarPendientes.js`, corre cada 15 min).

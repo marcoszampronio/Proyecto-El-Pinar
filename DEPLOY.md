@@ -19,7 +19,7 @@ Dos partes: **backend** (API, tiene que estar prendido siempre) y **frontend**
    | `ADMIN_EMAILS` | `jmarcoszampronio@gmail.com` (y el de Mateo, separados por coma) |
    | `WHATSAPP_NUMERO` | `5493434718364` |
    | `ALIAS_TRANSFERENCIA` | `marcoszampronio` |
-   | `CORS_ORIGINS` | *(lo completás en el paso 3, con la URL de Netlify)* |
+   | `CORS_ORIGINS` | *(lo completás en el paso 3, con la URL de Cloudflare)* |
    | `SMTP_USER` | `turnoselpinar@gmail.com` |
    | `SMTP_PASS` | la contraseña de aplicación de Gmail |
 
@@ -37,31 +37,36 @@ New Project → Deploy from GitHub → elegí el repo → Root Directory `backen
 
 ---
 
-## 2. Frontend → Netlify (gratis)
+## 2. Frontend → Cloudflare Pages (gratis)
 
-1. Entrá a [netlify.com](https://netlify.com) con GitHub.
-2. **Add new site → Import an existing project** → elegí el repo.
-3. Netlify lee `frontend/netlify.toml` (base `frontend`, build `npm run build`,
-   publish `frontend/dist`). No hace falta tocar nada.
-4. En **Site settings → Environment variables**, cargá:
+1. Entrá a [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages**.
+2. **Create application → Pages → Connect to Git** → elegí el repo.
+3. Configurá el build:
+   - Production branch: `main`
+   - Framework preset: `Vite`
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - **Root directory: `frontend`**  (en Advanced)
+4. En **Environment variables**, cargá:
 
    | Variable | Valor |
    |---|---|
    | `VITE_SUPABASE_URL` | `https://djhttdogqwcrzhpwixlm.supabase.co` |
    | `VITE_SUPABASE_ANON_KEY` | la anon key de Supabase (Settings → API) |
-   | `VITE_API_URL` | `https://el-pinar-backend.onrender.com/api` *(la URL del paso 1 + `/api`)* |
+   | `VITE_API_URL` | `https://proyecto-el-pinar.onrender.com/api` *(la URL del paso 1 + `/api`)* |
 
-5. Deploy. Te da una URL tipo `https://elpinar.netlify.app` (la podés cambiar
-   en Site settings → Change site name).
+5. **Save and Deploy**. Te da una URL tipo `https://proyecto-el-pinar.pages.dev`.
+   El `frontend/public/_redirects` ya hace que `/panel` no dé 404.
 
 ---
 
 ## 3. Conectar los dos
 
-1. Volvé a Render → variable `CORS_ORIGINS` → poné la URL de Netlify
-   **sin la barra final**, ej: `https://elpinar.netlify.app`.
+1. Volvé a Render → variable `CORS_ORIGINS` → poné la URL de Cloudflare
+   **sin la barra final**, ej: `https://proyecto-el-pinar.pages.dev`.
    (Si vas a usar dominio propio después, agregalo separado por coma.)
-2. Guardá → Render redeploya solo.
+2. Variable `PANEL_URL` → `https://proyecto-el-pinar.pages.dev/panel`.
+3. Guardá → Render redeploya solo.
 
 ---
 
@@ -70,10 +75,10 @@ New Project → Deploy from GitHub → elegí el repo → Root Directory `backen
 - [ ] Migración de la parrilla corrida en Supabase.
 - [ ] Usuario de Mateo creado en Supabase Auth y su email en `ADMIN_EMAILS`.
 - [ ] `SMTP_PASS` cargado en el backend (si no, los emails se "simulan").
-- [ ] Probar el circuito completo en la URL de Netlify: reservar → WhatsApp →
+- [ ] Probar el circuito completo en la URL de Cloudflare: reservar → WhatsApp →
       confirmar en `/panel` → llega el email.
 - [ ] Activar RLS en Supabase (ver `RECOMENDACIONES.md`).
 
 ## Actualizar después de un cambio
 
-`git push` a `main` → Render y Netlify redeployan solos.
+`git push` a `main` → Render y Cloudflare Pages redeployan solos.

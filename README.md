@@ -61,9 +61,10 @@ indique Vite). Abrí esa URL en el navegador para ver la página pública, y
 
 ## Paso 5: Desplegar a producción
 
-**Backend** → Railway, Render o similar (necesita correr todo el tiempo).
-**Frontend** → Netlify o Vercel (subís la carpeta `frontend`, comando de
-build `npm run build`, carpeta de salida `dist`).
+Ver **`DEPLOY.md`** para la guía paso a paso. En resumen:
+
+**Backend** → Render (necesita correr todo el tiempo).
+**Frontend** → Cloudflare Pages (build `npm run build`, salida `dist`, root `frontend`).
 
 No te olvides de configurar las variables de entorno en el panel de cada
 servicio de hosting (las mismas que tenés en tus archivos `.env` locales).

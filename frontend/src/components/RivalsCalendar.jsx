@@ -3,6 +3,7 @@ import {
   hoyISO, lunesDeLaSemana, semanaLaboral, esDiaHabilitado, sumarDias, desdeISO,
   proximoDiaHabilitado,
 } from '../lib/fechas';
+import { IconoWhatsapp } from './Iconos';
 
 const DIAS_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MESES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -54,21 +55,23 @@ export default function RivalsCalendar({ rivales }) {
         >›</button>
       </div>
 
-      <div className="rivales-grid" style={{ gridTemplateColumns: `48px repeat(${dias.length}, 1fr)` }}>
-        <div className="rivales-grid-esq" />
-        {dias.map((d) => {
-          const e = etiquetaDia(d);
-          return (
-            <div key={d} className="rivales-grid-dia">
-              <span>{e.nombre}</span>
-              <strong>{e.num}</strong>
-            </div>
-          );
-        })}
+      <div className="rivales-grid-scroll">
+        <div className="rivales-grid" style={{ gridTemplateColumns: `44px repeat(${dias.length}, minmax(132px, 1fr))` }}>
+          <div className="rivales-grid-esq" />
+          {dias.map((d) => {
+            const e = etiquetaDia(d);
+            return (
+              <div key={d} className="rivales-grid-dia">
+                <span>{e.nombre}</span>
+                <strong>{e.num}</strong>
+              </div>
+            );
+          })}
 
-        {TURNOS.map((t) => (
-          <FilaTurno key={t.hhmm} turno={t} dias={dias} idx={idx} />
-        ))}
+          {TURNOS.map((t) => (
+            <FilaTurno key={t.hhmm} turno={t} dias={dias} idx={idx} />
+          ))}
+        </div>
       </div>
 
       {(!rivales || rivales.length === 0) && (
@@ -89,16 +92,23 @@ function FilaTurno({ turno, dias, idx }) {
             {lista.map((r, i) => (
               <a
                 key={i}
-                className="rivales-chip"
+                className="rival-cel"
                 href={r.linkWhatsapp || undefined}
                 target="_blank"
                 rel="noreferrer"
                 title={r.linkWhatsapp ? 'Escribir por WhatsApp' : 'Sin número de contacto'}
               >
-                <span className="rivales-chip-eq">{r.team_name || 'Equipo'}</span>
-                <span className="rivales-chip-meta">
+                <span className="rival-cel-eq">{r.team_name || 'Equipo'}</span>
+                <span className="rival-cel-meta">
                   {(r.canchaNombre || r.court)}{r.category ? ` · ${r.category}` : ''}
                 </span>
+                {r.linkWhatsapp ? (
+                  <span className="rival-cel-btn">
+                    <IconoWhatsapp size={13} /> Me interesa
+                  </span>
+                ) : (
+                  <span className="rival-cel-btn rival-cel-btn--off">Sin contacto</span>
+                )}
               </a>
             ))}
           </div>

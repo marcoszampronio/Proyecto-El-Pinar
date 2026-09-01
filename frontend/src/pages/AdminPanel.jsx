@@ -93,23 +93,24 @@ function ExportPanel() {
     }
   }
 
-  async function descargarCSV() {
+  async function descargarExcel() {
     setDescargando(true);
     try {
       const token = await tokenAdmin();
       const res = await fetch(
-        `${API_URL}/admin/export/csv?desde=${desde}&hasta=${hasta}`,
+        `${API_URL}/admin/export/excel?desde=${desde}&hasta=${hasta}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      if (!res.ok) throw new Error('El servidor no pudo generar el reporte');
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `reservas-${desde}-a-${hasta}.csv`;
+      a.download = `reporte-el-pinar-${desde}-a-${hasta}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      alert('No se pudo descargar el historial: ' + e.message);
+      alert('No se pudo descargar el reporte: ' + e.message);
     } finally {
       setDescargando(false);
     }
@@ -117,7 +118,7 @@ function ExportPanel() {
 
   return (
     <div className="stat-card" style={{ margin: '12px 20px' }}>
-      <h3 style={{ marginTop: 0 }}>Exportar historial</h3>
+      <h3 style={{ marginTop: 0 }}>Reporte en Excel</h3>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         <div className="field" style={{ flex: 1, minWidth: 120 }}>
           <label>Desde</label>
@@ -128,11 +129,13 @@ function ExportPanel() {
           <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
         </div>
       </div>
-      <button className="btn btn-primary" onClick={descargarCSV} disabled={descargando} style={{ width: '100%' }}>
-        {descargando ? 'Generando...' : '⬇ Descargar Excel / CSV'}
+      <button className="btn btn-primary" onClick={descargarExcel} disabled={descargando} style={{ width: '100%' }}>
+        {descargando ? 'Generando...' : '⬇ Descargar reporte (.xlsx)'}
       </button>
       <p style={{ fontSize: 12, color: '#5C6B60' }}>
-        El archivo se abre directamente en Excel. Incluye todas las reservas en el rango de fechas.
+        Trae una hoja "Resumen" con los números del negocio (por cancha, por mes, por día,
+        clientes frecuentes) y una hoja "Detalle" con todas las reservas como tabla para filtrar
+        y armar gráficos.
       </p>
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--linea)', margin: '14px 0' }} />

@@ -33,10 +33,6 @@ export default function AdminLogin() {
           {cargando ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>
-      <p style={{ fontSize: 12, color: '#5C6B60', marginTop: 16 }}>
-        Los accesos los crea el administrador principal desde el panel de Supabase
-        (Authentication → Users → Add user).
-      </p>
     </div>
   );
 }

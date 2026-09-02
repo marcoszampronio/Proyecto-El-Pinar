@@ -7,6 +7,7 @@ import FutbolSlots from '../components/FutbolSlots';
 import PadelPicker from '../components/PadelPicker';
 import RivalsCalendar from '../components/RivalsCalendar';
 import BookingModal from '../components/BookingModal';
+import ConsultaReserva from '../components/ConsultaReserva';
 import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
 
 export default function PublicPage() {
@@ -21,6 +22,7 @@ export default function PublicPage() {
   const [errorCarga, setErrorCarga] = useState(null);
 
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [consultaAbierta, setConsultaAbierta] = useState(false);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
   const [reintento, setReintento] = useState(0);
@@ -75,7 +77,10 @@ export default function PublicPage() {
         menuAbierto={menuAbierto}
         onToggleMenu={() => setMenuAbierto((v) => !v)}
         onIrA={(destino) => { setVista(destino); setMenuAbierto(false); }}
+        onBuscarReserva={() => { setConsultaAbierta((v) => !v); setMenuAbierto(false); }}
       />
+
+      {consultaAbierta && <ConsultaReserva onCerrar={() => setConsultaAbierta(false)} />}
 
       {vista === 'reservar' && (
         <>

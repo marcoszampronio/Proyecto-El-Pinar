@@ -61,6 +61,38 @@ function respuestaReserva(res, data) {
   });
 }
 
+// GET /api/reservations/estado/:code - consulta pública del estado de una reserva.
+// Solo devuelve datos del turno (sin teléfono ni email), y el estado ya se ve
+// igual en la grilla de disponibilidad, así que no expone nada nuevo.
+router.get('/estado/:code', async (req, res) => {
+  const code = (req.params.code || '').trim();
+  if (!code) return res.status(400).json({ error: 'Ingresá tu código de reserva.' });
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .select('code, court, reservation_date, start_time, end_time, turn, status, parrilla, cancelled_by')
+    .ilike('code', code)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: 'No encontramos ninguna reserva con ese código. Revisá que esté bien escrito.' });
+
+  const vencioPorSistema = data.status === 'cancelada' && (data.cancelled_by || '').startsWith('sistema');
+  res.json({
+    code: data.code,
+    cancha: NOMBRE_CANCHA[data.court] || data.court,
+    fecha: data.reservation_date,
+    inicio: data.start_time.slice(0, 5),
+    fin: data.end_time.slice(0, 5),
+    turno: data.turn,
+    estado: data.status,
+    parrilla: !!data.parrilla,
+    vencioPorSistema,
+  });
+});
+
 router.post('/futbol', async (req, res) => {
   const body = req.body;
   if (!esDiaHabilitado(body.date)) {

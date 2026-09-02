@@ -1,6 +1,6 @@
-import { IconoMenu } from './Iconos';
+import { IconoMenu, IconoTicket } from './Iconos';
 
-export default function Header({ menuAbierto, onToggleMenu, onIrA }) {
+export default function Header({ menuAbierto, onToggleMenu, onIrA, onBuscarReserva }) {
   return (
     <header>
       <div className="header">
@@ -8,7 +8,10 @@ export default function Header({ menuAbierto, onToggleMenu, onIrA }) {
           <IconoMenu />
         </button>
         <h1>El Pinar</h1>
-        <span className="header-btn" aria-hidden="true" style={{ width: 26 }} />
+        <button className="header-btn header-btn--texto" onClick={onBuscarReserva} aria-label="Buscar mi reserva">
+          <IconoTicket />
+          <span>Mi reserva</span>
+        </button>
       </div>
 
       {menuAbierto && (

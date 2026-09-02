@@ -93,6 +93,8 @@ export const api = {
 
   rivales: () => requestPublico('/rivals'),
 
+  consultarReserva: (code) => requestPublico(`/reservations/estado/${encodeURIComponent(code.trim())}`),
+
   adminBuscar: (code) => requestAdmin(`/admin/search/${encodeURIComponent(code)}`),
   adminConfirmar: (code) => requestAdmin(`/admin/confirm/${encodeURIComponent(code)}`, { method: 'POST' }),
   adminCancelar: (code) => requestAdmin(`/admin/cancel/${encodeURIComponent(code)}`, { method: 'POST' }),

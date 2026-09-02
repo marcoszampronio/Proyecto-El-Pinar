@@ -27,7 +27,8 @@ app.use(cors(origenesPermitidos.length ? { origin: origenesPermitidos } : {}));
 
 app.use(express.json());
 
-// Limita la creacion de reservas para evitar que llenen la agenda con turnos falsos.
+// Limita la CREACION de reservas (POST) para evitar que llenen la agenda con
+// turnos falsos. Las consultas (GET, ej. "buscar mi reserva") no se limitan.
 const limiteReservas = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 8,
@@ -35,7 +36,9 @@ const limiteReservas = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiados intentos seguidos. Probá de nuevo en unos minutos.' },
 });
-app.use('/api/reservations', limiteReservas);
+app.use('/api/reservations', (req, res, next) =>
+  req.method === 'GET' ? next() : limiteReservas(req, res, next)
+);
 
 app.get('/', (req, res) => {
   res.json({ ok: true, mensaje: 'API de Complejo El Pinar funcionando.' });

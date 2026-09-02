@@ -1,8 +1,10 @@
-:root {
-  /* La web es siempre clara. Evita que el navegador del celular (modo oscuro
-     forzado) invierta los colores y se vea rojizo. */
-  color-scheme: light only;
+/* La web es siempre clara. Le dice al navegador del celular que NO aplique su
+   modo oscuro automático (que invierte los colores y los deja rojizos). */
+:root, html {
+  color-scheme: only light;
+}
 
+:root {
   --navy-900: #0A2A52;
   --navy: #123C6E;
   --navy-soft: #1B4E88;
@@ -28,6 +30,16 @@ html, body, #root {
   color: var(--ink);
   font-family: 'Outfit', 'Segoe UI', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Aunque el celular esté en modo oscuro, la web mantiene sus colores claros.
+   (Declarar esto también hace que Chrome Android desactive su "modo oscuro
+   automático" para el sitio.) */
+@media (prefers-color-scheme: dark) {
+  html, body, #root {
+    background: #FAF3E3;
+    color: #14263C;
+  }
 }
 
 button { font-family: inherit; }

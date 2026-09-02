@@ -1,6 +1,6 @@
-import { IconoMenu, IconoLupa } from './Iconos';
+import { IconoMenu } from './Iconos';
 
-export default function Header({ busqueda, onBuscar, menuAbierto, onToggleMenu, buscadorAbierto, onToggleBuscador, onIrA }) {
+export default function Header({ menuAbierto, onToggleMenu, onIrA }) {
   return (
     <header>
       <div className="header">
@@ -8,9 +8,7 @@ export default function Header({ busqueda, onBuscar, menuAbierto, onToggleMenu, 
           <IconoMenu />
         </button>
         <h1>El Pinar</h1>
-        <button className="header-btn" onClick={onToggleBuscador} aria-label="Buscar equipos" aria-expanded={buscadorAbierto}>
-          <IconoLupa />
-        </button>
+        <span className="header-btn" aria-hidden="true" style={{ width: 26 }} />
       </div>
 
       {menuAbierto && (
@@ -18,18 +16,6 @@ export default function Header({ busqueda, onBuscar, menuAbierto, onToggleMenu, 
           <button onClick={() => onIrA('reservar')}>Reservar turnos</button>
           <button onClick={() => onIrA('rivales')}>Busco rival</button>
         </nav>
-      )}
-
-      {buscadorAbierto && (
-        <div className="buscador">
-          <input
-            autoFocus
-            value={busqueda}
-            onChange={(e) => onBuscar(e.target.value)}
-            placeholder="Buscar equipo o categoría..."
-            aria-label="Buscar equipo o categoría"
-          />
-        </div>
       )}
     </header>
   );

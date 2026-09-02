@@ -21,8 +21,6 @@ export default function PublicPage() {
   const [errorCarga, setErrorCarga] = useState(null);
 
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [buscadorAbierto, setBuscadorAbierto] = useState(false);
-  const [busqueda, setBusqueda] = useState('');
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
   const [reintento, setReintento] = useState(0);
@@ -69,22 +67,13 @@ export default function PublicPage() {
     }
   }
 
-  const texto = busqueda.trim().toLowerCase();
-  const rivalesFiltrados = texto
-    ? rivales.filter((r) =>
-        `${r.team_name} ${r.category || ''}`.toLowerCase().includes(texto))
-    : rivales;
   const nombreCancha = CANCHAS.find((c) => c.id === cancha)?.nombre || cancha;
 
   return (
     <div className="app-shell">
       <Header
-        busqueda={busqueda}
-        onBuscar={setBusqueda}
         menuAbierto={menuAbierto}
         onToggleMenu={() => setMenuAbierto((v) => !v)}
-        buscadorAbierto={buscadorAbierto}
-        onToggleBuscador={() => setBuscadorAbierto((v) => !v)}
         onIrA={(destino) => { setVista(destino); setMenuAbierto(false); }}
       />
 
@@ -134,7 +123,7 @@ export default function PublicPage() {
       {vista === 'rivales' && (
         <>
           <h2 className="seccion-titulo">Equipos buscando rival</h2>
-          <RivalsCalendar rivales={rivalesFiltrados} />
+          <RivalsCalendar rivales={rivales} />
         </>
       )}
 

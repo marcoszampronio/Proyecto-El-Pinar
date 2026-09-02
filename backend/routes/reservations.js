@@ -26,9 +26,14 @@ function validarDatosCliente(body) {
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
 
+// Monto de la reserva. Configurable con MONTO_RESERVA en el .env (default 10000).
+const MONTO = Number(process.env.MONTO_RESERVA || 10000);
+const montoTexto = () => (MONTO > 0 ? '$' + MONTO.toLocaleString('es-AR') : null);
+
 function armarMensajeWhatsapp(reserva) {
   const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
   const alias = process.env.ALIAS_TRANSFERENCIA;
+  const monto = montoTexto();
   return (
     `Hola! Quiero confirmar mi reserva en El Pinar.\n\n` +
     `▶ CÓDIGO: ${reserva.code} ◀\n\n` +
@@ -37,7 +42,8 @@ function armarMensajeWhatsapp(reserva) {
     `Horario: ${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs\n` +
     `Nombre: ${reserva.client_name}\n` +
     (reserva.parrilla ? `Incluye PARRILLA para asado\n` : '') +
-    (alias ? `\nAlias para transferir: ${alias}\n` : '') +
+    (monto ? `\nMonto: ${monto}\n` : '\n') +
+    (alias ? `Alias para transferir: ${alias}\n` : '') +
     `\nEn breve adjunto el comprobante de pago.`
   );
 }
@@ -51,6 +57,7 @@ function respuestaReserva(res, data) {
     mensajeWhatsapp: armarMensajeWhatsapp(data),
     numeroWhatsapp: process.env.WHATSAPP_NUMERO,
     aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
+    montoReserva: montoTexto(),
   });
 }
 

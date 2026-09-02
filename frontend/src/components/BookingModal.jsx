@@ -236,7 +236,9 @@ export default function BookingModal({ slotInfo, onClose }) {
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3 className="modal-titulo">¡Ya casi!</h3>
-        <p style={{ fontSize: 14, marginBottom: 6 }}>Transferí el monto al alias:</p>
+        <p style={{ fontSize: 14, marginBottom: 6 }}>
+          Transferí {resultado.montoReserva ? <strong>{resultado.montoReserva}</strong> : 'el monto'} al alias:
+        </p>
         {resultado.aliasTransferencia ? (
           <div className="dato-copiable">
             <strong>{resultado.aliasTransferencia}</strong>

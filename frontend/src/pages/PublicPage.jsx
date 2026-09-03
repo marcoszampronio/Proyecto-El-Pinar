@@ -8,6 +8,7 @@ import PadelPicker from '../components/PadelPicker';
 import RivalsCalendar from '../components/RivalsCalendar';
 import BookingModal from '../components/BookingModal';
 import ConsultaReserva from '../components/ConsultaReserva';
+import MascotaRival from '../components/MascotaRival';
 import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
 
 export default function PublicPage() {
@@ -23,6 +24,7 @@ export default function PublicPage() {
 
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [consultaAbierta, setConsultaAbierta] = useState(false);
+  const [mascotaOff, setMascotaOff] = useState(false);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
   const [reintento, setReintento] = useState(0);
@@ -151,6 +153,10 @@ export default function PublicPage() {
 
       {slotSeleccionado && (
         <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />
+      )}
+
+      {vista === 'reservar' && !mascotaOff && !slotSeleccionado && (
+        <MascotaRival onIr={() => { setVista('rivales'); setMascotaOff(true); }} />
       )}
     </div>
   );

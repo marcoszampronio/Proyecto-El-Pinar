@@ -31,57 +31,48 @@ export default function MascotaRival({ onIr }) {
       tabIndex={visible ? 0 : -1}
     >
       <span className="mascota-globo">¿Buscás rival?</span>
-      <Anfitrion />
+      <Jugador />
     </button>
   );
 }
 
-// Personaje genérico "el anfitrión del complejo": traje, brindando con una copa.
-function Anfitrion() {
+function Jugador() {
   return (
-    <svg className="mascota-svg" viewBox="0 0 100 122" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* piernas del pantalón */}
-      <rect x="39" y="98" width="9" height="18" rx="3" fill="#2b3a4a" />
-      <rect x="52" y="98" width="9" height="18" rx="3" fill="#2b3a4a" />
-      <ellipse cx="41" cy="117" rx="7" ry="3.5" fill="#111" />
-      <ellipse cx="59" cy="117" rx="7" ry="3.5" fill="#111" />
-
-      {/* saco */}
-      <path d="M30 72 Q30 66 36 65 L64 65 Q70 66 70 72 L70 100 Q50 105 30 100 Z" fill="#1c2e44" />
-      {/* camisa + corbata */}
-      <path d="M44 65 L50 78 L56 65 Z" fill="#fff" />
-      <path d="M49 68 L51 68 L52.5 82 L50 86 L47.5 82 Z" fill="#C09A46" />
-      {/* solapas */}
-      <path d="M44 65 L38 84 L43 70 Z" fill="#16273a" />
-      <path d="M56 65 L62 84 L57 70 Z" fill="#16273a" />
-
-      {/* brazo izquierdo pegado al cuerpo */}
-      <rect x="24" y="70" width="9" height="22" rx="4" fill="#1c2e44" />
-      {/* brazo derecho levantado sosteniendo la copa */}
-      <path d="M67 74 Q80 68 82 52" stroke="#1c2e44" strokeWidth="9" fill="none" strokeLinecap="round" />
-
-      {/* copa tipo flauta con champagne */}
-      <path d="M78 34 L86 34 L84.5 44 Q82 46 79.5 44 Z" fill="#ffe9a8" />
-      <path d="M78 34 L86 34 L85.4 30 Q82 28.5 78.6 30 Z" fill="#fff4cf" opacity="0.9" />
-      <rect x="81.4" y="44" width="1.4" height="8" fill="#cfd6dc" />
-      <ellipse cx="82" cy="53" rx="5" ry="1.6" fill="#cfd6dc" />
-      {/* burbujitas */}
-      <circle cx="81" cy="40" r="0.8" fill="#fff" />
-      <circle cx="83.4" cy="42" r="0.7" fill="#fff" />
-
+    <svg className="mascota-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      {/* piernas */}
+      <rect x="38" y="96" width="9" height="18" rx="4" fill="#2b2b2b" />
+      <rect x="53" y="96" width="9" height="18" rx="4" fill="#2b2b2b" />
+      {/* zapatillas */}
+      <ellipse cx="40" cy="115" rx="8" ry="4" fill="#111" />
+      <ellipse cx="60" cy="115" rx="8" ry="4" fill="#111" />
+      {/* cuerpo: camiseta a rayas celeste/blanco */}
+      <g>
+        <rect x="30" y="70" width="40" height="30" rx="8" fill="#fff" />
+        <rect x="34" y="70" width="6" height="30" fill="#6cb6e6" />
+        <rect x="47" y="70" width="6" height="30" fill="#6cb6e6" />
+        <rect x="60" y="70" width="6" height="30" fill="#6cb6e6" />
+        {/* brazos */}
+        <rect x="22" y="72" width="10" height="20" rx="5" fill="#f0c9a0" />
+        <rect x="68" y="60" width="10" height="20" rx="5" fill="#f0c9a0" transform="rotate(20 73 70)" />
+        <text x="50" y="92" textAnchor="middle" fontSize="15" fontWeight="800" fill="#123C6E" fontFamily="Arial, sans-serif">10</text>
+      </g>
       {/* cabeza grande */}
-      <circle cx="50" cy="40" r="31" fill="#f2cfa8" />
-      <circle cx="20" cy="42" r="4.5" fill="#eac59d" />
-      <circle cx="80" cy="42" r="4.5" fill="#eac59d" />
-      {/* pelo canoso corto */}
-      <path d="M21 40 Q22 12 50 12 Q78 12 79 40 Q72 26 50 26 Q28 26 21 40 Z" fill="#9aa1a6" />
-      {/* cejas + ojos */}
-      <rect x="35" y="37" width="9" height="2.4" rx="1" fill="#6b6f73" />
-      <rect x="56" y="37" width="9" height="2.4" rx="1" fill="#6b6f73" />
-      <circle cx="40" cy="43" r="3.4" fill="#222" />
-      <circle cx="60" cy="43" r="3.4" fill="#222" />
-      {/* sonrisa pícara */}
-      <path d="M41 55 Q50 63 59 55" stroke="#8a5a36" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <circle cx="50" cy="40" r="32" fill="#f6d0a8" />
+      {/* pelo */}
+      <path d="M20 38 Q22 8 50 8 Q78 8 80 38 Q70 22 50 22 Q30 22 20 38 Z" fill="#3a2a1c" />
+      {/* orejas */}
+      <circle cx="19" cy="42" r="5" fill="#f0c9a0" />
+      <circle cx="81" cy="42" r="5" fill="#f0c9a0" />
+      {/* ojos */}
+      <circle cx="40" cy="42" r="4" fill="#222" />
+      <circle cx="60" cy="42" r="4" fill="#222" />
+      {/* barbita */}
+      <path d="M36 56 Q50 70 64 56 Q60 64 50 66 Q40 64 36 56 Z" fill="#3a2a1c" />
+      {/* sonrisa */}
+      <path d="M42 56 Q50 62 58 56" stroke="#7a4a2a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      {/* pelotita */}
+      <circle cx="82" cy="100" r="9" fill="#fff" stroke="#123C6E" strokeWidth="1.5" />
+      <path d="M82 93 l4 5 -2 6 -4 0 -2 -6 z" fill="#123C6E" />
     </svg>
   );
 }

@@ -232,21 +232,57 @@ function EstadoSistema() {
   );
 }
 
-function DetalleReserva({ reserva, onCancelado }) {
+function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState(null);
   const [waAbierto, setWaAbierto] = useState(false);
+  const [cancelado, setCancelado] = useState(false);
 
   async function cancelar() {
     setProcesando(true);
     setError(null);
     try {
       await api.adminCancelar(reserva.code);
-      onCancelado();
+      // Si hay gente en la lista de espera, la mostramos acá mismo para
+      // avisarles. Si no, refrescamos directamente.
+      if (espera.length > 0 && ['C1', 'C2'].includes(reserva.court)) setCancelado(true);
+      else onCancelado();
     } catch (e) {
       setError(e.message);
       setProcesando(false);
     }
+  }
+
+  // Mensaje de "se liberó" con el turno puntual, reusando el número ya
+  // normalizado por el backend (wa.me/<num>?text=...).
+  function linkLiberado(e) {
+    if (!e.linkWhatsapp) return null;
+    const base = e.linkWhatsapp.split('?text=')[0];
+    const ddmm = (fecha || '').split('-').slice(1).reverse().join('/');
+    const msg =
+      `Hola ${e.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
+      `Se liberó ${NOMBRE_CANCHA[reserva.court]} de ${hhmm(reserva.start_time)} a ${hhmm(reserva.end_time)} ` +
+      `el ${ddmm}. Si lo querés, respondé este mensaje y te lo reservamos.`;
+    return `${base}?text=${encodeURIComponent(msg)}`;
+  }
+
+  if (cancelado) {
+    return (
+      <div className="agenda-detalle">
+        <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600, marginTop: 0 }}>
+          Turno cancelado. Se liberó {NOMBRE_CANCHA[reserva.court]} {hhmm(reserva.start_time)}–{hhmm(reserva.end_time)}.
+        </p>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: '10px 0 6px' }}>
+          Avisá a la lista de espera ({espera.length}):
+        </p>
+        {espera.map((e) => (
+          <EsperaItem key={e.id} e={{ ...e, linkWhatsapp: linkLiberado(e) }} onAccion={() => {}} />
+        ))}
+        <button className="btn btn-primary" style={{ width: '100%', marginTop: 6 }} onClick={onCancelado}>
+          Listo
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -543,7 +579,14 @@ function AgendaPanel() {
             </div>
           )}
 
-          {reservaSel && <DetalleReserva reserva={reservaSel} onCancelado={cargar} />}
+          {reservaSel && (
+            <DetalleReserva
+              reserva={reservaSel}
+              espera={agenda.espera || []}
+              fecha={fecha}
+              onCancelado={cargar}
+            />
+          )}
         </>
       )}
     </div>

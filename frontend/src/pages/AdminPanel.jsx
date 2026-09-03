@@ -301,19 +301,76 @@ const ESTADO_BADGE = {
   confirmada: { txt: 'Reservado', cls: 'agenda-badge ocupada' },
 };
 
-function SlotFutbol({ slot, seleccionado, onClick }) {
-  const r = slot.reserva;
-  const badge = ESTADO_BADGE[slot.status] || ESTADO_BADGE.libre;
+const TXT_ESTADO = { libre: 'Libre', pendiente: 'A confirmar', confirmada: 'Reservado' };
+
+// Grilla visual de fútbol: Cancha 1 y Cancha 2 en columnas, turnos en filas.
+function GrillaFutbol({ agenda, sel, onCelda }) {
+  const turnos = agenda.futbol.C1.map((s) => ({ turn: s.turn, start: s.start, end: s.end }));
   return (
-    <button
-      className={`agenda-slot ${slot.status} ${seleccionado ? 'sel' : ''}`}
-      disabled={!r}
-      onClick={onClick}
-    >
-      <div className="agenda-slot-hora">{hhmm(slot.start)}<span>–{hhmm(slot.end)}</span></div>
-      <div className="agenda-slot-cliente">{r ? r.client_name : '—'}</div>
-      <span className={badge.cls}>{badge.txt}</span>
-    </button>
+    <div className="grilla">
+      <div className="grilla-esq" />
+      <div className="grilla-cab">Cancha 1</div>
+      <div className="grilla-cab">Cancha 2</div>
+
+      {turnos.map((t, i) => (
+        <div className="grilla-fila" key={t.turn} style={{ display: 'contents' }}>
+          <div className="grilla-hora">{hhmm(t.start)}<span>{hhmm(t.end)}</span></div>
+          {['C1', 'C2'].map((court) => {
+            const slot = agenda.futbol[court][i];
+            const r = slot.reserva;
+            const activo = r && sel === r.code;
+            return (
+              <button
+                key={court}
+                className={`grilla-celda ${slot.status} ${activo ? 'sel' : ''}`}
+                disabled={!r}
+                onClick={() => r && onCelda(r.code)}
+              >
+                <span className="grilla-celda-nombre">{r ? r.client_name.split(' ')[0] : ''}</span>
+                <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
+                {r && r.parrilla && <span className="grilla-celda-tag">🔥</span>}
+                {r && r.looking_for_rival && <span className="grilla-celda-tag" style={{ left: 4 }}>🤝</span>}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Línea de tiempo de pádel: barra 20:00–23:30 con los tramos ocupados.
+function TimelinePadel({ reservas, sel, onTramo }) {
+  const INICIO = 20 * 60; // 20:00 en minutos
+  const FIN = 23 * 60 + 30;
+  const total = FIN - INICIO;
+  const min = (hhmmss) => {
+    const [h, m] = hhmmss.slice(0, 5).split(':').map(Number);
+    return h * 60 + m;
+  };
+  return (
+    <div>
+      <div className="tl">
+        {[20, 21, 22, 23].map((h) => (
+          <span key={h} className="tl-marca" style={{ left: `${((h * 60 - INICIO) / total) * 100}%` }}>{h}</span>
+        ))}
+        {reservas.map((r) => {
+          const a = Math.max(min(r.start_time), INICIO);
+          const b = Math.min(min(r.end_time), FIN);
+          return (
+            <button
+              key={r.code}
+              className={`tl-tramo ${r.status} ${sel === r.code ? 'sel' : ''}`}
+              style={{ left: `${((a - INICIO) / total) * 100}%`, width: `${((b - a) / total) * 100}%` }}
+              onClick={() => onTramo(r.code)}
+              title={`${r.client_name} · ${hhmm(r.start_time)}-${hhmm(r.end_time)}`}
+            >
+              {r.client_name.split(' ')[0]}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -385,38 +442,23 @@ function AgendaPanel() {
               : `${totalDia} reserva${totalDia > 1 ? 's' : ''} · Parrillas ${agenda.parrilla.usadas}/${agenda.parrilla.capacidad}`}
           </p>
 
-          {['C1', 'C2'].map((court) => (
-            <div className="agenda-card" key={court}>
-              <div className="agenda-card-titulo">{NOMBRE_CANCHA[court]}</div>
-              <div className="agenda-slots">
-                {agenda.futbol[court].map((slot) => (
-                  <SlotFutbol
-                    key={court + slot.turn}
-                    slot={slot}
-                    seleccionado={!!slot.reserva && sel === slot.reserva.code}
-                    onClick={() => slot.reserva && toggle(slot.reserva.code)}
-                  />
-                ))}
-              </div>
+          <div className="agenda-card">
+            <div className="agenda-card-titulo">Fútbol</div>
+            <GrillaFutbol agenda={agenda} sel={sel} onCelda={toggle} />
+            <div className="grilla-leyenda">
+              <span><i className="pt libre" /> Libre</span>
+              <span><i className="pt pendiente" /> A confirmar</span>
+              <span><i className="pt confirmada" /> Reservado</span>
+              <span>🔥 parrilla · 🤝 busca rival</span>
             </div>
-          ))}
+          </div>
 
           <div className="agenda-card">
             <div className="agenda-card-titulo">Pádel</div>
             {agenda.padel.length === 0 ? (
-              <p className="agenda-vacio">Libre todo el día</p>
+              <p className="agenda-vacio">Libre todo el día (20:00 a 23:30)</p>
             ) : (
-              <div className="agenda-slots">
-                {agenda.padel.map((r) => (
-                  <FilaFlexible
-                    key={r.code}
-                    r={r}
-                    seleccionado={sel === r.code}
-                    onClick={() => toggle(r.code)}
-                    detalle={`${hhmm(r.start_time)}–${hhmm(r.end_time)}`}
-                  />
-                ))}
-              </div>
+              <TimelinePadel reservas={agenda.padel} sel={sel} onTramo={toggle} />
             )}
           </div>
 

@@ -820,16 +820,16 @@ button { font-family: inherit; }
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--ink);
   padding-right: 4px;
   line-height: 1.1;
 }
-.grilla-hora span { font-size: 10px; font-weight: 500; color: var(--muted); }
+.grilla-hora span { font-size: 12px; font-weight: 500; color: var(--muted); }
 .grilla-celda {
   position: relative;
-  min-height: 62px;
+  min-height: 72px;
   border: 1px solid var(--linea);
   border-radius: 10px;
   display: flex;
@@ -847,14 +847,14 @@ button { font-family: inherit; }
 .grilla-celda.confirmada { background: var(--navy); }
 .grilla-celda.sel { outline: 3px solid var(--gold-dark); outline-offset: 1px; }
 .grilla-celda-nombre {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.grilla-celda-estado { font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; }
+.grilla-celda-estado { font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
 .grilla-celda.libre .grilla-celda-nombre,
 .grilla-celda.libre .grilla-celda-estado { color: var(--muted); }
 .grilla-celda.pendiente .grilla-celda-nombre,
@@ -985,4 +985,31 @@ button { font-family: inherit; }
   font-weight: 700;
   font-size: 15px;
   color: var(--navy);
+}
+.agenda-detalle-cancha {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.agenda-detalle-estado {
+  display: inline-block;
+  margin: 6px 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.agenda-detalle-estado.pendiente { background: rgba(192, 154, 70, 0.22); color: var(--gold-dark); }
+.agenda-detalle-estado.confirmada { background: rgba(46, 125, 91, 0.18); color: var(--ok, #2E7D5B); }
+.agenda-detalle-cliente {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 2px;
+}
+.agenda-detalle-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
 }

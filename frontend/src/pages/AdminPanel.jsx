@@ -287,18 +287,21 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
 
   return (
     <div className="agenda-detalle">
-      <div className="agenda-detalle-code">{reserva.code}</div>
-      <p style={{ margin: '4px 0', fontSize: 14, fontWeight: 600 }}>
+      <div className="agenda-detalle-cancha">
+        {NOMBRE_CANCHA[reserva.court]} · {hhmm(reserva.start_time)} a {hhmm(reserva.end_time)}
+      </div>
+      <div className={`agenda-detalle-estado ${reserva.status}`}>
+        {reserva.status === 'pendiente' ? 'Pendiente de confirmar' : 'Confirmada'}
+      </div>
+      <div className="agenda-detalle-cliente">
         {reserva.client_name}
         {reserva.looking_for_rival && reserva.team_name ? ` · ${reserva.team_name} (${reserva.category || 's/cat'})` : ''}
         {reserva.parrilla ? ' · 🔥 con parrilla' : ''}
-      </p>
-      <p style={{ margin: '2px 0', fontSize: 13, color: '#5C6B60' }}>
-        {NOMBRE_CANCHA[reserva.court]} · {hhmm(reserva.start_time)} a {hhmm(reserva.end_time)}
-        {' · '}
-        {reserva.status === 'pendiente' ? 'Pendiente de confirmar' : 'Confirmada'}
-      </p>
-      <p style={{ margin: '2px 0', fontSize: 13 }}>Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}</p>
+      </div>
+      <div className="agenda-detalle-meta">
+        Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}
+      </div>
+      <div className="agenda-detalle-meta">{reserva.code}</div>
 
       {error && <p className="error-msg">{error}</p>}
 
@@ -944,10 +947,21 @@ export default function AdminPanel() {
                 </p>
               )}
               {resultado.accionSugerida === 'confirmar' && (
-                <div className="modal-actions">
-                  <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Sí, confirmar</button>
-                  <button className="btn btn-ghost" onClick={() => setResultado(null)}>Atrás</button>
-                </div>
+                <>
+                  <div className="modal-actions">
+                    <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Sí, confirmar</button>
+                    <button className="btn btn-ghost" onClick={() => setResultado(null)}>Atrás</button>
+                  </div>
+                  <div style={{ marginTop: 8 }}>
+                    <BotonConfirmar
+                      label="Dar de baja este turno"
+                      confirmLabel="Confirmar: cancelar el turno"
+                      onConfirm={cancelar}
+                      disabled={procesando}
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </>
               )}
               {resultado.accionSugerida === 'cancelar' && (
                 <div className="modal-actions">

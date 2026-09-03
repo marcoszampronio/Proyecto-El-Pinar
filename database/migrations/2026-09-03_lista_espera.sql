@@ -27,3 +27,7 @@ create unique index if not exists uq_lista_espera_persona_dia
 -- RLS igual que el resto: activada sin políticas. Todo pasa por el backend con
 -- la service key (que ignora RLS).
 alter table public.lista_espera enable row level security;
+
+-- El backend usa el rol service_role: necesita el GRANT sobre la tabla nueva
+-- (RLS sigue bloqueando a anon/authenticated porque no hay políticas).
+grant all on public.lista_espera to anon, authenticated, service_role;

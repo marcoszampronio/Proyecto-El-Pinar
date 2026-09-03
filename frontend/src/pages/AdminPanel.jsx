@@ -374,6 +374,52 @@ function TimelinePadel({ reservas, sel, onTramo }) {
   );
 }
 
+// Lista de espera del día: gente que pidió que le avisen si se libera un turno.
+function EsperaItem({ e, onAccion }) {
+  const [busy, setBusy] = useState(false);
+  const [abierto, setAbierto] = useState(false);
+
+  async function accion(a) {
+    setBusy(true);
+    try {
+      await api.adminEsperaAccion(e.id, a);
+      onAccion();
+    } catch (err) {
+      alert('No se pudo: ' + err.message);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
+      <div style={{ fontWeight: 600, fontSize: 14 }}>{e.client_name}</div>
+      <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: 6 }}>{e.client_phone}</div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {e.linkWhatsapp ? (
+          <a
+            className={`btn ${abierto ? 'btn-ghost' : 'btn-primary'}`}
+            style={{ textDecoration: 'none', textAlign: 'center', padding: '6px 12px', fontSize: 13 }}
+            href={e.linkWhatsapp}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setAbierto(true)}
+          >
+            {abierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
+          </a>
+        ) : (
+          <span style={{ fontSize: 12, color: '#B3382E' }}>Sin número válido</span>
+        )}
+        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('avisado')}>
+          Marcar avisado
+        </button>
+        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('descartar')}>
+          Descartar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function FilaFlexible({ r, seleccionado, onClick, detalle }) {
   return (
     <button className={`agenda-slot ${r.status} ${seleccionado ? 'sel' : ''}`} onClick={onClick}>
@@ -482,6 +528,20 @@ function AgendaPanel() {
               </div>
             )}
           </div>
+
+          {agenda.espera && agenda.espera.length > 0 && (
+            <div className="agenda-card">
+              <div className="agenda-card-titulo">
+                Lista de espera <span className="agenda-contador">{agenda.espera.length}</span>
+              </div>
+              <p style={{ fontSize: 12, color: '#5C6B60', margin: '0 0 8px' }}>
+                Pidieron que les avises si se libera un turno de fútbol este día.
+              </p>
+              {agenda.espera.map((e) => (
+                <EsperaItem key={e.id} e={e} onAccion={cargar} />
+              ))}
+            </div>
+          )}
 
           {reservaSel && <DetalleReserva reserva={reservaSel} onCancelado={cargar} />}
         </>

@@ -6,6 +6,7 @@ import 'dotenv/config';
 
 import availabilityRoutes from './routes/availability.js';
 import reservationsRoutes from './routes/reservations.js';
+import esperaRoutes from './routes/espera.js';
 import rivalsRoutes from './routes/rivals.js';
 import adminRoutes from './routes/admin.js';
 import exportRoutes from './routes/export.js';
@@ -39,6 +40,9 @@ const limiteReservas = rateLimit({
 app.use('/api/reservations', (req, res, next) =>
   req.method === 'GET' ? next() : limiteReservas(req, res, next)
 );
+app.use('/api/espera', (req, res, next) =>
+  req.method === 'GET' ? next() : limiteReservas(req, res, next)
+);
 
 app.get('/', (req, res) => {
   res.json({ ok: true, mensaje: 'API de Complejo El Pinar funcionando.' });
@@ -47,6 +51,7 @@ app.get('/', (req, res) => {
 app.use('/api/status', statusRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/reservations', reservationsRoutes);
+app.use('/api/espera', esperaRoutes);
 app.use('/api/rivals', rivalsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/export', exportRoutes);

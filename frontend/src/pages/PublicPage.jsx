@@ -8,6 +8,7 @@ import PadelPicker from '../components/PadelPicker';
 import RivalsCalendar from '../components/RivalsCalendar';
 import BookingModal from '../components/BookingModal';
 import ConsultaReserva from '../components/ConsultaReserva';
+import ListaEsperaModal from '../components/ListaEsperaModal';
 import MascotaRival from '../components/MascotaRival';
 import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
 
@@ -25,6 +26,7 @@ export default function PublicPage() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [consultaAbierta, setConsultaAbierta] = useState(false);
   const [mascotaOff, setMascotaOff] = useState(false);
+  const [esperaAbierta, setEsperaAbierta] = useState(false);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
 
   const [reintento, setReintento] = useState(0);
@@ -112,6 +114,7 @@ export default function PublicPage() {
               nombreCancha={nombreCancha}
               turnos={turnos}
               onReservar={(turn) => setSlotSeleccionado({ court: cancha, date: fecha, turn })}
+              onListaEspera={() => setEsperaAbierta(true)}
             />
           )}
 
@@ -153,6 +156,10 @@ export default function PublicPage() {
 
       {slotSeleccionado && (
         <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />
+      )}
+
+      {esperaAbierta && (
+        <ListaEsperaModal fecha={fecha} onCerrar={() => setEsperaAbierta(false)} />
       )}
 
       {vista === 'reservar' && !mascotaOff && !slotSeleccionado && (

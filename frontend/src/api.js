@@ -91,6 +91,9 @@ export const api = {
   reservarPadel: (payload) =>
     requestPublico('/reservations/padel', { method: 'POST', body: JSON.stringify(payload) }),
 
+  anotarseEspera: (payload) =>
+    requestPublico('/espera', { method: 'POST', body: JSON.stringify(payload) }),
+
   rivales: () => requestPublico('/rivals'),
 
   consultarReserva: (code) => requestPublico(`/reservations/estado/${encodeURIComponent(code.trim())}`),
@@ -104,6 +107,8 @@ export const api = {
   adminBackupAhora: () => requestAdmin('/admin/export/backup-ahora', { method: 'POST' }),
   adminDiagnostico: () => requestAdmin('/status/diagnostico'),
   adminAgenda: (date) => requestAdmin(`/admin/agenda/${date}`),
+  adminEsperaAccion: (id, accion) =>
+    requestAdmin(`/admin/espera/${id}/${accion}`, { method: 'POST' }),
   adminReservasDelDia: (date) => requestAdmin(`/admin/dia/${date}`),
   adminSuspenderPorLluvia: (date) =>
     requestAdmin(`/admin/suspender/${date}`, { method: 'POST' }),

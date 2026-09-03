@@ -62,17 +62,51 @@ function resumenAgenda(r) {
   };
 }
 
+function fechaDDMM(iso) {
+  const [, m, d] = String(iso).split('-');
+  return d && m ? `${d}/${m}` : iso;
+}
+
+function armarMensajeEspera(e) {
+  return (
+    `Hola ${e.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
+    `Se liberó un turno de fútbol para el ${fechaDDMM(e.reservation_date)}. ` +
+    `Si lo querés, respondé este mensaje y te lo reservamos.`
+  );
+}
+
+function resumenEspera(e) {
+  const tel = normalizarTelefonoAR(e.client_phone);
+  const mensaje = armarMensajeEspera(e);
+  return {
+    id: e.id,
+    client_name: e.client_name,
+    client_phone: e.client_phone,
+    created_at: e.created_at,
+    mensaje,
+    linkWhatsapp: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}` : null,
+  };
+}
+
 // GET /api/admin/agenda/:date - vista de calendario del dia: grilla de futbol
 // (C1/C2 x T1/T2/T3, libre u ocupado) + lista de padel + parrillas usadas.
 router.get('/agenda/:date', async (req, res) => {
   const date = req.params.date;
 
-  const { data, error } = await supabaseAdmin
-    .from('reservations')
-    .select('*')
-    .eq('reservation_date', date)
-    .neq('status', 'cancelada')
-    .order('start_time', { ascending: true });
+  const [{ data, error }, esperaRes] = await Promise.all([
+    supabaseAdmin
+      .from('reservations')
+      .select('*')
+      .eq('reservation_date', date)
+      .neq('status', 'cancelada')
+      .order('start_time', { ascending: true }),
+    supabaseAdmin
+      .from('lista_espera')
+      .select('*')
+      .eq('reservation_date', date)
+      .eq('status', 'activa')
+      .order('created_at', { ascending: true }),
+  ]);
 
   if (error) return res.status(500).json({ error: error.message });
 
@@ -94,12 +128,30 @@ router.get('/agenda/:date', async (req, res) => {
   const padel = data.filter((x) => x.court === 'PAD').map(resumenAgenda);
   const conParrilla = data.filter((x) => x.parrilla).map(resumenAgenda);
 
+  const espera = (esperaRes.data || []).map(resumenEspera);
+
   res.json({
     date,
     futbol,
     padel,
     parrilla: { capacidad: 2, usadas: conParrilla.length, reservas: conParrilla },
+    espera,
   });
+});
+
+// POST /api/admin/espera/:id/:accion - accion = 'avisado' | 'descartar'
+router.post('/espera/:id/:accion', async (req, res) => {
+  const { id, accion } = req.params;
+  const nuevoEstado = accion === 'avisado' ? 'avisado' : accion === 'descartar' ? 'descartado' : null;
+  if (!nuevoEstado) return res.status(400).json({ error: 'Acción inválida.' });
+
+  const { error } = await supabaseAdmin
+    .from('lista_espera')
+    .update({ status: nuevoEstado, notified_at: new Date().toISOString(), notified_by: req.adminEmail })
+    .eq('id', id);
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true, status: nuevoEstado });
 });
 
 // GET /api/admin/dia/:date - reservas activas de un dia (para la vista previa

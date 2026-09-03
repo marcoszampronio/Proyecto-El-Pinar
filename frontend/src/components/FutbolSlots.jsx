@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { hhmm } from '../lib/fechas';
 
-export default function FutbolSlots({ nombreCancha, turnos, onReservar }) {
+export default function FutbolSlots({ nombreCancha, turnos, onReservar, onListaEspera }) {
   const [elegido, setElegido] = useState(null);
 
   return (
@@ -38,6 +38,15 @@ export default function FutbolSlots({ nombreCancha, turnos, onReservar }) {
       >
         Reservar
       </button>
+
+      {onListaEspera && (
+        <div className="espera-cta">
+          <button className="btn btn-espera" onClick={onListaEspera}>
+            Lista de espera
+          </button>
+          <p className="espera-nota">Te avisamos si se libera un turno para este día.</p>
+        </div>
+      )}
     </>
   );
 }

@@ -50,7 +50,7 @@ button { font-family: inherit; }
   margin: 0 auto;
   min-height: 100vh;
   background: var(--cream);
-  padding-bottom: 128px;
+  padding-bottom: 180px;
   position: relative;
 }
 

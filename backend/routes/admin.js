@@ -3,7 +3,6 @@ import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
 import { TURNOS_FUTBOL } from '../lib/codeGenerator.js';
-import { contarParrillasRango } from '../lib/parrilla.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 
 const router = Router();
@@ -134,7 +133,7 @@ router.get('/agenda/:date', async (req, res) => {
     date,
     futbol,
     padel,
-    parrilla: { capacidad: 2, usadas: conParrilla.length, reservas: conParrilla },
+    parrilla: { pidieron: conParrilla.length, reservas: conParrilla },
     espera,
   });
 });
@@ -406,19 +405,17 @@ router.get('/stats', async (req, res) => {
   const finVentana = isoHoy(dias);
   const hace30 = isoHoy(-30);
 
-  const [futuro, historico, parrillasVentana, parrillas30] = await Promise.all([
+  const [futuro, historico] = await Promise.all([
     supabaseAdmin
       .from('reservations')
-      .select('court, status, reservation_date, turn, looking_for_rival')
+      .select('court, status, reservation_date, turn, looking_for_rival, parrilla')
       .gte('reservation_date', hoy)
       .lte('reservation_date', finVentana),
     supabaseAdmin
       .from('reservations')
-      .select('status, reservation_date, client_phone')
+      .select('status, reservation_date, client_phone, parrilla')
       .gte('reservation_date', hace30)
       .lt('reservation_date', hoy),
-    contarParrillasRango(hoy, isoHoy(dias + 1)),
-    contarParrillasRango(hace30, hoy),
   ]);
 
   if (futuro.error) return res.status(500).json({ error: futuro.error.message });
@@ -462,7 +459,7 @@ router.get('/stats', async (req, res) => {
       confirmadas: confirmadas.length,
       pendientes: fData.filter((r) => r.status === 'pendiente').length,
       reservasPorCancha: porCancha,
-      parrillasReservadas: parrillasVentana,
+      parrillasReservadas: activas.filter((r) => r.parrilla).length,
       equiposBuscandoRival: activas.filter((r) => r.looking_for_rival && r.status === 'confirmada').length,
       ocupacionFutbolPct: ocupacionFutbol,
       turnosFutbolOcupados,
@@ -474,7 +471,7 @@ router.get('/stats', async (req, res) => {
       canceladas: hCanceladas,
       tasaCancelacionPct: hData.length ? Math.round((hCanceladas / hData.length) * 100) : 0,
       clientesUnicos,
-      parrillas: parrillas30,
+      parrillas: hData.filter((r) => r.parrilla && r.status !== 'cancelada').length,
       porDiaSemana,
     },
   });

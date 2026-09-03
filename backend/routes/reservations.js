@@ -8,7 +8,6 @@ import {
   generarCodigoPadel,
   esDiaHabilitado,
 } from '../lib/codeGenerator.js';
-import { validarParrillaDisponible } from '../lib/parrilla.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
 import 'dotenv/config';
 
@@ -41,7 +40,7 @@ function armarMensajeWhatsapp(reserva) {
     `Fecha: ${reserva.reservation_date}\n` +
     `Horario: ${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs\n` +
     `Nombre: ${reserva.client_name}\n` +
-    (reserva.parrilla ? `Incluye PARRILLA para asado\n` : '') +
+    (reserva.parrilla ? `\n⚠️ CONSULTA: quiere usar la parrilla para el asado. Confirmale si hay lugar.\n` : '') +
     (monto ? `\nMonto: ${monto}\n` : '\n') +
     (alias ? `Alias para transferir: ${alias}\n` : '') +
     `\nEn breve adjunto el comprobante de pago.`
@@ -104,11 +103,6 @@ router.post('/futbol', async (req, res) => {
   const turnoInfo = TURNOS_FUTBOL[body.turn];
   if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
 
-  if (body.parrilla) {
-    const { error: errorParrilla } = await validarParrillaDisponible(body.date);
-    if (errorParrilla) return res.status(409).json({ error: errorParrilla });
-  }
-
   const code = generarCodigoFutbol({ court: body.court, date: body.date, turn: body.turn });
 
   const { data, error } = await supabaseAdmin
@@ -150,11 +144,6 @@ router.post('/padel', async (req, res) => {
   if (!body.startTime || !body.endTime) return res.status(400).json({ error: 'Faltan horarios.' });
   if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
     return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
-  }
-
-  if (body.parrilla) {
-    const { error: errorParrilla } = await validarParrillaDisponible(body.date);
-    if (errorParrilla) return res.status(409).json({ error: errorParrilla });
   }
 
   const { data: existentes, error: errorConsulta } = await supabaseAdmin

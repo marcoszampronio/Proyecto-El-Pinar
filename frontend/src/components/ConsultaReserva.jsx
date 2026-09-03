@@ -58,7 +58,7 @@ export default function ConsultaReserva({ onCerrar }) {
           <div className="consulta-estado" style={{ color: e.color }}>{e.txt}</div>
           <div>{fecha.charAt(0).toUpperCase() + fecha.slice(1)}</div>
           <div>{reserva.cancha} · {reserva.inicio} a {reserva.fin} hs</div>
-          {reserva.parrilla && <div>🔥 Con parrilla</div>}
+          {reserva.parrilla && <div>🔥 Consultaste por la parrilla</div>}
           {reserva.estado === 'pendiente' && (
             <p className="consulta-nota">
               Esperando que confirmemos tu comprobante. Si ya lo mandaste por WhatsApp, aguardá un rato.

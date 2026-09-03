@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { api } from '../api';
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 
@@ -37,17 +37,8 @@ export default function BookingModal({ slotInfo, onClose }) {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
-  const [parrilla, setParrilla] = useState(null); // { disponibles, capacidad }
 
   const esCanchaFutbol = slotInfo.court !== 'PAD';
-
-  useEffect(() => {
-    api.disponibilidadParrilla(slotInfo.date)
-      .then(setParrilla)
-      .catch(() => setParrilla(null));
-  }, [slotInfo.date]);
-
-  const parrillaDisponible = parrilla ? parrilla.disponibles > 0 : true;
 
   function actualizar(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }));
@@ -199,23 +190,18 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           )}
 
-          {/* Parrilla: adicional opcional, por cantidad (hay 2 por noche) */}
+          {/* Parrilla: consulta. La disponibilidad la maneja Mateo por WhatsApp. */}
           <div className="field-check">
-            <label style={{ opacity: parrillaDisponible ? 1 : 0.5 }}>
+            <label>
               <input
                 type="checkbox"
                 checked={form.parrilla}
-                disabled={!parrillaDisponible}
                 onChange={(e) => actualizar('parrilla', e.target.checked)}
               />
-              {' Sumar parrilla para el asado 🔥'}
+              {' Quiero consultar por la parrilla para el asado 🔥'}
             </label>
             <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 2 }}>
-              {parrilla == null
-                ? ''
-                : parrilla.disponibles > 0
-                ? `Quedan ${parrilla.disponibles} de ${parrilla.capacidad} parrillas para esa fecha`
-                : 'No quedan parrillas para esa fecha'}
+              Mateo te confirma por WhatsApp si hay lugar.
             </div>
           </div>
 
@@ -253,7 +239,7 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p><strong>{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</strong></p>
           <p>{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</p>
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
-          {resultado.reserva.parrilla && <p style={{ color: '#B45309', fontWeight: 600 }}>🔥 Con parrilla para asado</p>}
+          {resultado.reserva.parrilla && <p style={{ color: '#B45309', fontWeight: 600 }}>🔥 Consultaste por la parrilla — Mateo te confirma</p>}
         </div>
 
         <p style={{ fontSize: 13, color: '#5C6B60', marginBottom: 16 }}>

@@ -296,7 +296,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       <div className="agenda-detalle-cliente">
         {reserva.client_name}
         {reserva.looking_for_rival && reserva.team_name ? ` · ${reserva.team_name} (${reserva.category || 's/cat'})` : ''}
-        {reserva.parrilla ? ' · 🔥 con parrilla' : ''}
+        {reserva.parrilla ? ' · 🔥 consultó parrilla' : ''}
       </div>
       <div className="agenda-detalle-meta">
         Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}
@@ -524,7 +524,7 @@ function AgendaPanel() {
           <p className="agenda-resumen">
             {totalDia === 0
               ? 'Sin reservas este día.'
-              : `${totalDia} reserva${totalDia > 1 ? 's' : ''} · Parrillas ${agenda.parrilla.usadas}/${agenda.parrilla.capacidad}`}
+              : `${totalDia} reserva${totalDia > 1 ? 's' : ''}${agenda.parrilla.pidieron ? ` · ${agenda.parrilla.pidieron} consultó parrilla` : ''}`}
           </p>
 
           <div className="agenda-card">
@@ -549,10 +549,10 @@ function AgendaPanel() {
 
           <div className="agenda-card">
             <div className="agenda-card-titulo">
-              Parrilla 🔥 <span className="agenda-contador">{agenda.parrilla.usadas}/{agenda.parrilla.capacidad}</span>
+              Consultas por parrilla 🔥 <span className="agenda-contador">{agenda.parrilla.pidieron}</span>
             </div>
             {agenda.parrilla.reservas.length === 0 ? (
-              <p className="agenda-vacio">Nadie reservó parrilla</p>
+              <p className="agenda-vacio">Nadie consultó por la parrilla</p>
             ) : (
               <div className="agenda-slots">
                 {agenda.parrilla.reservas.map((r) => (
@@ -933,7 +933,7 @@ export default function AdminPanel() {
                     {' · '}Busca rival{resultado.reserva.team_name ? ` (${resultado.reserva.team_name})` : ''}
                   </span>
                 )}
-                {resultado.reserva.parrilla && <span style={{ color: '#B45309', fontWeight: 600 }}>{' · '}🔥 Parrilla</span>}
+                {resultado.reserva.parrilla && <span style={{ color: '#B45309', fontWeight: 600 }}>{' · '}🔥 consultó parrilla</span>}
               </p>
               <p style={{ margin: '4px 0', fontSize: 13, color: '#5C6B60' }}>
                 {NOMBRE_CANCHA[resultado.reserva.court]} · {resultado.reserva.reservation_date} · {resultado.reserva.start_time.slice(0, 5)} a {resultado.reserva.end_time.slice(0, 5)}
@@ -1018,7 +1018,7 @@ export default function AdminPanel() {
                 </div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Parrillas</div>
+                <div style={{ fontSize: 13, color: '#5C6B60' }}>Consultas parrilla</div>
                 <div className="big-num">{stats.ventana.parrillasReservadas}</div>
               </div>
               <div className="stat-card">
@@ -1049,7 +1049,7 @@ export default function AdminPanel() {
                 <div style={{ fontSize: 11, color: '#5C6B60' }}>{stats.historico30.tasaCancelacionPct}% del total</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Parrillas</div>
+                <div style={{ fontSize: 13, color: '#5C6B60' }}>Consultas parrilla</div>
                 <div className="big-num">{stats.historico30.parrillas}</div>
               </div>
             </div>

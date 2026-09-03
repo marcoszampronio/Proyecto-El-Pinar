@@ -81,10 +81,6 @@ export const api = {
   disponibilidadPadel: (date) =>
     requestPublico(`/availability/padel?date=${date}`),
 
-  // cuántas parrillas quedan para esa fecha (capacidad total: 2)
-  disponibilidadParrilla: (date) =>
-    requestPublico(`/availability/parrilla?date=${date}`),
-
   reservarFutbol: (payload) =>
     requestPublico('/reservations/futbol', { method: 'POST', body: JSON.stringify(payload) }),
 

@@ -12,9 +12,6 @@ export const NOMBRES_DIAS = { 2: 'Martes', 3: 'Miércoles', 4: 'Jueves' };
 export const PADEL_APERTURA = '20:00:00';
 export const PADEL_CIERRE = '23:30:00';
 
-// La parrilla es un adicional opcional de cualquier reserva. Hay 2 parrillas.
-export const CAPACIDAD_PARRILLA = 2;
-
 const MESES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 
 function formatearFecha(fechaISO) {

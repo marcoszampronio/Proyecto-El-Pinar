@@ -100,6 +100,8 @@ export const api = {
   adminPendientes: () => requestAdmin('/admin/pending'),
   adminStats: (dias = 7) => requestAdmin(`/admin/stats?dias=${dias}`),
   adminContactos: () => requestAdmin('/admin/contactos'),
+  adminAgregarContacto: (payload) =>
+    requestAdmin('/admin/contactos', { method: 'POST', body: JSON.stringify(payload) }),
   adminAgendarManual: (payload) =>
     requestAdmin('/admin/manual', { method: 'POST', body: JSON.stringify(payload) }),
   adminRival: (code, payload) =>

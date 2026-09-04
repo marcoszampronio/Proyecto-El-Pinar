@@ -471,12 +471,19 @@ router.get('/pending', async (req, res) => {
 });
 
 // GET /api/admin/contactos - base de contactos de clientes (deduplicada por telefono).
+// Combina los que salen de las reservas con los que Mateo carga a mano.
 // Sirve para avisos masivos: cada contacto trae su link de WhatsApp listo.
 router.get('/contactos', async (req, res) => {
-  const { data, error } = await supabaseAdmin
-    .from('reservations')
-    .select('client_name, client_phone, client_email, reservation_date, status, court, created_at')
-    .order('created_at', { ascending: false });
+  const [{ data, error }, manuales] = await Promise.all([
+    supabaseAdmin
+      .from('reservations')
+      .select('client_name, client_phone, client_email, reservation_date, status, court, created_at')
+      .order('created_at', { ascending: false }),
+    supabaseAdmin
+      .from('contactos_manuales')
+      .select('*')
+      .order('created_at', { ascending: false }),
+  ]);
 
   if (error) return res.status(500).json({ error: error.message });
 
@@ -505,11 +512,46 @@ router.get('/contactos', async (req, res) => {
     c.canchasUsadas.add(r.court);
   }
 
+  // Contactos cargados a mano: solo se agregan si ese teléfono no tiene ya
+  // reservas (si las tiene, ya está en el mapa de arriba).
+  for (const m of manuales.data || []) {
+    const clave = String(m.telefono || '').replace(/\D/g, '') || m.nombre;
+    if (!clave || mapa.has(clave)) continue;
+    mapa.set(clave, {
+      nombre: m.nombre,
+      telefono: m.telefono,
+      telefonoWa: normalizarTelefonoAR(m.telefono),
+      email: null,
+      totalReservas: 0,
+      confirmadas: 0,
+      canceladas: 0,
+      ultimaReserva: null,
+      canchasUsadas: [],
+      manual: true,
+    });
+  }
+
   const contactos = [...mapa.values()]
-    .map((c) => ({ ...c, canchasUsadas: [...c.canchasUsadas] }))
+    .map((c) => ({ ...c, canchasUsadas: Array.isArray(c.canchasUsadas) ? c.canchasUsadas : [...c.canchasUsadas] }))
     .sort((a, b) => b.confirmadas - a.confirmadas || b.totalReservas - a.totalReservas);
 
   res.json({ total: contactos.length, contactos });
+});
+
+// POST /api/admin/contactos - Mateo carga un contacto a mano (sin reserva).
+router.post('/contactos', async (req, res) => {
+  const nombre = String(req.body.nombre || '').trim();
+  const telefono = String(req.body.telefono || '').trim();
+  if (!nombre || telefono.replace(/\D/g, '').length < 8) {
+    return res.status(400).json({ error: 'Completá nombre y teléfono.' });
+  }
+
+  const { error } = await supabaseAdmin
+    .from('contactos_manuales')
+    .insert({ nombre, telefono, created_by: req.adminEmail });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
 });
 
 const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

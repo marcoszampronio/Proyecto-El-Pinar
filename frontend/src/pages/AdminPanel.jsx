@@ -872,6 +872,8 @@ function ContactosPanel() {
         Todos los clientes que alguna vez reservaron. Tocá "WhatsApp" para escribirles.
       </p>
 
+      <AgregarContacto onAgregado={() => { setAviso('Contacto agregado.'); cargar(); }} />
+
       <input
         style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--line)', marginBottom: 10 }}
         placeholder="Buscar por nombre, teléfono o email"
@@ -888,12 +890,14 @@ function ContactosPanel() {
 
       {lista.map((c) => (
         <div key={c.telefono + c.nombre} style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</div>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>
+            {c.nombre}{c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}> (agregado a mano)</span>}
+          </div>
           <div style={{ fontSize: 12, color: '#5C6B60' }}>
             {c.telefono}{c.email ? ` · ${c.email}` : ''}
           </div>
           <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: 6 }}>
-            {c.confirmadas} confirmada{c.confirmadas === 1 ? '' : 's'} · {c.totalReservas} en total · última: {c.ultimaReserva}
+            {c.manual ? 'Sin reservas todavía' : `${c.confirmadas} confirmada${c.confirmadas === 1 ? '' : 's'} · ${c.totalReservas} en total · última: ${c.ultimaReserva}`}
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {c.telefonoWa && (
@@ -929,6 +933,69 @@ function ContactosPanel() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+// Mini-form para que Mateo cargue un contacto de WhatsApp sin que haya
+// una reserva de por medio.
+function AgregarContacto({ onAgregado }) {
+  const [abrir, setAbrir] = useState(false);
+  const [nombre, setNombre] = useState('');
+  const [area, setArea] = useState('');
+  const [num, setNum] = useState('');
+  const [error, setError] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const areaLimpia = area.replace(/\D/g, '');
+  const numLimpio = num.replace(/\D/g, '');
+
+  async function agregar() {
+    setError(null);
+    if (!nombre.trim()) { setError('Completá el nombre.'); return; }
+    if (areaLimpia.length < 2 || numLimpio.length < 6) { setError('Completá característica y número.'); return; }
+    setEnviando(true);
+    try {
+      await api.adminAgregarContacto({ nombre: nombre.trim(), telefono: `54 9 ${areaLimpia} ${numLimpio}` });
+      setNombre(''); setArea(''); setNum(''); setAbrir(false);
+      onAgregado();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  if (!abrir) {
+    return (
+      <button className="btn btn-ghost" style={{ width: '100%', marginBottom: 10 }} onClick={() => setAbrir(true)}>
+        + Agregar contacto
+      </button>
+    );
+  }
+
+  return (
+    <div style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 10 }}>
+      <div className="field">
+        <label>Nombre</label>
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre del contacto" />
+      </div>
+      <div className="field">
+        <label>WhatsApp</label>
+        <div className="tel-split">
+          <span className="tel-fijo">+54&nbsp;9</span>
+          <input className="tel-area" value={area} onChange={(e) => setArea(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="343" inputMode="numeric" aria-label="Característica" />
+          <span className="tel-fijo">15</span>
+          <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134744" inputMode="numeric" aria-label="Número" />
+        </div>
+      </div>
+      {error && <p className="error-msg">{error}</p>}
+      <div className="modal-actions">
+        <button className="btn btn-ghost" onClick={() => setAbrir(false)}>Cancelar</button>
+        <button className="btn btn-primary" onClick={agregar} disabled={enviando}>
+          {enviando ? 'Guardando…' : 'Guardar'}
+        </button>
+      </div>
     </div>
   );
 }

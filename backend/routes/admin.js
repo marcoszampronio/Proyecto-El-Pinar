@@ -2,7 +2,14 @@ import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
-import { TURNOS_FUTBOL } from '../lib/codeGenerator.js';
+import {
+  TURNOS_FUTBOL,
+  PADEL_APERTURA,
+  PADEL_CIERRE,
+  esDiaHabilitado,
+  generarCodigoFutbol,
+  generarCodigoPadel,
+} from '../lib/codeGenerator.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 
 const router = Router();
@@ -333,6 +340,122 @@ router.post('/cancel/:code', async (req, res) => {
   enviarEmailCancelacion(actualizada).catch((e) => console.error('Error enviando email:', e));
 
   res.json({ reserva: actualizada, mensaje: 'Reserva cancelada. Email enviado al cliente.' });
+});
+
+// POST /api/admin/manual - Mateo agenda un turno el mismo, ya confirmado
+// (para clientes que le escriben directo por WhatsApp). Puede marcarlo
+// "busca rival" para que salga en el calendario público.
+router.post('/manual', async (req, res) => {
+  const body = req.body || {};
+
+  if (!body.clientName || !body.clientPhone) {
+    return res.status(400).json({ error: 'Falta el nombre y el teléfono del cliente.' });
+  }
+  if (!esDiaHabilitado(body.date)) {
+    return res.status(400).json({ error: 'Solo se puede agendar martes, miércoles o jueves.' });
+  }
+  if (!['C1', 'C2', 'PAD'].includes(body.court)) {
+    return res.status(400).json({ error: 'Cancha inválida.' });
+  }
+  if (body.lookingForRival && body.court === 'PAD') {
+    return res.status(400).json({ error: 'Busco rival es solo para fútbol.' });
+  }
+
+  let start_time, end_time, turn = null, code;
+
+  if (body.court === 'PAD') {
+    if (!body.startTime || !body.endTime) return res.status(400).json({ error: 'Faltan horarios de pádel.' });
+    if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
+      return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
+    }
+    start_time = body.startTime;
+    end_time = body.endTime;
+    code = generarCodigoPadel({ date: body.date, startTime: start_time, endTime: end_time });
+
+    const { data: existentes, error: errorConsulta } = await supabaseAdmin
+      .from('reservations')
+      .select('start_time, end_time')
+      .eq('reservation_date', body.date)
+      .eq('court', 'PAD')
+      .neq('status', 'cancelada');
+    if (errorConsulta) return res.status(500).json({ error: errorConsulta.message });
+    const seSolapa = existentes.some((r) => start_time < r.end_time && end_time > r.start_time);
+    if (seSolapa) return res.status(409).json({ error: 'Ese rango se solapa con otra reserva.' });
+  } else {
+    const turnoInfo = TURNOS_FUTBOL[body.turn];
+    if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
+    turn = body.turn;
+    start_time = turnoInfo.start;
+    end_time = turnoInfo.end;
+    code = generarCodigoFutbol({ court: body.court, date: body.date, turn: body.turn });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .insert({
+      code,
+      court: body.court,
+      reservation_date: body.date,
+      start_time,
+      end_time,
+      turn,
+      client_name: body.clientName,
+      client_phone: body.clientPhone,
+      client_email: body.clientEmail || null,
+      category: body.lookingForRival ? (body.category || null) : null,
+      team_name: body.lookingForRival ? (body.teamName || null) : null,
+      looking_for_rival: !!body.lookingForRival,
+      parrilla: !!body.parrilla,
+      status: 'confirmada',
+      confirmed_at: new Date().toISOString(),
+      confirmed_by: req.adminEmail,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23505' || error.code === '23P01') {
+      return res.status(409).json({ error: 'Ese turno ya no está libre.' });
+    }
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json({ reserva: data, mensaje: 'Turno agendado y confirmado.' });
+});
+
+// POST /api/admin/rival/:code - activa o desactiva "busco rival" en una
+// reserva confirmada (ej: "ya consiguió rival" la saca del calendario público).
+router.post('/rival/:code', async (req, res) => {
+  const code = req.params.code.trim();
+  const activar = !!req.body.lookingForRival;
+
+  const { data: reserva, error: errorBusqueda } = await supabaseAdmin
+    .from('reservations')
+    .select('*')
+    .ilike('code', code)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (errorBusqueda) return res.status(500).json({ error: errorBusqueda.message });
+  if (!reserva) return res.status(404).json({ error: 'No se encontró la reserva.' });
+  if (reserva.court === 'PAD') return res.status(400).json({ error: 'Busco rival es solo para fútbol.' });
+
+  const patch = { looking_for_rival: activar };
+  if (activar) {
+    patch.team_name = req.body.teamName || reserva.team_name || null;
+    patch.category = req.body.category || reserva.category || null;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .update(patch)
+    .eq('id', reserva.id)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ reserva: data });
 });
 
 // GET /api/admin/pending - lista de reservas pendientes (para el listado rapido del panel)

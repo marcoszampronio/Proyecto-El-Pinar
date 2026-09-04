@@ -71,6 +71,160 @@ function NavegadorFecha({ fecha, onCambiar, soloHabilitados = true }) {
   );
 }
 
+const TURNOS_FUTBOL_LABEL = {
+  T1: '20:30 a 21:30',
+  T2: '21:30 a 22:30',
+  T3: '22:30 a 23:30',
+};
+
+// Modal para que Mateo agende un turno el mismo (cliente que le escribe
+// directo por WhatsApp), ya confirmado. Puede marcarlo "busca rival".
+function ManualBookingModal({ contacto, onCerrar, onCreado }) {
+  const [cancha, setCancha] = useState('C1');
+  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
+  const [turn, setTurn] = useState('T1');
+  const [padelStart, setPadelStart] = useState('20:00');
+  const [padelEnd, setPadelEnd] = useState('21:00');
+  const [lookingForRival, setLookingForRival] = useState(false);
+  const [teamName, setTeamName] = useState('');
+  const [category, setCategory] = useState('');
+  const [parrilla, setParrilla] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(null);
+  const [hecho, setHecho] = useState(null);
+
+  const esFutbol = cancha !== 'PAD';
+
+  async function agendar() {
+    setError(null);
+    if (esFutbol && lookingForRival && !teamName.trim()) {
+      setError('Completá el nombre del equipo.');
+      return;
+    }
+    setEnviando(true);
+    try {
+      const payload = {
+        court: cancha,
+        date: fecha,
+        clientName: contacto.nombre,
+        clientPhone: contacto.telefono,
+        lookingForRival: esFutbol && lookingForRival,
+        teamName: esFutbol && lookingForRival ? teamName.trim() : null,
+        category: esFutbol && lookingForRival ? category : null,
+        parrilla,
+        ...(esFutbol ? { turn } : { startTime: `${padelStart}:00`, endTime: `${padelEnd}:00` }),
+      };
+      const data = await api.adminAgendarManual(payload);
+      setHecho(data.reserva);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  if (hecho) {
+    return (
+      <div className="overlay" onClick={onCerrar}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <h3 className="modal-titulo">¡Turno agendado!</h3>
+          <p style={{ fontSize: 14 }}>
+            {hecho.client_name} — {NOMBRE_CANCHA[hecho.court]} · {hhmm(hecho.start_time)} a {hhmm(hecho.end_time)} · {hecho.reservation_date}
+            {hecho.looking_for_rival ? ' · en Busco rival' : ''}
+          </p>
+          <div className="modal-actions">
+            <button className="btn btn-primary" onClick={() => onCreado(hecho)}>Listo</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overlay" onClick={onCerrar}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3 className="modal-titulo">Agendar turno manual</h3>
+        <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
+
+        <div className="field">
+          <label>Cancha</label>
+          <select value={cancha} onChange={(e) => setCancha(e.target.value)}>
+            <option value="C1">Cancha 1</option>
+            <option value="C2">Cancha 2</option>
+            <option value="PAD">Pádel</option>
+          </select>
+        </div>
+
+        <NavegadorFecha fecha={fecha} onCambiar={setFecha} />
+
+        {esFutbol ? (
+          <div className="field">
+            <label>Turno</label>
+            <select value={turn} onChange={(e) => setTurn(e.target.value)}>
+              {Object.entries(TURNOS_FUTBOL_LABEL).map(([t, label]) => (
+                <option key={t} value={t}>{label}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Desde</label>
+              <input type="time" value={padelStart} onChange={(e) => setPadelStart(e.target.value)} min="20:00" max="23:00" />
+            </div>
+            <div className="field" style={{ flex: 1 }}>
+              <label>Hasta</label>
+              <input type="time" value={padelEnd} onChange={(e) => setPadelEnd(e.target.value)} min="20:30" max="23:30" />
+            </div>
+          </div>
+        )}
+
+        {esFutbol && (
+          <>
+            <div className="field-check">
+              <label>
+                <input type="checkbox" checked={lookingForRival} onChange={(e) => setLookingForRival(e.target.checked)} />
+                {' Poner en Busco rival'}
+              </label>
+            </div>
+            {lookingForRival && (
+              <>
+                <div className="field">
+                  <label>Nombre del equipo</label>
+                  <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
+                </div>
+                <div className="field">
+                  <label>Categoría</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)}>
+                    <option value="">Seleccioná una categoría</option>
+                    {['M30', 'M40', 'Libre'].map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        <div className="field-check">
+          <label>
+            <input type="checkbox" checked={parrilla} onChange={(e) => setParrilla(e.target.checked)} />
+            {' Con parrilla 🔥'}
+          </label>
+        </div>
+
+        {error && <p className="error-msg">{error}</p>}
+
+        <div className="modal-actions">
+          <button className="btn btn-ghost" onClick={onCerrar}>Cancelar</button>
+          <button className="btn btn-primary" onClick={agendar} disabled={enviando}>
+            {enviando ? 'Agendando…' : 'Agendar y confirmar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ExportPanel() {
   const hoy = new Date().toISOString().slice(0, 10);
   const haceTresMeses = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString().slice(0, 10);
@@ -232,6 +386,89 @@ function EstadoSistema() {
   );
 }
 
+// Activa/desactiva "busco rival" en una reserva confirmada de fútbol:
+// "Ya consiguió rival" la saca del calendario público, "Poner en Busco rival"
+// la agrega (con equipo/categoría).
+function RivalToggle({ reserva, onCambio }) {
+  const [abrir, setAbrir] = useState(false);
+  const [teamName, setTeamName] = useState(reserva.team_name || '');
+  const [category, setCategory] = useState(reserva.category || '');
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function sacar() {
+    setEnviando(true);
+    setError(null);
+    try {
+      const data = await api.adminRival(reserva.code, { lookingForRival: false });
+      onCambio(data.reserva);
+    } catch (e) {
+      setError(e.message);
+      setEnviando(false);
+    }
+  }
+
+  async function activar() {
+    if (!teamName.trim()) { setError('Completá el nombre del equipo.'); return; }
+    setEnviando(true);
+    setError(null);
+    try {
+      const data = await api.adminRival(reserva.code, { lookingForRival: true, teamName: teamName.trim(), category });
+      onCambio(data.reserva);
+    } catch (e) {
+      setError(e.message);
+      setEnviando(false);
+    }
+  }
+
+  if (reserva.looking_for_rival) {
+    return (
+      <div style={{ marginTop: 8 }}>
+        <BotonConfirmar
+          label={enviando ? 'Actualizando…' : 'Ya consiguió rival (sacar de Busco rival)'}
+          confirmLabel="Confirmar: sacar de Busco rival"
+          onConfirm={sacar}
+          disabled={enviando}
+          className="btn btn-ghost"
+          style={{ width: '100%' }}
+        />
+        {error && <p className="error-msg">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      {!abrir ? (
+        <button className="btn btn-ghost" style={{ width: '100%' }} onClick={() => setAbrir(true)}>
+          Poner en Busco rival
+        </button>
+      ) : (
+        <div style={{ marginTop: 4 }}>
+          <div className="field">
+            <label>Nombre del equipo</label>
+            <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
+          </div>
+          <div className="field">
+            <label>Categoría</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Seleccioná una categoría</option>
+              {['M30', 'M40', 'Libre'].map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          {error && <p className="error-msg">{error}</p>}
+          <div className="modal-actions">
+            <button className="btn btn-ghost" onClick={() => setAbrir(false)}>Cancelar</button>
+            <button className="btn btn-primary" onClick={activar} disabled={enviando}>
+              {enviando ? 'Guardando…' : 'Confirmar'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState(null);
@@ -330,6 +567,10 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       <p style={{ fontSize: 11, color: '#5C6B60', marginTop: 6, marginBottom: 0 }}>
         Tip: primero avisá por WhatsApp, después cancelá el turno.
       </p>
+
+      {reserva.status === 'confirmada' && ['C1', 'C2'].includes(reserva.court) && (
+        <RivalToggle reserva={reserva} onCambio={onCancelado} />
+      )}
     </div>
   );
 }
@@ -601,6 +842,8 @@ function ContactosPanel() {
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [texto, setTexto] = useState('');
+  const [agendando, setAgendando] = useState(null); // { nombre, telefono }
+  const [aviso, setAviso] = useState(null);
 
   async function cargar() {
     setCargando(true);
@@ -638,6 +881,7 @@ function ContactosPanel() {
 
       {cargando && <p style={{ color: '#5C6B60' }}>Cargando...</p>}
       {error && <p className="error-msg">{error}</p>}
+      {aviso && <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
         <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length} de {contactos.length} contactos</p>
       )}
@@ -651,19 +895,40 @@ function ContactosPanel() {
           <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: 6 }}>
             {c.confirmadas} confirmada{c.confirmadas === 1 ? '' : 's'} · {c.totalReservas} en total · última: {c.ultimaReserva}
           </div>
-          {c.telefonoWa && (
-            <a
-              className="btn btn-ghost"
-              style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
-              href={`https://wa.me/${c.telefonoWa}`}
-              target="_blank"
-              rel="noreferrer"
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {c.telefonoWa && (
+              <a
+                className="btn btn-ghost"
+                style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
+                href={`https://wa.me/${c.telefonoWa}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                WhatsApp
+              </a>
+            )}
+            <button
+              className="btn btn-primary"
+              style={{ padding: '6px 14px' }}
+              onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono }); }}
             >
-              WhatsApp
-            </a>
-          )}
+              Agendar turno manual
+            </button>
+          </div>
         </div>
       ))}
+
+      {agendando && (
+        <ManualBookingModal
+          contacto={agendando}
+          onCerrar={() => setAgendando(null)}
+          onCreado={(r) => {
+            setAgendando(null);
+            setAviso(`Turno agendado para ${r.client_name} (${r.code}).`);
+            cargar();
+          }}
+        />
+      )}
     </div>
   );
 }

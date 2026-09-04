@@ -11,6 +11,7 @@ import {
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
+import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 
 const router = Router();
@@ -502,6 +503,79 @@ router.post('/bloqueos', async (req, res) => {
 router.delete('/bloqueos/:id', async (req, res) => {
   const { error } = await supabaseAdmin.from('bloqueos').delete().eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// GET /api/admin/turnos-fijos - lista de turnos fijos activos.
+router.get('/turnos-fijos', async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('turnos_fijos')
+    .select('*')
+    .eq('activo', true)
+    .order('created_at', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ turnosFijos: data });
+});
+
+// POST /api/admin/turnos-fijos - crea un turno fijo y genera de una las
+// reservas de las proximas semanas.
+router.post('/turnos-fijos', async (req, res) => {
+  const b = req.body || {};
+  if (!['C1', 'C2', 'PAD'].includes(b.court)) return res.status(400).json({ error: 'Cancha inválida.' });
+  if (![2, 3, 4].includes(Number(b.diaSemana))) return res.status(400).json({ error: 'Día inválido.' });
+  if (!b.clientName || !b.clientPhone) return res.status(400).json({ error: 'Falta nombre y teléfono.' });
+  if (!b.desde) return res.status(400).json({ error: 'Falta la fecha de inicio.' });
+
+  let turn = null, start_time = null, end_time = null;
+  if (b.court === 'PAD') {
+    if (!b.startTime || !b.endTime) return res.status(400).json({ error: 'Faltan horarios de pádel.' });
+    start_time = b.startTime;
+    end_time = b.endTime;
+  } else {
+    if (!TURNOS_FUTBOL[b.turn]) return res.status(400).json({ error: 'Turno inválido.' });
+    turn = b.turn;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('turnos_fijos')
+    .insert({
+      court: b.court,
+      turn,
+      start_time,
+      end_time,
+      dia_semana: Number(b.diaSemana),
+      client_name: b.clientName,
+      client_phone: b.clientPhone,
+      client_email: b.clientEmail || null,
+      desde: b.desde,
+      hasta: b.hasta || null,
+      created_by: req.adminEmail,
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  generarProximasReservas().catch((e) => console.error('[turnos fijos] error generando:', e.message));
+
+  res.json({ turnoFijo: data, mensaje: 'Turno fijo creado. Las próximas reservas se están generando.' });
+});
+
+// DELETE /api/admin/turnos-fijos/:id - da de baja el fijo y libera las
+// ocurrencias futuras que ya se hubieran generado.
+router.delete('/turnos-fijos/:id', async (req, res) => {
+  const { error } = await supabaseAdmin.from('turnos_fijos').update({ activo: false }).eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+
+  const hoy = new Date().toISOString().slice(0, 10);
+  await supabaseAdmin
+    .from('reservations')
+    .update({ status: 'cancelada', cancelled_at: new Date().toISOString(), cancelled_by: 'turno-fijo-baja' })
+    .eq('origen_fijo_id', req.params.id)
+    .gte('reservation_date', hoy)
+    .neq('status', 'cancelada');
+
   res.json({ ok: true });
 });
 

@@ -13,6 +13,7 @@ import exportRoutes from './routes/export.js';
 import statusRoutes from './routes/status.js';
 import { expirarPendientesVencidas } from './lib/expirarPendientes.js';
 import { iniciarBackupDiario } from './lib/backupDiario.js';
+import { generarProximasReservas } from './lib/turnosFijos.js';
 
 const app = express();
 
@@ -68,3 +69,8 @@ setInterval(expirarPendientesVencidas, 15 * 60 * 1000);
 
 // Backup diario: manda el CSV de todas las reservas por email a los admins (3:00 ART).
 iniciarBackupDiario();
+
+// Turnos fijos: genera (si faltan) las reservas confirmadas de las proximas
+// ~6 semanas para cada turno fijo activo. Al arrancar y una vez por dia.
+generarProximasReservas().catch((e) => console.error('[turnos fijos] error inicial:', e.message));
+setInterval(() => generarProximasReservas().catch((e) => console.error('[turnos fijos]:', e.message)), 24 * 60 * 60 * 1000);

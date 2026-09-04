@@ -119,4 +119,9 @@ export const api = {
     requestAdmin('/admin/bloqueos', { method: 'POST', body: JSON.stringify(payload) }),
   adminQuitarBloqueo: (id) =>
     requestAdmin(`/admin/bloqueos/${id}`, { method: 'DELETE' }),
+  adminTurnosFijos: () => requestAdmin('/admin/turnos-fijos'),
+  adminCrearTurnoFijo: (payload) =>
+    requestAdmin('/admin/turnos-fijos', { method: 'POST', body: JSON.stringify(payload) }),
+  adminBajaTurnoFijo: (id) =>
+    requestAdmin(`/admin/turnos-fijos/${id}`, { method: 'DELETE' }),
 };

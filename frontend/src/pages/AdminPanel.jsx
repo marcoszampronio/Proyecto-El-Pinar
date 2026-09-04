@@ -1137,6 +1137,190 @@ function BloqueosPanel() {
   );
 }
 
+const DIA_SEMANA_LABEL = { 2: 'Martes', 3: 'Miércoles', 4: 'Jueves' };
+
+function descripcionTurnoFijo(f) {
+  const cancha = CANCHA_LABEL_BLOQUEO[f.court] || f.court;
+  const horario = f.court === 'PAD' ? `${hhmm(f.start_time)} a ${hhmm(f.end_time)}` : (TURNO_LABEL[f.turn] || f.turn);
+  return `${DIA_SEMANA_LABEL[f.dia_semana]} · ${cancha} · ${horario}`;
+}
+
+// Turnos fijos: un cliente que juega siempre el mismo día/horario. El
+// backend genera solo las reservas confirmadas de las próximas semanas.
+function TurnosFijosPanel() {
+  const [fijos, setFijos] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+  const [aviso, setAviso] = useState(null);
+
+  const [cancha, setCancha] = useState('C1');
+  const [diaSemana, setDiaSemana] = useState(2);
+  const [turn, setTurn] = useState('T1');
+  const [padelStart, setPadelStart] = useState('20:00');
+  const [padelEnd, setPadelEnd] = useState('21:00');
+  const [nombre, setNombre] = useState('');
+  const [area, setArea] = useState('');
+  const [num, setNum] = useState('');
+  const [desde, setDesde] = useState(() => hoyISO());
+  const [hasta, setHasta] = useState('');
+  const [creando, setCreando] = useState(false);
+
+  const esFutbol = cancha !== 'PAD';
+
+  async function cargar() {
+    setCargando(true);
+    setError(null);
+    try {
+      const data = await api.adminTurnosFijos();
+      setFijos(data.turnosFijos);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); }, []);
+
+  const areaLimpia = area.replace(/\D/g, '');
+  const numLimpio = num.replace(/\D/g, '');
+
+  async function crear() {
+    setError(null);
+    if (!nombre.trim()) { setError('Completá el nombre del cliente.'); return; }
+    if (areaLimpia.length < 2 || numLimpio.length < 6) { setError('Completá característica y número.'); return; }
+    setCreando(true);
+    try {
+      const payload = {
+        court: cancha,
+        diaSemana,
+        clientName: nombre.trim(),
+        clientPhone: `54 9 ${areaLimpia} ${numLimpio}`,
+        desde,
+        hasta: hasta || null,
+        ...(esFutbol ? { turn } : { startTime: `${padelStart}:00`, endTime: `${padelEnd}:00` }),
+      };
+      await api.adminCrearTurnoFijo(payload);
+      setNombre(''); setArea(''); setNum(''); setHasta('');
+      setAviso('Turno fijo creado. Las próximas reservas se están generando.');
+      cargar();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCreando(false);
+    }
+  }
+
+  async function baja(id) {
+    try {
+      await api.adminBajaTurnoFijo(id);
+      cargar();
+    } catch (e) {
+      alert('No se pudo dar de baja: ' + e.message);
+    }
+  }
+
+  return (
+    <div className="stat-card">
+      <h3 style={{ marginTop: 0 }}>Turnos fijos</h3>
+      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+        Un cliente que juega siempre el mismo día y horario. Se generan solas las
+        reservas confirmadas de las próximas ~6 semanas; si cancelás una semana puntual
+        desde la Agenda, esa fecha no se vuelve a generar.
+      </p>
+
+      <div className="field">
+        <label>Cancha</label>
+        <select value={cancha} onChange={(e) => setCancha(e.target.value)}>
+          <option value="C1">Cancha 1</option>
+          <option value="C2">Cancha 2</option>
+          <option value="PAD">Pádel</option>
+        </select>
+      </div>
+
+      <div className="field">
+        <label>Día de la semana</label>
+        <select value={diaSemana} onChange={(e) => setDiaSemana(Number(e.target.value))}>
+          {Object.entries(DIA_SEMANA_LABEL).map(([d, label]) => <option key={d} value={d}>{label}</option>)}
+        </select>
+      </div>
+
+      {esFutbol ? (
+        <div className="field">
+          <label>Turno</label>
+          <select value={turn} onChange={(e) => setTurn(e.target.value)}>
+            {Object.entries(TURNO_LABEL).map(([t, label]) => <option key={t} value={t}>{label}</option>)}
+          </select>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div className="field" style={{ flex: 1 }}>
+            <label>Desde</label>
+            <input type="time" value={padelStart} onChange={(e) => setPadelStart(e.target.value)} min="20:00" max="23:00" />
+          </div>
+          <div className="field" style={{ flex: 1 }}>
+            <label>Hasta</label>
+            <input type="time" value={padelEnd} onChange={(e) => setPadelEnd(e.target.value)} min="20:30" max="23:30" />
+          </div>
+        </div>
+      )}
+
+      <div className="field">
+        <label>Nombre del cliente</label>
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" />
+      </div>
+
+      <div className="field">
+        <label>WhatsApp</label>
+        <div className="tel-split">
+          <span className="tel-fijo">+54&nbsp;9</span>
+          <input className="tel-area" value={area} onChange={(e) => setArea(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="343" inputMode="numeric" aria-label="Característica" />
+          <span className="tel-fijo">15</span>
+          <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134744" inputMode="numeric" aria-label="Número" />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <div className="field" style={{ flex: 1 }}>
+          <label>Desde</label>
+          <input type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+        </div>
+        <div className="field" style={{ flex: 1 }}>
+          <label>Hasta (opcional)</label>
+          <input type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+        </div>
+      </div>
+
+      {error && <p className="error-msg">{error}</p>}
+      {aviso && <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600 }}>{aviso}</p>}
+
+      <button className="btn btn-primary" style={{ width: '100%' }} onClick={crear} disabled={creando}>
+        {creando ? 'Creando…' : 'Crear turno fijo'}
+      </button>
+
+      <div style={{ marginTop: 14 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+          Fijos activos {cargando ? '' : `(${(fijos || []).length})`}
+        </p>
+        {cargando && <p style={{ color: '#5C6B60' }}>Cargando…</p>}
+        {!cargando && fijos && fijos.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
+        {(fijos || []).map((f) => (
+          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: '#F1EEE4', marginBottom: 6 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{f.client_name}</div>
+              <div style={{ fontSize: 12, color: '#5C6B60' }}>{descripcionTurnoFijo(f)}</div>
+              <div style={{ fontSize: 11, color: '#5C6B60' }}>Desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
+            </div>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
+              Dar de baja
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SuspensionPanel() {
   const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
   const [reservas, setReservas] = useState(null);
@@ -1266,7 +1450,7 @@ function paramsUrl() {
 
 export default function AdminPanel() {
   const inicial = paramsUrl();
-  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'lluvia', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
+  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'fijos', 'lluvia', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
   const [codigo, setCodigo] = useState('');
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -1362,6 +1546,7 @@ export default function AdminPanel() {
         <button className={`tab-btn ${tab === 'buscar' ? 'active' : ''}`} onClick={() => setTab('buscar')}>Confirmar</button>
         <button className={`tab-btn ${tab === 'agenda' ? 'active' : ''}`} onClick={() => setTab('agenda')}>Agenda</button>
         <button className={`tab-btn ${tab === 'contactos' ? 'active' : ''}`} onClick={() => setTab('contactos')}>Contactos</button>
+        <button className={`tab-btn ${tab === 'fijos' ? 'active' : ''}`} onClick={() => setTab('fijos')}>Fijos</button>
         <button className={`tab-btn ${tab === 'lluvia' ? 'active' : ''}`} onClick={() => setTab('lluvia')}>Lluvia</button>
         <button className={`tab-btn ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>Estadísticas</button>
       </div>
@@ -1374,6 +1559,7 @@ export default function AdminPanel() {
         </>
       )}
       {tab === 'contactos' && <ContactosPanel />}
+      {tab === 'fijos' && <TurnosFijosPanel />}
 
       {tab === 'buscar' && (
         <>

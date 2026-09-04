@@ -54,6 +54,16 @@ button { font-family: inherit; }
   position: relative;
 }
 
+/* ---------- pantallas anchas (compu) ----------
+   La app se pensó mobile-first (columna angosta). En pantalla ancha se
+   ensancha esa misma columna en vez de dejarla flotando en un mar de
+   blanco: la barra fija y las grillas acompañan el nuevo ancho. */
+@media (min-width: 860px) {
+  .app-shell { max-width: 760px; }
+  .acciones-fijas { max-width: 760px; }
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
 /* ---------- header ---------- */
 .header {
   display: flex;

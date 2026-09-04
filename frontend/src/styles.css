@@ -843,6 +843,11 @@ button { font-family: inherit; }
 }
 .grilla-celda:disabled { cursor: default; }
 .grilla-celda.libre { background: #F3EFE2; }
+.grilla-celda.bloqueado {
+  background: repeating-linear-gradient(45deg, #D8D2C2, #D8D2C2 6px, #CBC4B0 6px, #CBC4B0 12px);
+}
+.grilla-celda.bloqueado .grilla-celda-estado,
+.grilla-celda.bloqueado .grilla-celda-nombre { color: #6B6555; }
 .grilla-celda.pendiente { background: var(--gold); }
 .grilla-celda.confirmada { background: var(--navy); }
 .grilla-celda.sel { outline: 3px solid var(--gold-dark); outline-offset: 1px; }

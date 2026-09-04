@@ -9,6 +9,7 @@ import {
   esDiaHabilitado,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
+import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import 'dotenv/config';
 
 const router = Router();
@@ -103,6 +104,11 @@ router.post('/futbol', async (req, res) => {
   const turnoInfo = TURNOS_FUTBOL[body.turn];
   if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
 
+  const { bloqueos } = await obtenerBloqueosDelDia(body.date);
+  if (estaBloqueado(bloqueos, body.court, body.turn)) {
+    return res.status(409).json({ error: 'Ese turno no está disponible.' });
+  }
+
   const code = generarCodigoFutbol({ court: body.court, date: body.date, turn: body.turn });
 
   const { data, error } = await supabaseAdmin
@@ -144,6 +150,11 @@ router.post('/padel', async (req, res) => {
   if (!body.startTime || !body.endTime) return res.status(400).json({ error: 'Faltan horarios.' });
   if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
     return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
+  }
+
+  const { bloqueos } = await obtenerBloqueosDelDia(body.date);
+  if (estaBloqueado(bloqueos, 'PAD')) {
+    return res.status(409).json({ error: 'El pádel no está disponible ese día.' });
   }
 
   const { data: existentes, error: errorConsulta } = await supabaseAdmin

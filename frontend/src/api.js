@@ -114,4 +114,9 @@ export const api = {
   adminReservasDelDia: (date) => requestAdmin(`/admin/dia/${date}`),
   adminSuspenderPorLluvia: (date) =>
     requestAdmin(`/admin/suspender/${date}`, { method: 'POST' }),
+  adminBloqueos: (date) => requestAdmin(`/admin/bloqueos/${date}`),
+  adminCrearBloqueo: (payload) =>
+    requestAdmin('/admin/bloqueos', { method: 'POST', body: JSON.stringify(payload) }),
+  adminQuitarBloqueo: (id) =>
+    requestAdmin(`/admin/bloqueos/${id}`, { method: 'DELETE' }),
 };

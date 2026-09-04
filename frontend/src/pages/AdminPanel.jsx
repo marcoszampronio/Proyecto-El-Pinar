@@ -581,7 +581,7 @@ const ESTADO_BADGE = {
   confirmada: { txt: 'Reservado', cls: 'agenda-badge ocupada' },
 };
 
-const TXT_ESTADO = { libre: 'Libre', pendiente: 'A confirmar', confirmada: 'Reservado' };
+const TXT_ESTADO = { libre: 'Libre', pendiente: 'A confirmar', confirmada: 'Reservado', bloqueado: 'Bloqueado' };
 
 // Grilla visual de fútbol: Cancha 1 y Cancha 2 en columnas, turnos en filas.
 function GrillaFutbol({ agenda, sel, onCelda }) {
@@ -1000,6 +1000,143 @@ function AgregarContacto({ onAgregado }) {
   );
 }
 
+const TURNO_LABEL = { T1: '20:30 a 21:30', T2: '21:30 a 22:30', T3: '22:30 a 23:30' };
+const CANCHA_LABEL_BLOQUEO = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
+
+function descripcionBloqueo(b) {
+  if (!b.court) return 'Todo el día (fútbol y pádel)';
+  if (!b.turn) return `${CANCHA_LABEL_BLOQUEO[b.court]} — todo el día`;
+  return `${CANCHA_LABEL_BLOQUEO[b.court]} — ${TURNO_LABEL[b.turn] || b.turn}`;
+}
+
+// Bloqueos preventivos (mantenimiento, evento privado, etc.), sin que haya
+// una reserva de por medio. Distinto de "suspender por lluvia", que cancela
+// reservas ya existentes.
+function BloqueosPanel() {
+  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
+  const [bloqueos, setBloqueos] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+
+  const [alcance, setAlcance] = useState('dia'); // 'dia' | 'cancha' | 'turno'
+  const [cancha, setCancha] = useState('C1');
+  const [turn, setTurn] = useState('T1');
+  const [motivo, setMotivo] = useState('');
+  const [creando, setCreando] = useState(false);
+
+  async function cargar() {
+    setCargando(true);
+    setError(null);
+    try {
+      const data = await api.adminBloqueos(fecha);
+      setBloqueos(data.bloqueos);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [fecha]);
+
+  async function crear() {
+    setCreando(true);
+    setError(null);
+    try {
+      const payload = { date: fecha, motivo: motivo.trim() || null };
+      if (alcance === 'cancha') payload.court = cancha;
+      if (alcance === 'turno') { payload.court = cancha; payload.turn = turn; }
+      await api.adminCrearBloqueo(payload);
+      setMotivo('');
+      cargar();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCreando(false);
+    }
+  }
+
+  async function quitar(id) {
+    try {
+      await api.adminQuitarBloqueo(id);
+      cargar();
+    } catch (e) {
+      alert('No se pudo quitar: ' + e.message);
+    }
+  }
+
+  return (
+    <div className="stat-card">
+      <h3 style={{ marginTop: 0 }}>Bloquear turnos o días</h3>
+      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+        Para sacar de circulación un turno, una cancha o el día entero sin que haya
+        una reserva (mantenimiento, evento privado, etc). No cancela nada existente.
+      </p>
+
+      <NavegadorFecha fecha={fecha} onCambiar={setFecha} />
+
+      <div className="field">
+        <label>Qué bloquear</label>
+        <select value={alcance} onChange={(e) => setAlcance(e.target.value)}>
+          <option value="dia">Todo el día (fútbol y pádel)</option>
+          <option value="cancha">Una cancha entera ese día</option>
+          <option value="turno">Un turno puntual de fútbol</option>
+        </select>
+      </div>
+
+      {alcance !== 'dia' && (
+        <div className="field">
+          <label>Cancha</label>
+          <select value={cancha} onChange={(e) => setCancha(e.target.value)}>
+            <option value="C1">Cancha 1</option>
+            <option value="C2">Cancha 2</option>
+            {alcance === 'cancha' && <option value="PAD">Pádel</option>}
+          </select>
+        </div>
+      )}
+
+      {alcance === 'turno' && (
+        <div className="field">
+          <label>Turno</label>
+          <select value={turn} onChange={(e) => setTurn(e.target.value)}>
+            {Object.entries(TURNO_LABEL).map(([t, label]) => <option key={t} value={t}>{label}</option>)}
+          </select>
+        </div>
+      )}
+
+      <div className="field">
+        <label>Motivo (opcional)</label>
+        <input value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ej: mantenimiento de la cancha" />
+      </div>
+
+      {error && <p className="error-msg">{error}</p>}
+
+      <button className="btn btn-primary" style={{ width: '100%' }} onClick={crear} disabled={creando}>
+        {creando ? 'Bloqueando…' : 'Bloquear'}
+      </button>
+
+      <div style={{ marginTop: 14 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+          Bloqueos de este día {cargando ? '' : `(${bloqueos.length})`}
+        </p>
+        {cargando && <p style={{ color: '#5C6B60' }}>Cargando…</p>}
+        {!cargando && bloqueos.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
+        {bloqueos.map((b) => (
+          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: '#F1EEE4', marginBottom: 6 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
+              {b.motivo && <div style={{ fontSize: 12, color: '#5C6B60' }}>{b.motivo}</div>}
+            </div>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(b.id)}>
+              Quitar
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SuspensionPanel() {
   const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
   const [reservas, setReservas] = useState(null);
@@ -1230,7 +1367,12 @@ export default function AdminPanel() {
       </div>
 
       {tab === 'agenda' && <AgendaPanel />}
-      {tab === 'lluvia' && <SuspensionPanel />}
+      {tab === 'lluvia' && (
+        <>
+          <SuspensionPanel />
+          <BloqueosPanel />
+        </>
+      )}
       {tab === 'contactos' && <ContactosPanel />}
 
       {tab === 'buscar' && (

@@ -10,6 +10,7 @@ import {
   generarCodigoFutbol,
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
+import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 
 const router = Router();
@@ -99,7 +100,7 @@ function resumenEspera(e) {
 router.get('/agenda/:date', async (req, res) => {
   const date = req.params.date;
 
-  const [{ data, error }, esperaRes] = await Promise.all([
+  const [{ data, error }, esperaRes, { bloqueos }] = await Promise.all([
     supabaseAdmin
       .from('reservations')
       .select('*')
@@ -112,6 +113,7 @@ router.get('/agenda/:date', async (req, res) => {
       .eq('reservation_date', date)
       .eq('status', 'activa')
       .order('created_at', { ascending: true }),
+    obtenerBloqueosDelDia(date),
   ]);
 
   if (error) return res.status(500).json({ error: error.message });
@@ -125,7 +127,7 @@ router.get('/agenda/:date', async (req, res) => {
         start: h.start,
         end: h.end,
         label: h.label,
-        status: r ? r.status : 'libre',
+        status: r ? r.status : (estaBloqueado(bloqueos, court, turn) ? 'bloqueado' : 'libre'),
         reserva: resumenAgenda(r),
       };
     });
@@ -142,6 +144,7 @@ router.get('/agenda/:date', async (req, res) => {
     padel,
     parrilla: { pidieron: conParrilla.length, reservas: conParrilla },
     espera,
+    bloqueos,
   });
 });
 
@@ -456,6 +459,50 @@ router.post('/rival/:code', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ reserva: data });
+});
+
+// GET /api/admin/bloqueos/:date - bloqueos preventivos activos ese dia
+// (dia completo / cancha entera / turno puntual, sin que haya reserva).
+router.get('/bloqueos/:date', async (req, res) => {
+  const { data, error } = await supabaseAdmin
+    .from('bloqueos')
+    .select('*')
+    .eq('reservation_date', req.params.date)
+    .order('created_at', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ bloqueos: data });
+});
+
+// POST /api/admin/bloqueos - crea un bloqueo. court/turn en null = todo.
+router.post('/bloqueos', async (req, res) => {
+  const { date, court, turn, motivo } = req.body || {};
+  if (!date) return res.status(400).json({ error: 'Falta la fecha.' });
+  if (court && !['C1', 'C2', 'PAD'].includes(court)) return res.status(400).json({ error: 'Cancha inválida.' });
+  if (turn && !TURNOS_FUTBOL[turn]) return res.status(400).json({ error: 'Turno inválido.' });
+  if (turn && (!court || court === 'PAD')) return res.status(400).json({ error: 'El turno puntual es solo para fútbol.' });
+
+  const { data, error } = await supabaseAdmin
+    .from('bloqueos')
+    .insert({
+      reservation_date: date,
+      court: court || null,
+      turn: turn || null,
+      motivo: motivo || null,
+      created_by: req.adminEmail,
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ bloqueo: data });
+});
+
+// DELETE /api/admin/bloqueos/:id - saca un bloqueo (vuelve a estar disponible).
+router.delete('/bloqueos/:id', async (req, res) => {
+  const { error } = await supabaseAdmin.from('bloqueos').delete().eq('id', req.params.id);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
 });
 
 // GET /api/admin/pending - lista de reservas pendientes (para el listado rapido del panel)

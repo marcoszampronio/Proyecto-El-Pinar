@@ -3,7 +3,7 @@ import { CanchaFutbol, CanchaPadel } from './Iconos';
 export const CANCHAS = [
   { id: 'C1', nombre: 'Cancha 1' },
   { id: 'C2', nombre: 'Cancha 2' },
-  { id: 'PAD', nombre: 'Paddle' },
+  { id: 'PAD', nombre: 'Pádel' },
 ];
 
 export default function CourtSelector({ seleccionada, onSeleccionar }) {

@@ -24,7 +24,7 @@ export default function PadelPicker({
   cierre,
   ocupados,
   onReservar,
-  titulo = 'Paddle',
+  titulo = 'Pádel',
   duraciones = DURACIONES_DEFAULT,
 }) {
   const DURACIONES = duraciones;

@@ -3,7 +3,7 @@ import { api } from '../api';
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
-const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
+const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 
 function BotonCopiar({ texto }) {
   const [copiado, setCopiado] = useState(false);
@@ -101,7 +101,7 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p className="modal-sub">
             {esCanchaFutbol
               ? 'Cancha ' + slotInfo.court.slice(1) + ' · ' + slotInfo.turn + ' · ' + slotInfo.date
-              : 'Paddle · ' + (slotInfo.startTime ? slotInfo.startTime.slice(0, 5) : '') + ' a ' + (slotInfo.endTime ? slotInfo.endTime.slice(0, 5) : '') + ' · ' + slotInfo.date}
+              : 'Pádel · ' + (slotInfo.startTime ? slotInfo.startTime.slice(0, 5) : '') + ' a ' + (slotInfo.endTime ? slotInfo.endTime.slice(0, 5) : '') + ' · ' + slotInfo.date}
           </p>
 
           <div className="field">
@@ -198,7 +198,7 @@ export default function BookingModal({ slotInfo, onClose }) {
                 checked={form.parrilla}
                 onChange={(e) => actualizar('parrilla', e.target.checked)}
               />
-              {' Quiero consultar por la parrilla para el asado 🔥'}
+              {' Quiero consultar disponibilidad parrilla'}
             </label>
             <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 2 }}>
               Mateo te confirma por WhatsApp si hay lugar.

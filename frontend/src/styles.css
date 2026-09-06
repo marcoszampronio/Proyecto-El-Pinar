@@ -328,6 +328,20 @@ button { font-family: inherit; }
   font-size: 14px;
 }
 
+/* contadores de turnos en la lista de contactos */
+.cnt {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  line-height: 1.5;
+}
+.cnt-verde { background: rgba(46, 125, 91, 0.15); color: var(--ok, #2E7D5B); }
+.cnt-rojo { background: rgba(179, 56, 46, 0.14); color: var(--danger, #B3382E); }
+
 /* autocompletar de contactos */
 .ac-lista {
   position: absolute;

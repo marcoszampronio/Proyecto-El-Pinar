@@ -961,14 +961,17 @@ function ContactosPanel() {
         }
         return (
           <div key={clave} style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
-            <div style={{ fontWeight: 600, fontSize: 14 }}>
-              {c.nombre}{c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}> (agregado a mano)</span>}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</span>
+              <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
+              <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
+              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}>(agregado a mano)</span>}
             </div>
             <div style={{ fontSize: 12, color: '#5C6B60' }}>
               {c.telefono}{c.email ? ` · ${c.email}` : ''}
             </div>
             <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: c.comentario ? 2 : 6 }}>
-              {c.manual ? 'Sin reservas todavía' : `${c.confirmadas} confirmada${c.confirmadas === 1 ? '' : 's'} · ${c.totalReservas} en total · última: ${c.ultimaReserva}`}
+              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${c.ultimaReserva}`}
             </div>
             {c.comentario && (
               <div style={{ fontSize: 12, color: 'var(--ink)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>

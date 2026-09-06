@@ -631,9 +631,13 @@ router.get('/contactos', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
+  // La clave del contacto es SIEMPRE el teléfono normalizado. El mismo número
+  // = la misma persona aunque el nombre venga escrito distinto en cada reserva.
+  const claveTel = (tel) => normalizarTelefonoAR(tel) || String(tel || '').replace(/\D/g, '') || null;
+
   const mapa = new Map();
   for (const r of data) {
-    const clave = String(r.client_phone || '').replace(/\D/g, '') || (r.client_email || '').toLowerCase() || r.client_name;
+    const clave = claveTel(r.client_phone) || (r.client_email || '').toLowerCase() || `n:${r.client_name}`;
     if (!clave) continue;
     if (!mapa.has(clave)) {
       mapa.set(clave, {
@@ -654,6 +658,7 @@ router.get('/contactos', async (req, res) => {
     c.totalReservas++;
     if (r.status === 'confirmada') c.confirmadas++;
     if (r.status === 'cancelada') c.canceladas++;
+    if (!c.email && r.client_email) c.email = r.client_email;
     if (r.reservation_date > c.ultimaReserva) c.ultimaReserva = r.reservation_date;
     c.canchasUsadas.add(r.court);
   }
@@ -662,7 +667,7 @@ router.get('/contactos', async (req, res) => {
   // manual funciona como "anotación" (pisa el nombre y suma el comentario);
   // si no, es un contacto nuevo.
   for (const m of manuales.data || []) {
-    const clave = String(m.telefono || '').replace(/\D/g, '') || m.nombre;
+    const clave = claveTel(m.telefono) || `n:${m.nombre}`;
     if (!clave) continue;
     const existente = mapa.get(clave);
     if (existente) {
@@ -707,9 +712,11 @@ router.post('/contactos', async (req, res) => {
     return res.status(400).json({ error: 'Completá nombre y teléfono.' });
   }
 
-  const digits = telefono.replace(/\D/g, '');
+  const canon = normalizarTelefonoAR(telefono) || telefono.replace(/\D/g, '');
   const { data: existentes } = await supabaseAdmin.from('contactos_manuales').select('id, telefono');
-  const yaExiste = (existentes || []).find((c) => String(c.telefono || '').replace(/\D/g, '') === digits);
+  const yaExiste = (existentes || []).find(
+    (c) => (normalizarTelefonoAR(c.telefono) || String(c.telefono || '').replace(/\D/g, '')) === canon
+  );
   if (yaExiste) {
     const { error } = await supabaseAdmin
       .from('contactos_manuales')

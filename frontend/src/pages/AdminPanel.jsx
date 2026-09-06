@@ -882,7 +882,8 @@ function ContactosPanel() {
   async function eliminarContacto(c) {
     try {
       await api.adminEliminarContacto(c.manualId);
-      setAviso('Contacto eliminado.');
+      setEditando(null);
+      setAviso(c.puedeEliminar ? 'Contacto eliminado.' : 'Se borraron los datos editados del contacto.');
       cargar();
     } catch (e) {
       alert('No se pudo eliminar: ' + e.message);
@@ -952,6 +953,8 @@ function ContactosPanel() {
               inicial={{ nombre: c.nombre, area: p.area, num: p.num, comentario: c.comentario || '' }}
               onGuardar={(datos) => guardarContacto(datos, c)}
               onCancelar={() => setEditando(null)}
+              onEliminar={c.manualId ? () => eliminarContacto(c) : undefined}
+              eliminarLabel={c.puedeEliminar ? 'Eliminar contacto' : 'Borrar datos editados'}
               guardando={guardando}
             />
           );
@@ -1007,15 +1010,6 @@ function ContactosPanel() {
               >
                 Editar
               </button>
-              {c.puedeEliminar && (
-                <BotonConfirmar
-                  label="Eliminar"
-                  confirmLabel="Confirmar: eliminar"
-                  className="btn btn-ghost"
-                  style={{ padding: '6px 14px' }}
-                  onConfirm={() => eliminarContacto(c)}
-                />
-              )}
             </div>
           </div>
         );
@@ -1048,7 +1042,7 @@ function partirTelefono(tel) {
 }
 
 // Formulario de contacto (alta o edición): nombre + WhatsApp + comentario.
-function ContactoForm({ inicial, onGuardar, onCancelar, guardando }) {
+function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, guardando }) {
   const [nombre, setNombre] = useState(inicial?.nombre || '');
   const [area, setArea] = useState(inicial?.area || '');
   const [num, setNum] = useState(inicial?.num || '');
@@ -1095,6 +1089,15 @@ function ContactoForm({ inicial, onGuardar, onCancelar, guardando }) {
           {guardando ? 'Guardando…' : 'Guardar'}
         </button>
       </div>
+      {onEliminar && (
+        <BotonConfirmar
+          label={eliminarLabel || 'Eliminar contacto'}
+          confirmLabel="Confirmar: eliminar"
+          className="btn btn-ghost"
+          style={{ width: '100%', marginTop: 8, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+          onConfirm={onEliminar}
+        />
+      )}
     </div>
   );
 }

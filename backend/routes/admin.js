@@ -570,6 +570,7 @@ router.post('/turnos-fijos', async (req, res) => {
       client_name: b.clientName,
       client_phone: b.clientPhone,
       client_email: b.clientEmail || null,
+      team_name: (b.teamName || '').trim() || null,
       desde: b.desde,
       hasta: b.hasta || null,
       created_by: req.adminEmail,

@@ -1260,11 +1260,15 @@ function TurnosFijosPanel() {
   const [padelStart, setPadelStart] = useState('20:00');
   const [padelEnd, setPadelEnd] = useState('21:00');
   const [nombre, setNombre] = useState('');
+  const [equipo, setEquipo] = useState('');
   const [area, setArea] = useState('');
   const [num, setNum] = useState('');
   const [desde, setDesde] = useState(() => hoyISO());
   const [hasta, setHasta] = useState('');
   const [creando, setCreando] = useState(false);
+
+  const [contactos, setContactos] = useState([]);
+  const [foco, setFoco] = useState(false);
 
   const esFutbol = cancha !== 'PAD';
 
@@ -1281,7 +1285,24 @@ function TurnosFijosPanel() {
     }
   }
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => {
+    cargar();
+    api.adminContactos().then((d) => setContactos(d.contactos || [])).catch(() => {});
+  }, []);
+
+  const sugerencias = nombre.trim().length >= 1
+    ? contactos
+        .filter((c) => `${c.nombre} ${c.telefono}`.toLowerCase().includes(nombre.trim().toLowerCase()))
+        .slice(0, 6)
+    : [];
+
+  function elegirContacto(c) {
+    setNombre(c.nombre);
+    const p = partirTelefono(c.telefono);
+    setArea(p.area);
+    setNum(p.num);
+    setFoco(false);
+  }
 
   const areaLimpia = area.replace(/\D/g, '');
   const numLimpio = num.replace(/\D/g, '');
@@ -1297,12 +1318,13 @@ function TurnosFijosPanel() {
         diaSemana,
         clientName: nombre.trim(),
         clientPhone: `54 9 ${areaLimpia} ${numLimpio}`,
+        teamName: equipo.trim() || null,
         desde,
         hasta: hasta || null,
         ...(esFutbol ? { turn } : { startTime: `${padelStart}:00`, endTime: `${padelEnd}:00` }),
       };
       await api.adminCrearTurnoFijo(payload);
-      setNombre(''); setArea(''); setNum(''); setHasta('');
+      setNombre(''); setEquipo(''); setArea(''); setNum(''); setHasta('');
       setAviso('Turno fijo creado. Las próximas reservas se están generando.');
       cargar();
     } catch (e) {
@@ -1366,9 +1388,36 @@ function TurnosFijosPanel() {
         </div>
       )}
 
-      <div className="field">
+      <div className="field" style={{ position: 'relative' }}>
         <label>Nombre del cliente</label>
-        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre y apellido" />
+        <input
+          value={nombre}
+          onChange={(e) => { setNombre(e.target.value); setFoco(true); }}
+          onFocus={() => setFoco(true)}
+          onBlur={() => setTimeout(() => setFoco(false), 150)}
+          placeholder="Nombre y apellido — o buscá un contacto"
+        />
+        {foco && sugerencias.length > 0 && (
+          <div className="ac-lista">
+            {sugerencias.map((c) => (
+              <button
+                key={c.manualId || c.telefonoWa || c.telefono}
+                type="button"
+                className="ac-item"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => elegirContacto(c)}
+              >
+                <strong>{c.nombre}</strong>
+                <span>{c.telefono}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="field">
+        <label>Equipo (opcional)</label>
+        <input value={equipo} onChange={(e) => setEquipo(e.target.value)} placeholder="Ej: Los Pibes FC" />
       </div>
 
       <div className="field">
@@ -1408,9 +1457,11 @@ function TurnosFijosPanel() {
         {(fijos || []).map((f) => (
           <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: '#F1EEE4', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{f.client_name}</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>
+                {f.client_name}{f.team_name ? ` · ${f.team_name}` : ''}
+              </div>
               <div style={{ fontSize: 12, color: '#5C6B60' }}>{descripcionTurnoFijo(f)}</div>
-              <div style={{ fontSize: 11, color: '#5C6B60' }}>Desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
+              <div style={{ fontSize: 11, color: '#5C6B60' }}>{f.client_phone} · desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
             </div>
             <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
               Dar de baja

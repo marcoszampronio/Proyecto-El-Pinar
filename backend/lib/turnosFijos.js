@@ -66,6 +66,7 @@ export async function generarProximasReservas() {
         client_name: fijo.client_name,
         client_phone: fijo.client_phone,
         client_email: fijo.client_email || null,
+        team_name: fijo.team_name || null,
         status: 'confirmada',
         confirmed_at: new Date().toISOString(),
         confirmed_by: 'turno-fijo',

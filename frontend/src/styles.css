@@ -312,22 +312,6 @@ button { font-family: inherit; }
 .punto.pendiente { background: rgba(192, 154, 70, 0.6); }
 .punto.ocupado { background: var(--danger); }
 
-.duracion {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 18px 0;
-  font-size: 14px;
-  color: var(--navy);
-}
-.duracion select {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1.5px solid var(--gold);
-  background: var(--cream-card);
-  font-size: 14px;
-}
-
 /* contadores de turnos en la lista de contactos */
 .cnt {
   display: inline-flex;
@@ -668,12 +652,48 @@ button { font-family: inherit; }
   padding: 11px 12px;
   border-radius: 10px;
   border: 1.5px solid var(--linea);
+  font-family: inherit;
   font-size: 15px;
+  color: var(--ink);
   background: #fff;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
-.field input:focus { outline: 2px solid var(--gold); border-color: var(--gold); }
+.field input:hover { border-color: var(--gold); }
+.field input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(192, 154, 70, 0.28);
+}
 .field .check { display: flex; align-items: center; gap: 8px; text-transform: none; font-size: 14px; color: var(--ink); }
 .field .check input { width: auto; }
+
+/* ---------- listas desplegables (select) con onda ---------- */
+select {
+  width: 100%;
+  padding: 11px 40px 11px 13px;
+  border-radius: 10px;
+  border: 1.5px solid var(--linea);
+  background-color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='14'%20height='14'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23123C6E'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%209l6%206%206-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+select:hover { border-color: var(--gold); }
+select:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(192, 154, 70, 0.28);
+}
+select:disabled { opacity: 0.55; cursor: not-allowed; background-color: #F3EFE2; }
+input[type="date"], input[type="time"] { font-family: inherit; color: var(--ink); }
 
 /* telefono partido: +54 9 [area] 15 [numero] */
 .tel-split { display: flex; align-items: center; gap: 6px; }

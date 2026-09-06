@@ -854,6 +854,40 @@ function ContactosPanel() {
   const [texto, setTexto] = useState('');
   const [agendando, setAgendando] = useState(null); // { nombre, telefono }
   const [aviso, setAviso] = useState(null);
+  const [agregar, setAgregar] = useState(false);
+  const [editando, setEditando] = useState(null); // clave del contacto en edición
+  const [guardando, setGuardando] = useState(false);
+
+  async function guardarContacto({ nombre, telefono, comentario }, c) {
+    setGuardando(true);
+    setError(null);
+    try {
+      if (c && c.manualId) {
+        await api.adminEditarContacto(c.manualId, { nombre, telefono, comentario });
+      } else {
+        // alta nueva, o primera anotación sobre un contacto que salió de reservas
+        await api.adminAgregarContacto({ nombre, telefono, comentario });
+      }
+      setAgregar(false);
+      setEditando(null);
+      setAviso(c ? 'Contacto actualizado.' : 'Contacto agregado.');
+      cargar();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function eliminarContacto(c) {
+    try {
+      await api.adminEliminarContacto(c.manualId);
+      setAviso('Contacto eliminado.');
+      cargar();
+    } catch (e) {
+      alert('No se pudo eliminar: ' + e.message);
+    }
+  }
 
   async function cargar() {
     setCargando(true);
@@ -872,7 +906,7 @@ function ContactosPanel() {
 
   const filtro = texto.trim().toLowerCase();
   const lista = (contactos || []).filter(
-    (c) => !filtro || `${c.nombre} ${c.telefono} ${c.email || ''}`.toLowerCase().includes(filtro)
+    (c) => !filtro || `${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
   );
 
   return (
@@ -882,7 +916,17 @@ function ContactosPanel() {
         Todos los clientes que alguna vez reservaron. Tocá "WhatsApp" para escribirles.
       </p>
 
-      <AgregarContacto onAgregado={() => { setAviso('Contacto agregado.'); cargar(); }} />
+      {agregar ? (
+        <ContactoForm
+          onGuardar={(datos) => guardarContacto(datos, null)}
+          onCancelar={() => setAgregar(false)}
+          guardando={guardando}
+        />
+      ) : (
+        <button className="btn btn-ghost" style={{ width: '100%', marginBottom: 10 }} onClick={() => { setError(null); setAgregar(true); setEditando(null); }}>
+          + Agregar contacto
+        </button>
+      )}
 
       <input
         style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--line)', marginBottom: 10 }}
@@ -898,50 +942,84 @@ function ContactosPanel() {
         <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length} de {contactos.length} contactos</p>
       )}
 
-      {lista.map((c) => (
-        <div key={c.telefono + c.nombre} style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>
-            {c.nombre}{c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}> (agregado a mano)</span>}
-          </div>
-          <div style={{ fontSize: 12, color: '#5C6B60' }}>
-            {c.telefono}{c.email ? ` · ${c.email}` : ''}
-          </div>
-          <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: 6 }}>
-            {c.manual ? 'Sin reservas todavía' : `${c.confirmadas} confirmada${c.confirmadas === 1 ? '' : 's'} · ${c.totalReservas} en total · última: ${c.ultimaReserva}`}
-          </div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {c.telefonoWa && (
-              <a
-                className="btn btn-ghost"
-                style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
-                href={`https://wa.me/${c.telefonoWa}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                WhatsApp
-              </a>
+      {lista.map((c) => {
+        const clave = c.manualId || c.telefonoWa || c.telefono || c.nombre;
+        if (editando === clave) {
+          const p = partirTelefono(c.telefono);
+          return (
+            <ContactoForm
+              key={clave}
+              inicial={{ nombre: c.nombre, area: p.area, num: p.num, comentario: c.comentario || '' }}
+              onGuardar={(datos) => guardarContacto(datos, c)}
+              onCancelar={() => setEditando(null)}
+              guardando={guardando}
+            />
+          );
+        }
+        return (
+          <div key={clave} style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>
+              {c.nombre}{c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}> (agregado a mano)</span>}
+            </div>
+            <div style={{ fontSize: 12, color: '#5C6B60' }}>
+              {c.telefono}{c.email ? ` · ${c.email}` : ''}
+            </div>
+            <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: c.comentario ? 2 : 6 }}>
+              {c.manual ? 'Sin reservas todavía' : `${c.confirmadas} confirmada${c.confirmadas === 1 ? '' : 's'} · ${c.totalReservas} en total · última: ${c.ultimaReserva}`}
+            </div>
+            {c.comentario && (
+              <div style={{ fontSize: 12, color: 'var(--ink)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
             )}
-            {c.telefonoWa && (
-              <a
-                className="btn btn-ghost"
-                style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
-                href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre))}`}
-                target="_blank"
-                rel="noreferrer"
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {c.telefonoWa && (
+                <a
+                  className="btn btn-ghost"
+                  style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
+                  href={`https://wa.me/${c.telefonoWa}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  WhatsApp
+                </a>
+              )}
+              {c.telefonoWa && (
+                <a
+                  className="btn btn-ghost"
+                  style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
+                  href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre))}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Avisar turnos libres
+                </a>
+              )}
+              <button
+                className="btn btn-primary"
+                style={{ padding: '6px 14px' }}
+                onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono }); }}
               >
-                Avisar turnos libres
-              </a>
-            )}
-            <button
-              className="btn btn-primary"
-              style={{ padding: '6px 14px' }}
-              onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono }); }}
-            >
-              Agendar turno manual
-            </button>
+                Agendar turno manual
+              </button>
+              <button
+                className="btn btn-ghost"
+                style={{ padding: '6px 14px' }}
+                onClick={() => { setError(null); setAgregar(false); setEditando(clave); }}
+              >
+                Editar
+              </button>
+              {c.puedeEliminar && (
+                <BotonConfirmar
+                  label="Eliminar"
+                  confirmLabel="Confirmar: eliminar"
+                  className="btn btn-ghost"
+                  style={{ padding: '6px 14px' }}
+                  onConfirm={() => eliminarContacto(c)}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {agendando && (
         <ManualBookingModal
@@ -958,48 +1036,44 @@ function ContactosPanel() {
   );
 }
 
-// Mini-form para que Mateo cargue un contacto de WhatsApp sin que haya
-// una reserva de por medio.
-function AgregarContacto({ onAgregado }) {
-  const [abrir, setAbrir] = useState(false);
-  const [nombre, setNombre] = useState('');
-  const [area, setArea] = useState('');
-  const [num, setNum] = useState('');
+// Separa un teléfono guardado ("54 9 343 5134744") en característica + número.
+function partirTelefono(tel) {
+  const partes = String(tel || '').trim().split(/\s+/);
+  if (partes.length >= 4 && partes[0].replace(/\D/g, '') === '54') {
+    return { area: partes[2].replace(/\D/g, ''), num: partes.slice(3).join('').replace(/\D/g, '') };
+  }
+  const d = String(tel || '').replace(/\D/g, '').replace(/^54/, '').replace(/^9/, '');
+  if (d.length > 7) return { area: d.slice(0, d.length - 7), num: d.slice(-7) };
+  return { area: '', num: d };
+}
+
+// Formulario de contacto (alta o edición): nombre + WhatsApp + comentario.
+function ContactoForm({ inicial, onGuardar, onCancelar, guardando }) {
+  const [nombre, setNombre] = useState(inicial?.nombre || '');
+  const [area, setArea] = useState(inicial?.area || '');
+  const [num, setNum] = useState(inicial?.num || '');
+  const [comentario, setComentario] = useState(inicial?.comentario || '');
   const [error, setError] = useState(null);
-  const [enviando, setEnviando] = useState(false);
 
   const areaLimpia = area.replace(/\D/g, '');
   const numLimpio = num.replace(/\D/g, '');
 
-  async function agregar() {
+  function guardar() {
     setError(null);
     if (!nombre.trim()) { setError('Completá el nombre.'); return; }
     if (areaLimpia.length < 2 || numLimpio.length < 6) { setError('Completá característica y número.'); return; }
-    setEnviando(true);
-    try {
-      await api.adminAgregarContacto({ nombre: nombre.trim(), telefono: `54 9 ${areaLimpia} ${numLimpio}` });
-      setNombre(''); setArea(''); setNum(''); setAbrir(false);
-      onAgregado();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  if (!abrir) {
-    return (
-      <button className="btn btn-ghost" style={{ width: '100%', marginBottom: 10 }} onClick={() => setAbrir(true)}>
-        + Agregar contacto
-      </button>
-    );
+    onGuardar({
+      nombre: nombre.trim(),
+      telefono: `54 9 ${areaLimpia} ${numLimpio}`,
+      comentario: comentario.trim() || null,
+    });
   }
 
   return (
     <div style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 10 }}>
       <div className="field">
         <label>Nombre</label>
-        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre del contacto" />
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Como lo quieras guardar" />
       </div>
       <div className="field">
         <label>WhatsApp</label>
@@ -1010,11 +1084,15 @@ function AgregarContacto({ onAgregado }) {
           <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134744" inputMode="numeric" aria-label="Número" />
         </div>
       </div>
+      <div className="field">
+        <label>Comentario (opcional)</label>
+        <input value={comentario} onChange={(e) => setComentario(e.target.value)} placeholder="Ej: amigo de Mateo, siempre juega los martes" />
+      </div>
       {error && <p className="error-msg">{error}</p>}
       <div className="modal-actions">
-        <button className="btn btn-ghost" onClick={() => setAbrir(false)}>Cancelar</button>
-        <button className="btn btn-primary" onClick={agregar} disabled={enviando}>
-          {enviando ? 'Guardando…' : 'Guardar'}
+        <button className="btn btn-ghost" onClick={onCancelar}>Cancelar</button>
+        <button className="btn btn-primary" onClick={guardar} disabled={guardando}>
+          {guardando ? 'Guardando…' : 'Guardar'}
         </button>
       </div>
     </div>

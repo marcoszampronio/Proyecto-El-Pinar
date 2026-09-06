@@ -640,6 +640,8 @@ router.get('/contactos', async (req, res) => {
         telefono: r.client_phone,
         telefonoWa: normalizarTelefonoAR(r.client_phone),
         email: r.client_email || null,
+        comentario: null,
+        manualId: null,
         totalReservas: 0,
         confirmadas: 0,
         canceladas: 0,
@@ -655,44 +657,96 @@ router.get('/contactos', async (req, res) => {
     c.canchasUsadas.add(r.court);
   }
 
-  // Contactos cargados a mano: solo se agregan si ese teléfono no tiene ya
-  // reservas (si las tiene, ya está en el mapa de arriba).
+  // Contactos cargados a mano: si el teléfono ya tiene reservas, la fila
+  // manual funciona como "anotación" (pisa el nombre y suma el comentario);
+  // si no, es un contacto nuevo.
   for (const m of manuales.data || []) {
     const clave = String(m.telefono || '').replace(/\D/g, '') || m.nombre;
-    if (!clave || mapa.has(clave)) continue;
-    mapa.set(clave, {
-      nombre: m.nombre,
-      telefono: m.telefono,
-      telefonoWa: normalizarTelefonoAR(m.telefono),
-      email: null,
-      totalReservas: 0,
-      confirmadas: 0,
-      canceladas: 0,
-      ultimaReserva: null,
-      canchasUsadas: [],
-      manual: true,
-    });
+    if (!clave) continue;
+    const existente = mapa.get(clave);
+    if (existente) {
+      existente.nombre = m.nombre || existente.nombre;
+      existente.comentario = m.comentario || null;
+      existente.manualId = m.id;
+    } else {
+      mapa.set(clave, {
+        nombre: m.nombre,
+        telefono: m.telefono,
+        telefonoWa: normalizarTelefonoAR(m.telefono),
+        email: null,
+        comentario: m.comentario || null,
+        manualId: m.id,
+        totalReservas: 0,
+        confirmadas: 0,
+        canceladas: 0,
+        ultimaReserva: null,
+        canchasUsadas: [],
+        manual: true,
+      });
+    }
   }
 
   const contactos = [...mapa.values()]
-    .map((c) => ({ ...c, canchasUsadas: Array.isArray(c.canchasUsadas) ? c.canchasUsadas : [...c.canchasUsadas] }))
+    .map((c) => ({
+      ...c,
+      canchasUsadas: Array.isArray(c.canchasUsadas) ? c.canchasUsadas : [...c.canchasUsadas],
+      puedeEliminar: c.totalReservas === 0 && !!c.manualId,
+    }))
     .sort((a, b) => b.confirmadas - a.confirmadas || b.totalReservas - a.totalReservas);
 
   res.json({ total: contactos.length, contactos });
 });
 
-// POST /api/admin/contactos - Mateo carga un contacto a mano (sin reserva).
+// POST /api/admin/contactos - Mateo carga (o anota) un contacto a mano.
 router.post('/contactos', async (req, res) => {
   const nombre = String(req.body.nombre || '').trim();
   const telefono = String(req.body.telefono || '').trim();
+  const comentario = String(req.body.comentario || '').trim() || null;
+  if (!nombre || telefono.replace(/\D/g, '').length < 8) {
+    return res.status(400).json({ error: 'Completá nombre y teléfono.' });
+  }
+
+  const digits = telefono.replace(/\D/g, '');
+  const { data: existentes } = await supabaseAdmin.from('contactos_manuales').select('id, telefono');
+  const yaExiste = (existentes || []).find((c) => String(c.telefono || '').replace(/\D/g, '') === digits);
+  if (yaExiste) {
+    const { error } = await supabaseAdmin
+      .from('contactos_manuales')
+      .update({ nombre, telefono, comentario })
+      .eq('id', yaExiste.id);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true, actualizado: true });
+  }
+
+  const { error } = await supabaseAdmin
+    .from('contactos_manuales')
+    .insert({ nombre, telefono, comentario, created_by: req.adminEmail });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// PUT /api/admin/contactos/:id - edita un contacto manual (nombre/teléfono/comentario).
+router.put('/contactos/:id', async (req, res) => {
+  const nombre = String(req.body.nombre || '').trim();
+  const telefono = String(req.body.telefono || '').trim();
+  const comentario = String(req.body.comentario || '').trim() || null;
   if (!nombre || telefono.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá nombre y teléfono.' });
   }
 
   const { error } = await supabaseAdmin
     .from('contactos_manuales')
-    .insert({ nombre, telefono, created_by: req.adminEmail });
+    .update({ nombre, telefono, comentario })
+    .eq('id', req.params.id);
 
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// DELETE /api/admin/contactos/:id - borra un contacto manual.
+router.delete('/contactos/:id', async (req, res) => {
+  const { error } = await supabaseAdmin.from('contactos_manuales').delete().eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
 });

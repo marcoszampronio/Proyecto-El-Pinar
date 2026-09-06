@@ -102,6 +102,10 @@ export const api = {
   adminContactos: () => requestAdmin('/admin/contactos'),
   adminAgregarContacto: (payload) =>
     requestAdmin('/admin/contactos', { method: 'POST', body: JSON.stringify(payload) }),
+  adminEditarContacto: (id, payload) =>
+    requestAdmin(`/admin/contactos/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  adminEliminarContacto: (id) =>
+    requestAdmin(`/admin/contactos/${id}`, { method: 'DELETE' }),
   adminAgendarManual: (payload) =>
     requestAdmin('/admin/manual', { method: 'POST', body: JSON.stringify(payload) }),
   adminRival: (code, payload) =>

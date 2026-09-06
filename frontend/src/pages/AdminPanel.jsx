@@ -1022,12 +1022,12 @@ function AgregarContacto({ onAgregado }) {
 }
 
 const TURNO_LABEL = { T1: '20:30 a 21:30', T2: '21:30 a 22:30', T3: '22:30 a 23:30' };
-const CANCHA_LABEL_BLOQUEO = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
+const CANCHA_LABEL_BLOQUEO = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel', FUT: 'Las 2 canchas de fútbol' };
 
 function descripcionBloqueo(b) {
   if (!b.court) return 'Todo el día (fútbol y pádel)';
-  if (!b.turn) return `${CANCHA_LABEL_BLOQUEO[b.court]} — todo el día`;
-  return `${CANCHA_LABEL_BLOQUEO[b.court]} — ${TURNO_LABEL[b.turn] || b.turn}`;
+  if (!b.turn) return `${CANCHA_LABEL_BLOQUEO[b.court] || b.court} — todo el día`;
+  return `${CANCHA_LABEL_BLOQUEO[b.court] || b.court} — ${TURNO_LABEL[b.turn] || b.turn}`;
 }
 
 // Bloqueos preventivos (mantenimiento, evento privado, etc.), sin que haya
@@ -1039,7 +1039,7 @@ function BloqueosPanel() {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
-  const [alcance, setAlcance] = useState('dia'); // 'dia' | 'cancha' | 'turno'
+  const [alcance, setAlcance] = useState('dia'); // 'dia' | 'cancha' | 'turno' | 'futbol'
   const [cancha, setCancha] = useState('C1');
   const [turn, setTurn] = useState('T1');
   const [motivo, setMotivo] = useState('');
@@ -1067,6 +1067,7 @@ function BloqueosPanel() {
       const payload = { date: fecha, motivo: motivo.trim() || null };
       if (alcance === 'cancha') payload.court = cancha;
       if (alcance === 'turno') { payload.court = cancha; payload.turn = turn; }
+      if (alcance === 'futbol') payload.court = 'FUT';
       await api.adminCrearBloqueo(payload);
       setMotivo('');
       cargar();
@@ -1102,10 +1103,11 @@ function BloqueosPanel() {
           <option value="dia">Todo el día (fútbol y pádel)</option>
           <option value="cancha">Una cancha entera ese día</option>
           <option value="turno">Un turno puntual de fútbol</option>
+          <option value="futbol">Las 2 canchas de fútbol (el pádel sigue disponible)</option>
         </select>
       </div>
 
-      {alcance !== 'dia' && (
+      {(alcance === 'cancha' || alcance === 'turno') && (
         <div className="field">
           <label>Cancha</label>
           <select value={cancha} onChange={(e) => setCancha(e.target.value)}>
@@ -1471,7 +1473,7 @@ function paramsUrl() {
 
 export default function AdminPanel() {
   const inicial = paramsUrl();
-  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'fijos', 'lluvia', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
+  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
   const [codigo, setCodigo] = useState('');
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -1575,12 +1577,12 @@ export default function AdminPanel() {
         <button className={`tab-btn ${tab === 'agenda' ? 'active' : ''}`} onClick={() => setTab('agenda')}>Agenda</button>
         <button className={`tab-btn ${tab === 'contactos' ? 'active' : ''}`} onClick={() => setTab('contactos')}>Contactos</button>
         <button className={`tab-btn ${tab === 'fijos' ? 'active' : ''}`} onClick={() => setTab('fijos')}>Fijos</button>
-        <button className={`tab-btn ${tab === 'lluvia' ? 'active' : ''}`} onClick={() => setTab('lluvia')}>Lluvia</button>
+        <button className={`tab-btn ${tab === 'suspender' ? 'active' : ''}`} onClick={() => setTab('suspender')}>Suspender</button>
         <button className={`tab-btn ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>Estadísticas</button>
       </div>
 
       {tab === 'agenda' && <AgendaPanel />}
-      {tab === 'lluvia' && (
+      {tab === 'suspender' && (
         <>
           <SuspensionPanel />
           <BloqueosPanel />

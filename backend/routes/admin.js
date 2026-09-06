@@ -501,7 +501,7 @@ router.get('/bloqueos/:date', async (req, res) => {
 router.post('/bloqueos', async (req, res) => {
   const { date, court, turn, motivo } = req.body || {};
   if (!date) return res.status(400).json({ error: 'Falta la fecha.' });
-  if (court && !['C1', 'C2', 'PAD'].includes(court)) return res.status(400).json({ error: 'Cancha inválida.' });
+  if (court && !['C1', 'C2', 'PAD', 'FUT'].includes(court)) return res.status(400).json({ error: 'Cancha inválida.' });
   if (turn && !TURNOS_FUTBOL[turn]) return res.status(400).json({ error: 'Turno inválido.' });
   if (turn && (!court || court === 'PAD')) return res.status(400).json({ error: 'El turno puntual es solo para fútbol.' });
 

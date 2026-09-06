@@ -11,6 +11,14 @@ export async function obtenerBloqueosDelDia(date) {
 }
 
 // Un bloqueo aplica a un slot si su court/turn coinciden o son NULL (comodin).
+// court 'FUT' = las dos canchas de futbol (C1 y C2), el padel queda libre.
 export function estaBloqueado(bloqueos, court, turn = null) {
-  return bloqueos.some((b) => (!b.court || b.court === court) && (!b.turn || b.turn === turn));
+  return bloqueos.some((b) => {
+    const matchCourt =
+      !b.court ||
+      b.court === court ||
+      (b.court === 'FUT' && (court === 'C1' || court === 'C2'));
+    const matchTurn = !b.turn || b.turn === turn;
+    return matchCourt && matchTurn;
+  });
 }

@@ -24,11 +24,14 @@ function validarDatosCliente(body) {
   return null;
 }
 
-const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
+const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 
 // Monto de la reserva. Configurable con MONTO_RESERVA en el .env (default 10000).
 const MONTO = Number(process.env.MONTO_RESERVA || 10000);
 const montoTexto = () => (MONTO > 0 ? '$' + MONTO.toLocaleString('es-AR') : null);
+
+// Link de Google Maps del complejo. Configurable con MAPS_URL en el .env.
+const MAPS_URL = process.env.MAPS_URL || 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';
 
 function armarMensajeWhatsapp(reserva) {
   const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
@@ -44,6 +47,7 @@ function armarMensajeWhatsapp(reserva) {
     (reserva.parrilla ? `\n⚠️ CONSULTA: quiere usar la parrilla para el asado. Confirmale si hay lugar.\n` : '') +
     (monto ? `\nMonto: ${monto}\n` : '\n') +
     (alias ? `Alias para transferir: ${alias}\n` : '') +
+    (MAPS_URL ? `\nCómo llegar: ${MAPS_URL}\n` : '') +
     `\nEn breve adjunto el comprobante de pago.`
   );
 }

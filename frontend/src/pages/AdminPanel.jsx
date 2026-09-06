@@ -7,6 +7,16 @@ import {
 } from '../lib/fechas';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const SITIO_URL = import.meta.env.VITE_SITIO_URL || 'https://proyecto-el-pinar.pages.dev';
+
+// Mensaje de WhatsApp para avisarle a un contacto que hay turnos libres.
+function mensajeAvisoTurnos(nombre) {
+  return (
+    `Hola ${nombre}! Te escribimos del Complejo El Pinar.\n\n` +
+    `Hay turnos de fútbol disponibles esta semana. ` +
+    `Mirá la disponibilidad y reservá acá:\n${SITIO_URL}`
+  );
+}
 
 async function tokenAdmin() {
   const { data } = await supabase.auth.getSession();
@@ -911,6 +921,17 @@ function ContactosPanel() {
                 WhatsApp
               </a>
             )}
+            {c.telefonoWa && (
+              <a
+                className="btn btn-ghost"
+                style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
+                href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre))}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Avisar turnos libres
+              </a>
+            )}
             <button
               className="btn btn-primary"
               style={{ padding: '6px 14px' }}
@@ -1458,6 +1479,7 @@ export default function AdminPanel() {
   const [stats, setStats] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [aviso, setAviso] = useState(null);
+  const [confirmadaWa, setConfirmadaWa] = useState(null); // { link, nombre } tras confirmar
 
   useEffect(() => {
     cargarPendientes();
@@ -1493,6 +1515,7 @@ export default function AdminPanel() {
     if (!c) return;
     setError(null);
     setAviso(null);
+    setConfirmadaWa(null);
     try {
       const data = await api.adminBuscar(c);
       setResultado(data);
@@ -1506,8 +1529,13 @@ export default function AdminPanel() {
   async function confirmar() {
     setProcesando(true);
     try {
-      await api.adminConfirmar(resultado.reserva.code);
+      const r = await api.adminConfirmar(resultado.reserva.code);
       setAviso('Reserva confirmada. Email enviado al cliente.');
+      setConfirmadaWa(
+        r.linkWhatsappConfirmacion
+          ? { link: r.linkWhatsappConfirmacion, nombre: r.reserva.client_name }
+          : null
+      );
       setResultado(null);
       setCodigo('');
       cargarPendientes();
@@ -1581,6 +1609,17 @@ export default function AdminPanel() {
             </div>
             {error && <p className="error-msg">{error}</p>}
             {aviso && <p style={{ color: 'var(--pitch)', fontWeight: 600, marginTop: 8 }}>{aviso}</p>}
+            {confirmadaWa && (
+              <a
+                className="btn btn-primary"
+                style={{ textDecoration: 'none', textAlign: 'center', display: 'block', marginTop: 8 }}
+                href={confirmadaWa.link}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Enviar confirmación por WhatsApp a {confirmadaWa.nombre}
+              </a>
+            )}
           </div>
 
           {resultado && (

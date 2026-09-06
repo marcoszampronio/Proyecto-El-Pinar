@@ -328,6 +328,18 @@ button { font-family: inherit; }
   font-size: 14px;
 }
 
+.padel-paso {
+  padding: 14px 18px 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+.padel-resumen {
+  padding: 4px 18px 0;
+  font-size: 14px;
+  color: var(--navy);
+}
+
 /* ---------- botones ---------- */
 .btn {
   padding: 12px 22px;

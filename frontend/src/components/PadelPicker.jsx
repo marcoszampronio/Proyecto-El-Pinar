@@ -19,6 +19,13 @@ function seSolapa(inicio, fin, ocupados) {
   return ocupados.some((o) => inicio < aMinutos(o.end_time) && fin > aMinutos(o.start_time));
 }
 
+function etiquetaDuracion(min) {
+  if (min === 60) return '1 h';
+  if (min === 90) return '1 h 30';
+  if (min === 120) return '2 h';
+  return `${min} min`;
+}
+
 export default function PadelPicker({
   apertura,
   cierre,
@@ -28,76 +35,81 @@ export default function PadelPicker({
   duraciones = DURACIONES_DEFAULT,
 }) {
   const DURACIONES = duraciones;
+  const [duracion, setDuracion] = useState(null);
   const [inicio, setInicio] = useState(null);
-  const [duracion, setDuracion] = useState(DURACIONES[0] ?? 60);
 
-  const bloques = useMemo(() => {
-    const desde = aMinutos(apertura);
-    const hasta = aMinutos(cierre);
+  const desdeMin = aMinutos(apertura);
+  const cierreMin = aMinutos(cierre);
+
+  // Inicios posibles para la duración elegida: cada bloque de 30' que entre
+  // antes del cierre y no pise una reserva.
+  const inicios = useMemo(() => {
+    if (duracion == null) return [];
     const lista = [];
-    for (let m = desde; m + PASO_MINUTOS <= hasta; m += PASO_MINUTOS) {
-      lista.push({ inicio: m, fin: m + PASO_MINUTOS, ocupado: seSolapa(m, m + PASO_MINUTOS, ocupados) });
+    for (let m = desdeMin; m + duracion <= cierreMin; m += PASO_MINUTOS) {
+      lista.push({ inicio: m, libre: !seSolapa(m, m + duracion, ocupados) });
     }
     return lista;
-  }, [apertura, cierre, ocupados]);
+  }, [duracion, desdeMin, cierreMin, ocupados]);
 
-  const cierreMin = aMinutos(cierre);
-  const duracionesPosibles = DURACIONES.filter(
-    (d) => inicio !== null && inicio + d <= cierreMin && !seSolapa(inicio, inicio + d, ocupados)
-  );
-  const duracionValida = duracionesPosibles.includes(duracion);
-
-  function elegirBloque(bloque) {
-    setInicio(bloque.inicio);
-    const posibles = DURACIONES.filter(
-      (d) => bloque.inicio + d <= cierreMin && !seSolapa(bloque.inicio, bloque.inicio + d, ocupados)
-    );
-    if (!posibles.includes(duracion)) setDuracion(posibles[0] ?? PASO_MINUTOS);
+  function elegirDuracion(d) {
+    setDuracion(d);
+    setInicio(null);
   }
 
   return (
     <>
-      <h2 className="seccion-titulo">Horarios disponibles: {titulo}</h2>
+      <h2 className="seccion-titulo">Reservar {titulo}</h2>
 
+      <div className="padel-paso">1. ¿Cuánto tiempo querés jugar?</div>
       <div className="chips">
-        {bloques.map((b) => (
+        {DURACIONES.map((d) => (
           <button
-            key={b.inicio}
-            className={`chip ${b.ocupado ? 'ocupado' : ''} ${inicio === b.inicio ? 'activo' : ''}`}
-            disabled={b.ocupado}
-            onClick={() => elegirBloque(b)}
-            aria-pressed={inicio === b.inicio}
+            key={d}
+            className={`chip ${duracion === d ? 'activo' : ''}`}
+            onClick={() => elegirDuracion(d)}
+            aria-pressed={duracion === d}
           >
-            {hhmm(aHora(b.inicio))}-{hhmm(aHora(b.fin))}
+            {etiquetaDuracion(d)}
           </button>
         ))}
       </div>
 
-      <div className="chip-leyenda">
-        <span><i className="punto libre" /> Libre</span>
-        <span><i className="punto ocupado" /> Reservado</span>
-      </div>
+      {duracion != null && (
+        <>
+          <div className="padel-paso">2. ¿A qué hora empezás?</div>
+          <div className="chips">
+            {inicios.map((b) => (
+              <button
+                key={b.inicio}
+                className={`chip ${b.libre ? '' : 'ocupado'} ${inicio === b.inicio ? 'activo' : ''}`}
+                disabled={!b.libre}
+                onClick={() => setInicio(b.inicio)}
+                aria-pressed={inicio === b.inicio}
+              >
+                {hhmm(aHora(b.inicio))}
+              </button>
+            ))}
+          </div>
+          {inicios.every((b) => !b.libre) && (
+            <p className="vacio">No hay lugar para {etiquetaDuracion(duracion)} este día. Probá con menos tiempo.</p>
+          )}
+          <div className="chip-leyenda">
+            <span><i className="punto libre" /> Disponible</span>
+            <span><i className="punto ocupado" /> Ocupado</span>
+          </div>
+        </>
+      )}
 
-      <div className="duracion">
-        <label htmlFor="duracion-padel">Duración</label>
-        <select
-          id="duracion-padel"
-          value={duracion}
-          onChange={(e) => setDuracion(Number(e.target.value))}
-          disabled={inicio === null}
-        >
-          {(inicio === null ? DURACIONES : duracionesPosibles).map((d) => (
-            <option key={d} value={d}>{d} min</option>
-          ))}
-        </select>
-        {inicio !== null && duracionValida && (
-          <span>{hhmm(aHora(inicio))} a {hhmm(aHora(inicio + duracion))}</span>
-        )}
-      </div>
+      {inicio !== null && duracion != null && (
+        <p className="padel-resumen">
+          Turno: <strong>{hhmm(aHora(inicio))} a {hhmm(aHora(inicio + duracion))}</strong> ({etiquetaDuracion(duracion)})
+        </p>
+      )}
 
       <button
         className="btn btn-gold btn-reservar"
-        disabled={inicio === null || !duracionValida}
+        disabled={inicio === null || duracion == null}
         onClick={() => onReservar({ startTime: aHora(inicio), endTime: aHora(inicio + duracion) })}
       >
         Reservar

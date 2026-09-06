@@ -4,7 +4,7 @@ import { normalizarTelefonoAR } from '../lib/telefono.js';
 
 const router = Router();
 
-const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
+const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 
 function ddmm(fechaISO) {
   const [, m, d] = fechaISO.split('-');

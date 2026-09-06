@@ -19,7 +19,21 @@ const router = Router();
 // Todas las rutas de este archivo requieren estar logueado como admin
 router.use(requireAdmin);
 
-const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Paddle' };
+const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
+const MAPS_URL = process.env.MAPS_URL || 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';
+
+function armarMensajeConfirmacion(reserva) {
+  const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
+  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  return (
+    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
+    `✅ Tu turno quedó CONFIRMADO:\n` +
+    `${cancha} · ${reserva.reservation_date} · ${horario}\n` +
+    `Código: ${reserva.code}\n\n` +
+    (MAPS_URL ? `Cómo llegar: ${MAPS_URL}\n\n` : '') +
+    `Cualquier cosa escribinos por acá. Nos vemos!`
+  );
+}
 
 function armarMensajeSuspension(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
@@ -315,7 +329,15 @@ router.post('/confirm/:code', async (req, res) => {
 
   enviarEmailConfirmacion(actualizada).catch((e) => console.error('Error enviando email:', e));
 
-  res.json({ reserva: actualizada, mensaje: 'Reserva confirmada. Email enviado al cliente.' });
+  const tel = normalizarTelefonoAR(actualizada.client_phone);
+  const mensajeConfirmacion = armarMensajeConfirmacion(actualizada);
+
+  res.json({
+    reserva: actualizada,
+    mensaje: 'Reserva confirmada. Email enviado al cliente.',
+    mensajeWhatsappConfirmacion: mensajeConfirmacion,
+    linkWhatsappConfirmacion: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensajeConfirmacion)}` : null,
+  });
 });
 
 // POST /api/admin/cancel/:code

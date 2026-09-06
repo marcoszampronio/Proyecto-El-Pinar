@@ -674,6 +674,7 @@ router.get('/contactos', async (req, res) => {
       existente.nombre = m.nombre || existente.nombre;
       existente.comentario = m.comentario || null;
       existente.manualId = m.id;
+      existente.oculto = !!m.oculto;
     } else {
       mapa.set(clave, {
         nombre: m.nombre,
@@ -682,6 +683,7 @@ router.get('/contactos', async (req, res) => {
         email: null,
         comentario: m.comentario || null,
         manualId: m.id,
+        oculto: !!m.oculto,
         totalReservas: 0,
         confirmadas: 0,
         canceladas: 0,
@@ -692,15 +694,44 @@ router.get('/contactos', async (req, res) => {
     }
   }
 
+  const verOcultos = req.query.ocultos === '1';
   const contactos = [...mapa.values()]
+    .filter((c) => verOcultos || !c.oculto)
     .map((c) => ({
       ...c,
+      oculto: !!c.oculto,
       canchasUsadas: Array.isArray(c.canchasUsadas) ? c.canchasUsadas : [...c.canchasUsadas],
       puedeEliminar: c.totalReservas === 0 && !!c.manualId,
     }))
     .sort((a, b) => b.confirmadas - a.confirmadas || b.totalReservas - a.totalReservas);
 
   res.json({ total: contactos.length, contactos });
+});
+
+// PUT /api/admin/contactos/ocultar - oculta (o muestra) un contacto de la lista.
+// Para gente con reservas que no se puede borrar. Body: { telefono, nombre, oculto }
+router.put('/contactos/ocultar', async (req, res) => {
+  const telefono = String(req.body.telefono || '').trim();
+  const nombre = String(req.body.nombre || '').trim() || 'Sin nombre';
+  const oculto = !!req.body.oculto;
+  if (telefono.replace(/\D/g, '').length < 8) return res.status(400).json({ error: 'Falta el teléfono.' });
+
+  const canon = normalizarTelefonoAR(telefono) || telefono.replace(/\D/g, '');
+  const { data: existentes } = await supabaseAdmin.from('contactos_manuales').select('id, telefono');
+  const fila = (existentes || []).find(
+    (c) => (normalizarTelefonoAR(c.telefono) || String(c.telefono || '').replace(/\D/g, '')) === canon
+  );
+
+  if (fila) {
+    const { error } = await supabaseAdmin.from('contactos_manuales').update({ oculto }).eq('id', fila.id);
+    if (error) return res.status(500).json({ error: error.message });
+  } else {
+    const { error } = await supabaseAdmin
+      .from('contactos_manuales')
+      .insert({ nombre, telefono, oculto, created_by: req.adminEmail });
+    if (error) return res.status(500).json({ error: error.message });
+  }
+  res.json({ ok: true });
 });
 
 // POST /api/admin/contactos - Mateo carga (o anota) un contacto a mano.

@@ -857,6 +857,7 @@ function ContactosPanel() {
   const [agregar, setAgregar] = useState(false);
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
+  const [verOcultos, setVerOcultos] = useState(false);
 
   async function guardarContacto({ nombre, telefono, comentario }, c) {
     setGuardando(true);
@@ -881,12 +882,20 @@ function ContactosPanel() {
 
   async function eliminarContacto(c) {
     try {
-      await api.adminEliminarContacto(c.manualId);
+      if (c.puedeEliminar) {
+        await api.adminEliminarContacto(c.manualId);
+        setAviso('Contacto eliminado.');
+      } else if (c.oculto) {
+        await api.adminOcultarContacto({ telefono: c.telefono, nombre: c.nombre, oculto: false });
+        setAviso('Contacto visible de nuevo.');
+      } else {
+        await api.adminOcultarContacto({ telefono: c.telefono, nombre: c.nombre, oculto: true });
+        setAviso('Contacto oculto de la lista.');
+      }
       setEditando(null);
-      setAviso(c.puedeEliminar ? 'Contacto eliminado.' : 'Se borraron los datos editados del contacto.');
       cargar();
     } catch (e) {
-      alert('No se pudo eliminar: ' + e.message);
+      alert('No se pudo: ' + e.message);
     }
   }
 
@@ -894,7 +903,7 @@ function ContactosPanel() {
     setCargando(true);
     setError(null);
     try {
-      const data = await api.adminContactos();
+      const data = await api.adminContactos(verOcultos);
       setContactos(data.contactos);
     } catch (e) {
       setError(e.message);
@@ -903,7 +912,7 @@ function ContactosPanel() {
     }
   }
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [verOcultos]);
 
   const filtro = texto.trim().toLowerCase();
   const lista = (contactos || []).filter(
@@ -930,11 +939,16 @@ function ContactosPanel() {
       )}
 
       <input
-        style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--line)', marginBottom: 10 }}
+        style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--line)', marginBottom: 8 }}
         placeholder="Buscar por nombre, teléfono o email"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
       />
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5C6B60', marginBottom: 10 }}>
+        <input type="checkbox" checked={verOcultos} onChange={(e) => setVerOcultos(e.target.checked)} style={{ width: 'auto' }} />
+        Ver contactos ocultos
+      </label>
 
       {cargando && <p style={{ color: '#5C6B60' }}>Cargando...</p>}
       {error && <p className="error-msg">{error}</p>}
@@ -953,8 +967,9 @@ function ContactosPanel() {
               inicial={{ nombre: c.nombre, area: p.area, num: p.num, comentario: c.comentario || '' }}
               onGuardar={(datos) => guardarContacto(datos, c)}
               onCancelar={() => setEditando(null)}
-              onEliminar={c.manualId ? () => eliminarContacto(c) : undefined}
-              eliminarLabel={c.puedeEliminar ? 'Eliminar contacto' : 'Borrar datos editados'}
+              onEliminar={() => eliminarContacto(c)}
+              eliminarLabel={c.puedeEliminar ? 'Eliminar contacto' : c.oculto ? 'Mostrar en la lista' : 'Ocultar de la lista'}
+              eliminarPeligro={!c.oculto}
               guardando={guardando}
             />
           );
@@ -965,7 +980,8 @@ function ContactosPanel() {
               <span style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</span>
               <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
               <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
-              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}>(agregado a mano)</span>}
+              {c.manual && !c.oculto && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}>(agregado a mano)</span>}
+              {c.oculto && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--danger)' }}>(oculto)</span>}
             </div>
             <div style={{ fontSize: 12, color: '#5C6B60' }}>
               {c.telefono}{c.email ? ` · ${c.email}` : ''}
@@ -1045,7 +1061,7 @@ function partirTelefono(tel) {
 }
 
 // Formulario de contacto (alta o edición): nombre + WhatsApp + comentario.
-function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, guardando }) {
+function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, eliminarPeligro = true, guardando }) {
   const [nombre, setNombre] = useState(inicial?.nombre || '');
   const [area, setArea] = useState(inicial?.area || '');
   const [num, setNum] = useState(inicial?.num || '');
@@ -1095,9 +1111,13 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
       {onEliminar && (
         <BotonConfirmar
           label={eliminarLabel || 'Eliminar contacto'}
-          confirmLabel="Confirmar: eliminar"
+          confirmLabel="Confirmar"
           className="btn btn-ghost"
-          style={{ width: '100%', marginTop: 8, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+          style={{
+            width: '100%',
+            marginTop: 8,
+            ...(eliminarPeligro ? { color: 'var(--danger)', borderColor: 'var(--danger)' } : {}),
+          }}
           onConfirm={onEliminar}
         />
       )}

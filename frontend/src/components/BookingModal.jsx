@@ -236,10 +236,9 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p><strong>{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</strong></p>
           <p>{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</p>
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
-          {resultado.reserva.parrilla && <p style={{ color: '#B45309', fontWeight: 600 }}>🔥 Consultaste por la parrilla — Mateo te confirma</p>}
         </div>
 
-        <p style={{ fontSize: 13, color: '#5C6B60', marginBottom: 16 }}>
+        <p style={{ fontSize: 13.5, color: 'var(--ink)', marginBottom: 16 }}>
           Enviá el comprobante de pago por WhatsApp para confirmar tu turno.
         </p>
 

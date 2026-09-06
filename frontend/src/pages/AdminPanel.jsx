@@ -7,7 +7,7 @@ import {
 } from '../lib/fechas';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const SITIO_URL = import.meta.env.VITE_SITIO_URL || 'https://proyecto-el-pinar.pages.dev';
+const SITIO_URL = import.meta.env.VITE_SITIO_URL || 'https://complejo-el-pinar.pages.dev';
 
 // Mensaje de WhatsApp para avisarle a un contacto que hay turnos libres.
 function mensajeAvisoTurnos(nombre) {
@@ -857,7 +857,6 @@ function ContactosPanel() {
   const [agregar, setAgregar] = useState(false);
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
-  const [verOcultos, setVerOcultos] = useState(false);
 
   async function guardarContacto({ nombre, telefono, comentario }, c) {
     setGuardando(true);
@@ -882,20 +881,16 @@ function ContactosPanel() {
 
   async function eliminarContacto(c) {
     try {
-      if (c.puedeEliminar) {
-        await api.adminEliminarContacto(c.manualId);
-        setAviso('Contacto eliminado.');
-      } else if (c.oculto) {
-        await api.adminOcultarContacto({ telefono: c.telefono, nombre: c.nombre, oculto: false });
-        setAviso('Contacto visible de nuevo.');
-      } else {
-        await api.adminOcultarContacto({ telefono: c.telefono, nombre: c.nombre, oculto: true });
-        setAviso('Contacto oculto de la lista.');
-      }
+      const r = await api.adminEliminarContacto({ telefono: c.telefono });
       setEditando(null);
+      setAviso(
+        r.reservasBorradas
+          ? `Contacto eliminado (y ${r.reservasBorradas} reserva${r.reservasBorradas === 1 ? '' : 's'}).`
+          : 'Contacto eliminado.'
+      );
       cargar();
     } catch (e) {
-      alert('No se pudo: ' + e.message);
+      alert('No se pudo eliminar: ' + e.message);
     }
   }
 
@@ -903,7 +898,7 @@ function ContactosPanel() {
     setCargando(true);
     setError(null);
     try {
-      const data = await api.adminContactos(verOcultos);
+      const data = await api.adminContactos();
       setContactos(data.contactos);
     } catch (e) {
       setError(e.message);
@@ -912,7 +907,7 @@ function ContactosPanel() {
     }
   }
 
-  useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [verOcultos]);
+  useEffect(() => { cargar(); }, []);
 
   const filtro = texto.trim().toLowerCase();
   const lista = (contactos || []).filter(
@@ -945,11 +940,6 @@ function ContactosPanel() {
         onChange={(e) => setTexto(e.target.value)}
       />
 
-      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5C6B60', marginBottom: 10 }}>
-        <input type="checkbox" checked={verOcultos} onChange={(e) => setVerOcultos(e.target.checked)} style={{ width: 'auto' }} />
-        Ver contactos ocultos
-      </label>
-
       {cargando && <p style={{ color: '#5C6B60' }}>Cargando...</p>}
       {error && <p className="error-msg">{error}</p>}
       {aviso && <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600 }}>{aviso}</p>}
@@ -968,8 +958,12 @@ function ContactosPanel() {
               onGuardar={(datos) => guardarContacto(datos, c)}
               onCancelar={() => setEditando(null)}
               onEliminar={() => eliminarContacto(c)}
-              eliminarLabel={c.puedeEliminar ? 'Eliminar contacto' : c.oculto ? 'Mostrar en la lista' : 'Ocultar de la lista'}
-              eliminarPeligro={!c.oculto}
+              eliminarLabel="Eliminar contacto"
+              eliminarConfirm={
+                c.totalReservas > 0
+                  ? `Confirmar: borra el contacto y sus ${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'}`
+                  : 'Confirmar: eliminar contacto'
+              }
               guardando={guardando}
             />
           );
@@ -980,8 +974,7 @@ function ContactosPanel() {
               <span style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</span>
               <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
               <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
-              {c.manual && !c.oculto && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}>(agregado a mano)</span>}
-              {c.oculto && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--danger)' }}>(oculto)</span>}
+              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}>(agregado a mano)</span>}
             </div>
             <div style={{ fontSize: 12, color: '#5C6B60' }}>
               {c.telefono}{c.email ? ` · ${c.email}` : ''}
@@ -1061,7 +1054,7 @@ function partirTelefono(tel) {
 }
 
 // Formulario de contacto (alta o edición): nombre + WhatsApp + comentario.
-function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, eliminarPeligro = true, guardando }) {
+function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, eliminarConfirm, guardando }) {
   const [nombre, setNombre] = useState(inicial?.nombre || '');
   const [area, setArea] = useState(inicial?.area || '');
   const [num, setNum] = useState(inicial?.num || '');
@@ -1111,13 +1104,9 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
       {onEliminar && (
         <BotonConfirmar
           label={eliminarLabel || 'Eliminar contacto'}
-          confirmLabel="Confirmar"
+          confirmLabel={eliminarConfirm || 'Confirmar: eliminar'}
           className="btn btn-ghost"
-          style={{
-            width: '100%',
-            marginTop: 8,
-            ...(eliminarPeligro ? { color: 'var(--danger)', borderColor: 'var(--danger)' } : {}),
-          }}
+          style={{ width: '100%', marginTop: 8, color: 'var(--danger)', borderColor: 'var(--danger)' }}
           onConfirm={onEliminar}
         />
       )}

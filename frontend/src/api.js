@@ -99,16 +99,13 @@ export const api = {
   adminCancelar: (code) => requestAdmin(`/admin/cancel/${encodeURIComponent(code)}`, { method: 'POST' }),
   adminPendientes: () => requestAdmin('/admin/pending'),
   adminStats: (dias = 7) => requestAdmin(`/admin/stats?dias=${dias}`),
-  adminContactos: (verOcultos = false) =>
-    requestAdmin(`/admin/contactos${verOcultos ? '?ocultos=1' : ''}`),
+  adminContactos: () => requestAdmin('/admin/contactos'),
   adminAgregarContacto: (payload) =>
     requestAdmin('/admin/contactos', { method: 'POST', body: JSON.stringify(payload) }),
   adminEditarContacto: (id, payload) =>
     requestAdmin(`/admin/contactos/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
-  adminEliminarContacto: (id) =>
-    requestAdmin(`/admin/contactos/${id}`, { method: 'DELETE' }),
-  adminOcultarContacto: (payload) =>
-    requestAdmin('/admin/contactos/ocultar', { method: 'PUT', body: JSON.stringify(payload) }),
+  adminEliminarContacto: (payload) =>
+    requestAdmin('/admin/contactos/eliminar', { method: 'POST', body: JSON.stringify(payload) }),
   adminAgendarManual: (payload) =>
     requestAdmin('/admin/manual', { method: 'POST', body: JSON.stringify(payload) }),
   adminRival: (code, payload) =>

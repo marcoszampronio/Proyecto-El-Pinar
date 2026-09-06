@@ -55,7 +55,7 @@ New Project → Deploy from GitHub → elegí el repo → Root Directory `backen
    | `VITE_SUPABASE_ANON_KEY` | la anon key de Supabase (Settings → API) |
    | `VITE_API_URL` | `https://proyecto-el-pinar.onrender.com/api` *(la URL del paso 1 + `/api`)* |
 
-5. **Save and Deploy**. Te da una URL tipo `https://proyecto-el-pinar.pages.dev`.
+5. **Save and Deploy**. Te da una URL tipo `https://complejo-el-pinar.pages.dev`.
    El `frontend/public/_redirects` ya hace que `/panel` no dé 404.
 
 ---
@@ -63,9 +63,9 @@ New Project → Deploy from GitHub → elegí el repo → Root Directory `backen
 ## 3. Conectar los dos
 
 1. Volvé a Render → variable `CORS_ORIGINS` → poné la URL de Cloudflare
-   **sin la barra final**, ej: `https://proyecto-el-pinar.pages.dev`.
+   **sin la barra final**, ej: `https://complejo-el-pinar.pages.dev`.
    (Si vas a usar dominio propio después, agregalo separado por coma.)
-2. Variable `PANEL_URL` → `https://proyecto-el-pinar.pages.dev/panel`.
+2. Variable `PANEL_URL` → `https://complejo-el-pinar.pages.dev/panel`.
 3. Guardá → Render redeploya solo.
 
 ---

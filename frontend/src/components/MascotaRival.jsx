@@ -1,25 +1,23 @@
 import { useEffect, useState } from 'react';
 
 // Jugadorcito cabezón que invita a la sección "Busco rival".
-// Aparece a los 5 s, dura 5 s y vuelve cada 30 s (hasta que lo tocan).
+// Aparece a los 5 s y después cicla: 30 s visible / 5 s oculto, siempre
+// (hasta que lo tocan).
 export default function MascotaRival({ onIr }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    let showT, hideT, iv;
-    const ciclo = () => {
+    let t;
+    const mostrar = () => {
       setVisible(true);
-      hideT = setTimeout(() => setVisible(false), 5000);
+      t = setTimeout(ocultar, 30000);
     };
-    showT = setTimeout(() => {
-      ciclo();
-      iv = setInterval(ciclo, 30000);
-    }, 5000);
-    return () => {
-      clearTimeout(showT);
-      clearTimeout(hideT);
-      clearInterval(iv);
+    const ocultar = () => {
+      setVisible(false);
+      t = setTimeout(mostrar, 5000);
     };
+    t = setTimeout(mostrar, 5000);
+    return () => clearTimeout(t);
   }, []);
 
   return (

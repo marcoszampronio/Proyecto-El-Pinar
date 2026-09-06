@@ -198,11 +198,8 @@ export default function BookingModal({ slotInfo, onClose }) {
                 checked={form.parrilla}
                 onChange={(e) => actualizar('parrilla', e.target.checked)}
               />
-              {' Quiero consultar disponibilidad parrilla'}
+              {' Quiero consultar para usar parrilla'}
             </label>
-            <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 2 }}>
-              Mateo te confirma por WhatsApp si hay lugar.
-            </div>
           </div>
 
           {error && <p className="error-msg">{error}</p>}

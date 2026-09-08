@@ -296,14 +296,14 @@ function ExportPanel() {
       <button className="btn btn-primary" onClick={descargarExcel} disabled={descargando} style={{ width: '100%' }}>
         {descargando ? 'Generando...' : '⬇ Descargar reporte (.xlsx)'}
       </button>
-      <p style={{ fontSize: 12, color: '#5C6B60' }}>
+      <p style={{ fontSize: 12, color: 'var(--p-mut)' }}>
         Trae una hoja "Resumen" con los números del negocio (por cancha, por mes, por día,
         clientes frecuentes) y una hoja "Detalle" con todas las reservas como tabla para filtrar
         y armar gráficos.
       </p>
 
-      <hr style={{ border: 'none', borderTop: '1px solid var(--linea)', margin: '14px 0' }} />
-      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+      <hr style={{ border: 'none', borderTop: '1px solid var(--p-linea)', margin: '14px 0' }} />
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
         <strong>Backup automático:</strong> todos los días a las 3:00 se manda el CSV completo
         por email a los administradores. También lo podés disparar ahora:
       </p>
@@ -311,7 +311,7 @@ function ExportPanel() {
         {backup === '...' ? 'Enviando...' : 'Enviar backup ahora'}
       </button>
       {backup && backup !== '...' && (
-        <p style={{ fontSize: 12, color: '#5C6B60', marginBottom: 0 }}>{backup}</p>
+        <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
       )}
     </div>
   );
@@ -325,7 +325,7 @@ function Semaforo({ ok, label, detalle }) {
       <span style={{ fontSize: 15, lineHeight: 1.3 }}>{ok ? '🟢' : '🔴'}</span>
       <div>
         <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        {detalle && <div style={{ fontSize: 12, color: '#5C6B60' }}>{detalle}</div>}
+        {detalle && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{detalle}</div>}
       </div>
     </div>
   );
@@ -387,7 +387,7 @@ function EstadoSistema() {
             label="CORS (seguridad)"
             detalle={d.corsOrigenes.length ? d.corsOrigenes.join(', ') : 'Abierto a cualquier origen — conviene restringirlo'}
           />
-          <p style={{ fontSize: 12, color: '#5C6B60', marginBottom: 0, marginTop: 6 }}>
+          <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0, marginTop: 6 }}>
             Un turno queda reservado {d.ventanaPendientesMin} min esperando el comprobante.
           </p>
         </div>
@@ -516,7 +516,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
   if (cancelado) {
     return (
       <div className="agenda-detalle">
-        <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600, marginTop: 0 }}>
+        <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 0 }}>
           Turno cancelado. Se liberó {NOMBRE_CANCHA[reserva.court]} {hhmm(reserva.start_time)}–{hhmm(reserva.end_time)}.
         </p>
         <p style={{ fontSize: 13, fontWeight: 600, margin: '10px 0 6px' }}>
@@ -571,10 +571,10 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
             {waAbierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
           </a>
         ) : (
-          <span style={{ fontSize: 12, color: '#B3382E' }}>Sin número válido para WhatsApp</span>
+          <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
         )}
       </div>
-      <p style={{ fontSize: 11, color: '#5C6B60', marginTop: 6, marginBottom: 0 }}>
+      <p style={{ fontSize: 11, color: 'var(--p-mut)', marginTop: 6, marginBottom: 0 }}>
         Tip: primero avisá por WhatsApp, después cancelá el turno.
       </p>
 
@@ -681,9 +681,9 @@ function EsperaItem({ e, onAccion }) {
   }
 
   return (
-    <div style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
+    <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
       <div style={{ fontWeight: 600, fontSize: 14 }}>{e.client_name}</div>
-      <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: 6 }}>{e.client_phone}</div>
+      <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>{e.client_phone}</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {e.linkWhatsapp ? (
           <a
@@ -697,7 +697,7 @@ function EsperaItem({ e, onAccion }) {
             {abierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
           </a>
         ) : (
-          <span style={{ fontSize: 12, color: '#B3382E' }}>Sin número válido</span>
+          <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido</span>
         )}
         <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('avisado')}>
           Marcar avisado
@@ -767,7 +767,7 @@ function AgendaPanel() {
     <div className="stat-card">
       <NavegadorFecha fecha={fecha} onCambiar={setFecha} />
 
-      {cargando && <p style={{ color: '#5C6B60' }}>Cargando…</p>}
+      {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
       {error && <p className="error-msg">{error}</p>}
 
       {agenda && !cargando && (
@@ -824,7 +824,7 @@ function AgendaPanel() {
               <div className="agenda-card-titulo">
                 Lista de espera <span className="agenda-contador">{agenda.espera.length}</span>
               </div>
-              <p style={{ fontSize: 12, color: '#5C6B60', margin: '0 0 8px' }}>
+              <p style={{ fontSize: 12, color: 'var(--p-mut)', margin: '0 0 8px' }}>
                 Pidieron que les avises si se libera un turno de fútbol este día.
               </p>
               {agenda.espera.map((e) => (
@@ -917,7 +917,7 @@ function ContactosPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Base de contactos</h3>
-      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
         Todos los clientes que alguna vez reservaron. Tocá "WhatsApp" para escribirles.
       </p>
 
@@ -934,15 +934,15 @@ function ContactosPanel() {
       )}
 
       <input
-        style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--line)', marginBottom: 8 }}
+        style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
         placeholder="Buscar por nombre, teléfono o email"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
       />
 
-      {cargando && <p style={{ color: '#5C6B60' }}>Cargando...</p>}
+      {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando...</p>}
       {error && <p className="error-msg">{error}</p>}
-      {aviso && <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600 }}>{aviso}</p>}
+      {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
         <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length} de {contactos.length} contactos</p>
       )}
@@ -969,21 +969,21 @@ function ContactosPanel() {
           );
         }
         return (
-          <div key={clave} style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
+          <div key={clave} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <span style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</span>
               <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
               <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
-              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: '#5C6B60' }}>(agregado a mano)</span>}
+              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--p-mut)' }}>(agregado a mano)</span>}
             </div>
-            <div style={{ fontSize: 12, color: '#5C6B60' }}>
+            <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
               {c.telefono}{c.email ? ` · ${c.email}` : ''}
             </div>
-            <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: c.comentario ? 2 : 6 }}>
+            <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
               {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${c.ultimaReserva}`}
             </div>
             {c.comentario && (
-              <div style={{ fontSize: 12, color: 'var(--ink)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
+              <div style={{ fontSize: 12, color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {c.telefonoWa && (
@@ -1076,7 +1076,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
   }
 
   return (
-    <div style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 10 }}>
+    <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 10 }}>
       <div className="field">
         <label>Nombre</label>
         <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Como lo quieras guardar" />
@@ -1106,7 +1106,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
           label={eliminarLabel || 'Eliminar contacto'}
           confirmLabel={eliminarConfirm || 'Confirmar: eliminar'}
           className="btn btn-ghost"
-          style={{ width: '100%', marginTop: 8, color: 'var(--danger)', borderColor: 'var(--danger)' }}
+          style={{ width: '100%', marginTop: 8, color: 'var(--p-bad)', borderColor: 'var(--p-bad)' }}
           onConfirm={onEliminar}
         />
       )}
@@ -1183,7 +1183,7 @@ function BloqueosPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Bloquear turnos o días</h3>
-      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
         Para sacar de circulación un turno, una cancha o el día entero sin que haya
         una reserva (mantenimiento, evento privado, etc). No cancela nada existente.
       </p>
@@ -1235,13 +1235,13 @@ function BloqueosPanel() {
         <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
           Bloqueos de este día {cargando ? '' : `(${bloqueos.length})`}
         </p>
-        {cargando && <p style={{ color: '#5C6B60' }}>Cargando…</p>}
+        {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
         {!cargando && bloqueos.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
         {bloqueos.map((b) => (
-          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: '#F1EEE4', marginBottom: 6 }}>
+          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
-              {b.motivo && <div style={{ fontSize: 12, color: '#5C6B60' }}>{b.motivo}</div>}
+              {b.motivo && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{b.motivo}</div>}
             </div>
             <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(b.id)}>
               Quitar
@@ -1361,7 +1361,7 @@ function TurnosFijosPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Turnos fijos</h3>
-      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
         Un cliente que juega siempre el mismo día y horario. Se generan solas las
         reservas confirmadas de las próximas ~6 semanas; si cancelás una semana puntual
         desde la Agenda, esa fecha no se vuelve a generar.
@@ -1457,7 +1457,7 @@ function TurnosFijosPanel() {
       </div>
 
       {error && <p className="error-msg">{error}</p>}
-      {aviso && <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600 }}>{aviso}</p>}
+      {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
 
       <button className="btn btn-primary" style={{ width: '100%' }} onClick={crear} disabled={creando}>
         {creando ? 'Creando…' : 'Crear turno fijo'}
@@ -1467,16 +1467,16 @@ function TurnosFijosPanel() {
         <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
           Fijos activos {cargando ? '' : `(${(fijos || []).length})`}
         </p>
-        {cargando && <p style={{ color: '#5C6B60' }}>Cargando…</p>}
+        {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
         {!cargando && fijos && fijos.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
         {(fijos || []).map((f) => (
-          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: '#F1EEE4', marginBottom: 6 }}>
+          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>
                 {f.client_name}{f.team_name ? ` · ${f.team_name}` : ''}
               </div>
-              <div style={{ fontSize: 12, color: '#5C6B60' }}>{descripcionTurnoFijo(f)}</div>
-              <div style={{ fontSize: 11, color: '#5C6B60' }}>{f.client_phone} · desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
+              <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
+              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone} · desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
             </div>
             <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
               Dar de baja
@@ -1530,7 +1530,7 @@ function SuspensionPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia</h3>
-      <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
         Cancela todas las reservas del día y te arma un WhatsApp por cliente para avisarles.
       </p>
 
@@ -1544,7 +1544,7 @@ function SuspensionPanel() {
       {reservas && (
         <div style={{ marginTop: 12 }}>
           {reservas.length === 0 ? (
-            <p style={{ color: '#5C6B60' }}>No hay reservas activas ese día.</p>
+            <p style={{ color: 'var(--p-mut)' }}>No hay reservas activas ese día.</p>
           ) : (
             <>
               <p style={{ fontWeight: 600, margin: '4px 0', textTransform: 'capitalize' }}>
@@ -1554,7 +1554,7 @@ function SuspensionPanel() {
                 <div key={r.id} className="agenda-slot" style={{ cursor: 'default' }}>
                   <div className="agenda-slot-hora">{r.turn || hhmm(r.start_time)}</div>
                   <div className="agenda-slot-cliente">{NOMBRE_CANCHA[r.court]} · {r.client_name}</div>
-                  <span style={{ fontSize: 12, color: '#5C6B60' }}>{r.client_phone}</span>
+                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>{r.client_phone}</span>
                 </div>
               ))}
               <BotonConfirmar
@@ -1571,16 +1571,16 @@ function SuspensionPanel() {
 
       {clientes && (
         <div style={{ marginTop: 12 }}>
-          <p style={{ color: 'var(--pitch, #2E7D5B)', fontWeight: 600 }}>
+          <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>
             Fecha suspendida. {clientes.length} reserva{clientes.length > 1 ? 's' : ''} cancelada{clientes.length > 1 ? 's' : ''}.
             Enviá el aviso a cada uno:
           </p>
           {clientes.map((c) => (
-            <div key={c.code} style={{ padding: 10, borderRadius: 8, background: '#F1EEE4', marginBottom: 8 }}>
+            <div key={c.code} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
               <div style={{ fontSize: 13, fontWeight: 600 }}>
                 {c.nombre} — {NOMBRE_CANCHA[c.court]} {hhmm(c.start_time)}
               </div>
-              <div style={{ fontSize: 12, color: '#5C6B60', marginBottom: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>
                 Tel: {c.telefonoOriginal} {c.telefono ? `→ +${c.telefono}` : '(no se pudo armar el número, revisalo)'}
               </div>
               {c.linkWhatsapp ? (
@@ -1595,7 +1595,7 @@ function SuspensionPanel() {
                   {enviados[c.code] ? '✓ Enviado (abrir de nuevo)' : 'Enviar WhatsApp'}
                 </a>
               ) : (
-                <p style={{ fontSize: 12, color: '#B3382E' }}>Número inválido — contactá al cliente a mano.</p>
+                <p style={{ fontSize: 12, color: 'var(--p-bad)' }}>Número inválido — contactá al cliente a mano.</p>
               )}
             </div>
           ))}
@@ -1707,24 +1707,38 @@ export default function AdminPanel() {
     }
   }
 
+  const NAV = [
+    { id: 'buscar', label: 'Confirmar', tag: pendientes.length || null, ico: <path d="M9 11l3 3 6-6M4 4h16v16H4z" /> },
+    { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
+    { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
+    { id: 'fijos', label: 'Turnos fijos', ico: <path d="M12 7v5l3 2M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" /> },
+    { id: 'suspender', label: 'Suspender', ico: <path d="M4 15a4 4 0 0 1 1-7.5A5.5 5.5 0 0 1 16 6a4 4 0 0 1 1 8.9M8 19l-1 2M12 19l-1 2M16 19l-1 2" /> },
+    { id: 'stats', label: 'Estadísticas', ico: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /> },
+  ];
+
   return (
-    <div className="app-shell">
-      <div className="admin-header">
-        <strong>Complejo El Pinar — Panel</strong>
-        <button className="btn btn-ghost" style={{ color: '#fff', borderColor: '#fff' }} onClick={() => supabase.auth.signOut()}>
-          Salir
-        </button>
-      </div>
+    <div className="panel">
+      <aside className="pnav">
+        <div className="pnav-marca">
+          <svg viewBox="0 0 40 52" aria-hidden="true"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor" /><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor" /></svg>
+          <div><b>El Pinar</b><span>Panel</span></div>
+        </div>
+        {NAV.map((n) => (
+          <button key={n.id} className={`pnav-item ${tab === n.id ? 'on' : ''}`} onClick={() => setTab(n.id)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{n.ico}</svg>
+            {n.label}
+            {n.tag ? <span className="pnav-tag">{n.tag}</span> : null}
+          </button>
+        ))}
+        <div className="pnav-pie">
+          <button className="pnav-item" onClick={() => supabase.auth.signOut()}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
+            Salir
+          </button>
+        </div>
+      </aside>
 
-      <div className="tabs">
-        <button className={`tab-btn ${tab === 'buscar' ? 'active' : ''}`} onClick={() => setTab('buscar')}>Confirmar</button>
-        <button className={`tab-btn ${tab === 'agenda' ? 'active' : ''}`} onClick={() => setTab('agenda')}>Agenda</button>
-        <button className={`tab-btn ${tab === 'contactos' ? 'active' : ''}`} onClick={() => setTab('contactos')}>Contactos</button>
-        <button className={`tab-btn ${tab === 'fijos' ? 'active' : ''}`} onClick={() => setTab('fijos')}>Fijos</button>
-        <button className={`tab-btn ${tab === 'suspender' ? 'active' : ''}`} onClick={() => setTab('suspender')}>Suspender</button>
-        <button className={`tab-btn ${tab === 'stats' ? 'active' : ''}`} onClick={() => setTab('stats')}>Estadísticas</button>
-      </div>
-
+      <main className="pmain">
       {tab === 'agenda' && <AgendaPanel />}
       {tab === 'suspender' && (
         <>
@@ -1739,13 +1753,13 @@ export default function AdminPanel() {
         <>
           <div className="stat-card">
             <h3 style={{ marginTop: 0 }}>Pegá el código de la reserva</h3>
-            <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
+            <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
               El cliente te lo manda por WhatsApp con el comprobante. Al confirmar, el turno
               queda ocupado en la web, se le manda el email, y si pidió rival aparece solo en "Busco rival".
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
-                style={{ flex: 1, padding: 10, borderRadius: 8, border: '1.5px solid var(--line)', fontFamily: 'monospace' }}
+                style={{ flex: 1, padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', fontFamily: 'monospace' }}
                 value={codigo}
                 onChange={(e) => setCodigo(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && buscar()}
@@ -1754,7 +1768,7 @@ export default function AdminPanel() {
               <button className="btn btn-primary" onClick={() => buscar()}>Buscar</button>
             </div>
             {error && <p className="error-msg">{error}</p>}
-            {aviso && <p style={{ color: 'var(--pitch)', fontWeight: 600, marginTop: 8 }}>{aviso}</p>}
+            {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 8 }}>{aviso}</p>}
             {confirmadaWa && (
               <a
                 className="btn btn-primary"
@@ -1774,19 +1788,19 @@ export default function AdminPanel() {
               <p style={{ margin: '4px 0' }}>
                 {resultado.reserva.client_name} {resultado.reserva.category ? `· ${resultado.reserva.category}` : ''}
                 {resultado.reserva.looking_for_rival && (
-                  <span style={{ color: 'var(--gold, #C09A46)', fontWeight: 600 }}>
+                  <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>
                     {' · '}Busca rival{resultado.reserva.team_name ? ` (${resultado.reserva.team_name})` : ''}
                   </span>
                 )}
-                {resultado.reserva.parrilla && <span style={{ color: '#B45309', fontWeight: 600 }}>{' · '}🔥 consultó parrilla</span>}
+                {resultado.reserva.parrilla && <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>{' · '}🔥 consultó parrilla</span>}
               </p>
-              <p style={{ margin: '4px 0', fontSize: 13, color: '#5C6B60' }}>
+              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>
                 {NOMBRE_CANCHA[resultado.reserva.court]} · {resultado.reserva.reservation_date} · {resultado.reserva.start_time.slice(0, 5)} a {resultado.reserva.end_time.slice(0, 5)}
               </p>
               <p style={{ fontSize: 13 }}>Tel: {resultado.reserva.client_phone}</p>
 
               {resultado.vencioPorSistema && (
-                <p style={{ fontSize: 12, color: 'var(--gold-dark, #A57F2E)', marginTop: 4 }}>
+                <p style={{ fontSize: 12, color: 'var(--p-oro)', marginTop: 4 }}>
                   Este turno se había liberado por falta de comprobante. Si el turno sigue libre,
                   al confirmar se reactiva.
                 </p>
@@ -1815,14 +1829,14 @@ export default function AdminPanel() {
                 </div>
               )}
               {resultado.accionSugerida === 'ninguna' && (
-                <p style={{ fontStyle: 'italic', color: '#5C6B60' }}>Este turno ya fue cancelado. No hay acciones disponibles.</p>
+                <p style={{ fontStyle: 'italic', color: 'var(--p-mut)' }}>Este turno ya fue cancelado. No hay acciones disponibles.</p>
               )}
             </div>
           )}
 
           <div className="stat-card">
             <h3 style={{ marginTop: 0 }}>Pendientes de confirmación</h3>
-            {pendientes.length === 0 && <p style={{ color: '#5C6B60' }}>No hay reservas pendientes.</p>}
+            {pendientes.length === 0 && <p style={{ color: 'var(--p-mut)' }}>No hay reservas pendientes.</p>}
             {pendientes.map((p) => (
               <button
                 key={p.id}
@@ -1830,10 +1844,10 @@ export default function AdminPanel() {
                 onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               >
                 <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13 }}>{p.code}</div>
-                <div style={{ fontSize: 12, color: '#7A4A00' }}>
+                <div style={{ fontSize: 12, color: 'var(--p-oro)' }}>
                   {p.client_name} · {NOMBRE_CANCHA[p.court] || p.court} · {p.reservation_date}
                 </div>
-                <div style={{ fontSize: 11, color: '#7A4A00', marginTop: 2, fontWeight: 600 }}>Tocá para confirmar / cancelar →</div>
+                <div style={{ fontSize: 11, color: 'var(--p-oro)', marginTop: 2, fontWeight: 600 }}>Tocá para confirmar / cancelar →</div>
               </button>
             ))}
           </div>
@@ -1848,30 +1862,30 @@ export default function AdminPanel() {
             <h3 style={{ marginTop: 0 }}>Próximos {stats.rangoDias} días</h3>
             <div className="stat-grid">
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Confirmadas</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Confirmadas</div>
                 <div className="big-num">{stats.ventana.confirmadas}</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Pendientes</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Pendientes</div>
                 <div className="big-num">{stats.ventana.pendientes}</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Ocupación fútbol</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Ocupación fútbol</div>
                 <div className="big-num">{stats.ventana.ocupacionFutbolPct}%</div>
-                <div style={{ fontSize: 11, color: '#5C6B60' }}>
+                <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>
                   {stats.ventana.turnosFutbolOcupados}/{stats.ventana.turnosFutbolPosibles} turnos
                 </div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Consultas parrilla</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Consultas parrilla</div>
                 <div className="big-num">{stats.ventana.parrillasReservadas}</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Cancha 1 · Cancha 2</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Cancha 1 · Cancha 2</div>
                 <div className="big-num">{stats.ventana.reservasPorCancha.C1} · {stats.ventana.reservasPorCancha.C2}</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Pádel · Buscan rival</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Pádel · Buscan rival</div>
                 <div className="big-num">{stats.ventana.reservasPorCancha.PAD} · {stats.ventana.equiposBuscandoRival}</div>
               </div>
             </div>
@@ -1881,20 +1895,20 @@ export default function AdminPanel() {
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>
             <div className="stat-grid">
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Reservas</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Reservas</div>
                 <div className="big-num">{stats.historico30.totalActivas}</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Clientes distintos</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Clientes distintos</div>
                 <div className="big-num">{stats.historico30.clientesUnicos}</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Cancelaciones</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Cancelaciones</div>
                 <div className="big-num">{stats.historico30.canceladas}</div>
-                <div style={{ fontSize: 11, color: '#5C6B60' }}>{stats.historico30.tasaCancelacionPct}% del total</div>
+                <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{stats.historico30.tasaCancelacionPct}% del total</div>
               </div>
               <div className="stat-card">
-                <div style={{ fontSize: 13, color: '#5C6B60' }}>Consultas parrilla</div>
+                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Consultas parrilla</div>
                 <div className="big-num">{stats.historico30.parrillas}</div>
               </div>
             </div>
@@ -1904,9 +1918,9 @@ export default function AdminPanel() {
                 const max = Math.max(1, ...stats.historico30.porDiaSemana.map((x) => x.reservas));
                 return (
                   <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, width: 70, color: '#5C6B60' }}>{d.dia}</span>
-                    <div style={{ flex: 1, background: '#EDE8DA', borderRadius: 4, height: 16 }}>
-                      <div style={{ width: `${(d.reservas / max) * 100}%`, background: 'var(--navy, #123C6E)', height: '100%', borderRadius: 4, minWidth: d.reservas ? 4 : 0 }} />
+                    <span style={{ fontSize: 12, width: 70, color: 'var(--p-mut)' }}>{d.dia}</span>
+                    <div style={{ flex: 1, background: 'var(--p-fila)', borderRadius: 4, height: 16 }}>
+                      <div style={{ width: `${(d.reservas / max) * 100}%`, background: 'var(--p-oro)', height: '100%', borderRadius: 4, minWidth: d.reservas ? 4 : 0 }} />
                     </div>
                     <span style={{ fontSize: 12, width: 20, textAlign: 'right' }}>{d.reservas}</span>
                   </div>
@@ -1920,6 +1934,7 @@ export default function AdminPanel() {
       )}
 
       {tab === 'stats' && !stats && <ExportPanel />}
+      </main>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="app-shell" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center' }}>
+    <div className="login-shell">
     <div className="login-box">
       <h2>Panel del complejo</h2>
       <form onSubmit={iniciarSesion}>

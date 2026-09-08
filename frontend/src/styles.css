@@ -1500,7 +1500,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--ink)
 }
 .mapa-card svg, .mapa-card img { display: block; width: 100%; }
 .mapa-card svg { height: auto; }
-.mapa-card img { aspect-ratio: 4 / 5; object-fit: cover; }
+.mapa-card img { aspect-ratio: 3 / 4; object-fit: cover; object-position: center 42%; }
+@media (max-width: 900px) { .mapa-card img { aspect-ratio: 16 / 11; } }
 .mapa-btn { position: absolute; left: 16px; bottom: 16px; pointer-events: none; }
 .llegar-info .eyebrow { margin-bottom: 10px; }
 .llegar-info h2 { font-size: clamp(1.9rem, 3.6vw, 2.6rem); margin-bottom: 10px; }

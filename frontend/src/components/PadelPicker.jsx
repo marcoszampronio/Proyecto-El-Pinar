@@ -62,7 +62,7 @@ export default function PadelPicker({
       <h2 className="seccion-titulo">Reservar {titulo}</h2>
 
       <div className="padel-paso">1. ¿Cuánto tiempo querés jugar?</div>
-      <div className="chips">
+      <div className="chips chips--padel">
         {DURACIONES.map((d) => (
           <button
             key={d}
@@ -78,7 +78,7 @@ export default function PadelPicker({
       {duracion != null && (
         <>
           <div className="padel-paso">2. ¿A qué hora empezás?</div>
-          <div className="chips">
+          <div className="chips chips--padel">
             {inicios.map((b) => (
               <button
                 key={b.inicio}

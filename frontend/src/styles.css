@@ -1577,9 +1577,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--ink)
 .sitio .consulta-estado { color: var(--s-oro); }
 .sitio .consulta-nota { color: var(--s-niebla); }
 
-/* mascota */
+/* mascota — solo en compu (en el celu satura) */
 .sitio .mascota { bottom: 20px; right: 18px; }
 .sitio .mascota-globo { background: var(--s-oro); color: var(--s-pino-900); }
+@media (max-width: 900px) { .sitio .mascota { display: none !important; } }
 
 @media (max-width: 620px) {
   .sitio { font-size: 15.5px; }

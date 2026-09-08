@@ -2,7 +2,7 @@
 // (o setear las variables VITE_* en Cloudflare y no tocar el código).
 
 // Número de WhatsApp de El Pinar, formato internacional sin signos: 549 + área + número.
-export const WHATSAPP = import.meta.env.VITE_WHATSAPP || '5493430000000';
+export const WHATSAPP = import.meta.env.VITE_WHATSAPP || '5493435134744';
 export const WA_URL = `https://wa.me/${WHATSAPP}`;
 
 export const IG_URL = import.meta.env.VITE_IG_URL || 'https://www.instagram.com/elpinarcomplejo/';

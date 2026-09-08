@@ -1,6 +1,5 @@
 import { WaIcon } from './iconos';
-
-const WA_URL = 'https://wa.me/5493430000000';
+import { WA_URL } from './config';
 
 const SERVICIOS = [
   {

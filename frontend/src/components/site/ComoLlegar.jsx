@@ -1,8 +1,5 @@
 import { WaIcon, IgIcon, MapaPin } from './iconos';
-
-const MAPS_URL = 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';
-const IG_URL = 'https://www.instagram.com/elpinarcomplejo/';
-const WA_URL = 'https://wa.me/5493430000000';
+import { WA_URL, IG_URL, MAPS_URL } from './config';
 
 export default function ComoLlegar() {
   return (

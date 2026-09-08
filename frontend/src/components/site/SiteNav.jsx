@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import LogoPino from './LogoPino';
 import { IgIcon } from './iconos';
-
-const IG_URL = 'https://www.instagram.com/elpinarcomplejo/';
+import { IG_URL } from './config';
 
 const LINKS = [
   { id: 'reservar', label: 'Reservar' },

@@ -1,8 +1,6 @@
 import LogoPino from './LogoPino';
 import { WaIcon, IgIcon } from './iconos';
-
-const IG_URL = 'https://www.instagram.com/elpinarcomplejo/';
-const WA_URL = 'https://wa.me/5493430000000';
+import { WA_URL, IG_URL } from './config';
 
 export default function SiteFooter({ onIr }) {
   return (

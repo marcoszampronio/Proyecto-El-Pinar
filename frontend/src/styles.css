@@ -1267,7 +1267,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--ink)
     radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(7,17,28,0.55) 100%),
     linear-gradient(180deg, rgba(7,17,28,0.35) 0%, transparent 25%, transparent 60%, rgba(7,17,28,0.72) 100%);
 }
-.hero-in { position: relative; width: 100%; padding-bottom: 54px; }
+.hero-in { position: relative; width: 100%; padding-bottom: 76px; }
 .hero-in .eyebrow { margin-bottom: 16px; }
 .hero h1 { font-size: clamp(3.4rem, 9vw, 6.2rem); letter-spacing: 0.01em; margin-bottom: 16px; }
 .hero-sub { max-width: 48ch; color: var(--s-cal); opacity: 0.92; font-size: 1.08rem; }
@@ -1281,7 +1281,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--ink)
 
 @media (max-width: 620px) {
   .hero { min-height: 420px; padding-top: 96px; }
-  .hero-in { padding-bottom: 36px; }
+  .hero-in { padding-bottom: 48px; }
 }
 
 /* --- reveal suave --- */

@@ -1360,8 +1360,32 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .rival-cel-eq { font-family: var(--s-titulo); font-size: 1.2rem; font-weight: 600; color: var(--s-cal); }
 .sitio .rival-cel-meta { color: var(--s-niebla); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.sitio .rival-cel-btn { background: #25A65B; margin-top: auto; padding: 9px 12px; }
+.sitio .rival-cel-btn { background: #25A65B; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
 .sitio .rival-cel-btn--off { background: var(--s-marino-600); color: var(--s-niebla); }
+.sitio .rival-cel-hora {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--s-oro); font-variant-numeric: tabular-nums;
+}
+
+/* vista celular de "busco rival": lista por día en vez de grilla */
+.rivales-lista { display: none; }
+.sitio .rivales-lista-dia { margin-bottom: 22px; }
+.sitio .rivales-lista-dia h4 {
+  font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem; color: var(--s-cal);
+  margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--s-linea-fria);
+  text-transform: capitalize;
+}
+.sitio .rivales-lista-items { display: flex; flex-direction: column; gap: 12px; }
+.sitio .rivales-lista .rival-cel {
+  flex: none; background: var(--s-marino); border: 1px solid var(--s-linea);
+  border-radius: 12px; padding: 14px; gap: 6px; color: var(--s-cal);
+}
+.sitio .rivales-lista .rival-cel-btn { align-self: flex-start; margin-top: 6px; padding: 9px 16px; }
+
+@media (max-width: 620px) {
+  .sitio .rivales-grid-scroll { display: none; }
+  .rivales-lista { display: block; }
+}
 
 /* --- SERVICIOS --- */
 .serv { background: var(--s-pino-800); }

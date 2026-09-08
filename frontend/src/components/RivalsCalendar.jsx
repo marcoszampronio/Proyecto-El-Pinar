@@ -36,6 +36,16 @@ export default function RivalsCalendar({ rivales }) {
   const ultimo = etiquetaDia(dias[dias.length - 1]);
   const mes = MESES_CORTO[desdeISO(dias[0]).getMonth()];
 
+  // para la vista de celular: rivales agrupados por día (con su horario)
+  const porDia = dias.map((d) => {
+    const items = [];
+    for (const t of TURNOS) {
+      for (const r of idx[`${d}|${t.hhmm}`] || []) items.push({ r, hhmm: t.label });
+    }
+    return { iso: d, ...etiquetaDia(d), items };
+  });
+  const hayRivales = porDia.some((dg) => dg.items.length > 0);
+
   return (
     <div className="rivales-cal">
       <div className="rivales-cal-nav">
@@ -55,6 +65,7 @@ export default function RivalsCalendar({ rivales }) {
         >›</button>
       </div>
 
+      {/* vista escritorio: grilla semanal */}
       <div className="rivales-grid-scroll">
         <div className="rivales-grid" style={{ gridTemplateColumns: `44px repeat(${dias.length}, minmax(132px, 1fr))` }}>
           <div className="rivales-grid-esq" />
@@ -74,10 +85,53 @@ export default function RivalsCalendar({ rivales }) {
         </div>
       </div>
 
-      {(!rivales || rivales.length === 0) && (
+      {/* vista celular: lista por día */}
+      {hayRivales && (
+        <div className="rivales-lista">
+          {porDia.map((dg) => (
+            dg.items.length === 0 ? null : (
+              <div key={dg.iso} className="rivales-lista-dia">
+                <h4>{dg.nombre} {dg.num}</h4>
+                <div className="rivales-lista-items">
+                  {dg.items.map(({ r, hhmm }, i) => (
+                    <RivalCard key={i} r={r} hora={hhmm} />
+                  ))}
+                </div>
+              </div>
+            )
+          ))}
+        </div>
+      )}
+
+      {!hayRivales && (
         <p className="rivales-cal-vacio">Todavía no hay equipos buscando rival.</p>
       )}
     </div>
+  );
+}
+
+function RivalCard({ r, hora }) {
+  return (
+    <a
+      className="rival-cel"
+      href={r.linkWhatsapp || undefined}
+      target="_blank"
+      rel="noreferrer"
+      title={r.linkWhatsapp ? 'Escribir por WhatsApp' : 'Sin número de contacto'}
+    >
+      {hora && <span className="rival-cel-hora">{hora} hs</span>}
+      <span className="rival-cel-eq">{r.team_name || 'Equipo'}</span>
+      <span className="rival-cel-meta">
+        {(r.canchaNombre || r.court)}{r.category ? ` · ${r.category}` : ''}
+      </span>
+      {r.linkWhatsapp ? (
+        <span className="rival-cel-btn">
+          <IconoWhatsapp size={13} /> Me interesa
+        </span>
+      ) : (
+        <span className="rival-cel-btn rival-cel-btn--off">Sin contacto</span>
+      )}
+    </a>
   );
 }
 
@@ -90,26 +144,7 @@ function FilaTurno({ turno, dias, idx }) {
         return (
           <div key={d} className="rivales-grid-celda">
             {lista.map((r, i) => (
-              <a
-                key={i}
-                className="rival-cel"
-                href={r.linkWhatsapp || undefined}
-                target="_blank"
-                rel="noreferrer"
-                title={r.linkWhatsapp ? 'Escribir por WhatsApp' : 'Sin número de contacto'}
-              >
-                <span className="rival-cel-eq">{r.team_name || 'Equipo'}</span>
-                <span className="rival-cel-meta">
-                  {(r.canchaNombre || r.court)}{r.category ? ` · ${r.category}` : ''}
-                </span>
-                {r.linkWhatsapp ? (
-                  <span className="rival-cel-btn">
-                    <IconoWhatsapp size={13} /> Me interesa
-                  </span>
-                ) : (
-                  <span className="rival-cel-btn rival-cel-btn--off">Sin contacto</span>
-                )}
-              </a>
+              <RivalCard key={i} r={r} />
             ))}
           </div>
         );

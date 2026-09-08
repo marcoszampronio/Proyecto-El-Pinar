@@ -17,6 +17,7 @@ export default function AdminLogin() {
   }
 
   return (
+    <div className="login-shell">
     <div className="login-box">
       <h2>Panel del complejo</h2>
       <form onSubmit={iniciarSesion}>
@@ -33,6 +34,7 @@ export default function AdminLogin() {
           {cargando ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>
+    </div>
     </div>
   );
 }

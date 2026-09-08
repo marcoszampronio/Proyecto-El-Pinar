@@ -42,7 +42,7 @@ export default function ComoLlegar() {
         <div className="llegar-info">
           <p className="eyebrow">Cómo llegar</p>
           <h2>Estamos en el pinar.</h2>
-          <p className="sub">Cerca de Av. Jorge Newbery y Ruta 12 · Paraná, Entre Ríos</p>
+          <p className="sub">Tocá el mapa o el botón para abrir la ubicación en Google Maps.</p>
           <dl className="llegar-datos">
             <dt>Días de juego</dt>
             <dd>Martes, miércoles y jueves — a partir de las 20 hs</dd>

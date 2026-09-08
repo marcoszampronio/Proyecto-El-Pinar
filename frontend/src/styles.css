@@ -1495,11 +1495,13 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--ink)
 .llegar .envoltura { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
 @media (max-width: 900px) { .llegar .envoltura { grid-template-columns: 1fr; gap: 28px; } }
 .mapa-card {
-  position: relative; border-radius: 20px; overflow: hidden;
+  position: relative; display: block; border-radius: 20px; overflow: hidden;
   border: 1px solid var(--s-linea-fria); box-shadow: var(--s-sombra); background: #dfe6e0;
 }
-.mapa-card svg { display: block; width: 100%; height: auto; }
-.mapa-btn { position: absolute; left: 16px; bottom: 16px; }
+.mapa-card svg, .mapa-card img { display: block; width: 100%; }
+.mapa-card svg { height: auto; }
+.mapa-card img { aspect-ratio: 4 / 5; object-fit: cover; }
+.mapa-btn { position: absolute; left: 16px; bottom: 16px; pointer-events: none; }
 .llegar-info .eyebrow { margin-bottom: 10px; }
 .llegar-info h2 { font-size: clamp(1.9rem, 3.6vw, 2.6rem); margin-bottom: 10px; }
 .llegar-info .sub { color: var(--s-niebla); margin: 0 0 22px; }

@@ -177,9 +177,9 @@ export default function PublicPage() {
         </div>
       </section>
 
+      <ComoLlegar />
       <Servicios />
       <CanchasInfo onReservar={() => irA('reservar')} />
-      <ComoLlegar />
       <SiteFooter onIr={irA} />
 
       {slotSeleccionado && <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />}

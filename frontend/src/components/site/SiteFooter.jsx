@@ -13,8 +13,8 @@ export default function SiteFooter({ onIr }) {
         <nav className="pie-nav" aria-label="Pie">
           <button onClick={() => onIr('reservar')}>Reservar turno</button>
           <button onClick={() => onIr('rival')}>Busco rival</button>
-          <button onClick={() => onIr('servicios')}>El complejo</button>
           <button onClick={() => onIr('llegar')}>Cómo llegar</button>
+          <button onClick={() => onIr('servicios')}>El complejo</button>
         </nav>
         <div className="pie-social">
           <a className="snav-ico" href={IG_URL} target="_blank" rel="noreferrer" aria-label="Instagram"><IgIcon /></a>

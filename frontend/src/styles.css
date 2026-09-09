@@ -1388,7 +1388,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 /* --- SERVICIOS --- */
-.serv { background: var(--s-pino-800); }
+.serv { background: var(--s-pino-900); }
 .serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 900px) { .serv-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .serv-grid { grid-template-columns: 1fr; } }
@@ -1411,6 +1411,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv-card--cta p { color: color-mix(in srgb, var(--s-pino-900) 72%, transparent); }
 
 /* --- CANCHAS (info) --- */
+.canchas-info { background: var(--s-pino-800); }
 .cinfo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media (max-width: 900px) { .cinfo-grid { grid-template-columns: 1fr; max-width: 420px; margin-inline: auto; } }
 .cinfo-card {

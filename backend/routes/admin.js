@@ -446,7 +446,21 @@ router.post('/manual', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  res.json({ reserva: data, mensaje: 'Turno agendado y confirmado.' });
+  // Igual que /confirm: dejamos listo el WhatsApp (y el email si hay) para
+  // avisarle al cliente que Mateo le agendó y confirmó el turno.
+  if (data.client_email) {
+    enviarEmailConfirmacion(data).catch((e) => console.error('Error enviando email:', e));
+  }
+
+  const tel = normalizarTelefonoAR(data.client_phone);
+  const mensajeConfirmacion = armarMensajeConfirmacion(data);
+
+  res.json({
+    reserva: data,
+    mensaje: 'Turno agendado y confirmado.',
+    mensajeWhatsappConfirmacion: mensajeConfirmacion,
+    linkWhatsappConfirmacion: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensajeConfirmacion)}` : null,
+  });
 });
 
 // POST /api/admin/rival/:code - activa o desactiva "busco rival" en una

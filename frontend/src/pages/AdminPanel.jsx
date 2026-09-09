@@ -102,6 +102,8 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
   const [hecho, setHecho] = useState(null);
+  const [waConfirm, setWaConfirm] = useState(null);
+  const [waAbierto, setWaAbierto] = useState(false);
 
   const esFutbol = cancha !== 'PAD';
 
@@ -126,6 +128,7 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
       };
       const data = await api.adminAgendarManual(payload);
       setHecho(data.reserva);
+      setWaConfirm(data.linkWhatsappConfirmacion || null);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -135,15 +138,32 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
 
   if (hecho) {
     return (
-      <div className="overlay" onClick={onCerrar}>
-        <div className="modal" onClick={(e) => e.stopPropagation()}>
-          <h3 className="modal-titulo">¡Turno agendado!</h3>
+      <div className="overlay" role="dialog" aria-modal="true">
+        <div className="modal">
+          <h3 className="modal-titulo">¡Turno agendado y confirmado!</h3>
           <p style={{ fontSize: 14 }}>
             {hecho.client_name} — {NOMBRE_CANCHA[hecho.court]} · {hhmm(hecho.start_time)} a {hhmm(hecho.end_time)} · {hecho.reservation_date}
             {hecho.looking_for_rival ? ' · en Busco rival' : ''}
           </p>
+          <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+            {waConfirm
+              ? 'Mandale la confirmación por WhatsApp con todos los datos del turno.'
+              : 'El teléfono del contacto no sirve para WhatsApp — avisale vos por otro medio.'}
+          </p>
           <div className="modal-actions">
-            <button className="btn btn-primary" onClick={() => onCreado(hecho)}>Listo</button>
+            <button className="btn btn-ghost" onClick={() => onCreado(hecho)}>Listo</button>
+            {waConfirm && (
+              <a
+                className="btn btn-primary"
+                style={{ textDecoration: 'none', textAlign: 'center' }}
+                href={waConfirm}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setWaAbierto(true)}
+              >
+                {waAbierto ? '✓ WhatsApp abierto' : 'Enviar confirmación por WhatsApp'}
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -151,8 +171,8 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
   }
 
   return (
-    <div className="overlay" onClick={onCerrar}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="overlay" role="dialog" aria-modal="true">
+      <div className="modal">
         <h3 className="modal-titulo">Agendar turno manual</h3>
         <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
 

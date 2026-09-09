@@ -15,6 +15,7 @@ import Servicios from '../components/site/Servicios';
 import CanchasInfo from '../components/site/CanchasInfo';
 import ComoLlegar from '../components/site/ComoLlegar';
 import SiteFooter from '../components/site/SiteFooter';
+import MobileTabBar from '../components/site/MobileTabBar';
 import { FlechaAbajo } from '../components/site/iconos';
 import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
 
@@ -100,7 +101,8 @@ export default function PublicPage() {
 
   return (
     <div className="sitio" id="top">
-      <SiteNav onIr={irA} onBuscarReserva={() => setConsultaAbierta((v) => !v)} />
+      <SiteNav onIr={irA} />
+      {/* "Mi reserva" (consulta pública) desactivada por ahora — sin disparadores en la UI */}
       {consultaAbierta && <ConsultaReserva onCerrar={() => setConsultaAbierta(false)} />}
 
       <Hero onReservar={() => irA('reservar')} />
@@ -181,6 +183,8 @@ export default function PublicPage() {
       <Servicios />
       <CanchasInfo onReservar={() => irA('reservar')} />
       <SiteFooter onIr={irA} />
+
+      <MobileTabBar onIr={irA} />
 
       {slotSeleccionado && <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />}
       {esperaAbierta && <ListaEsperaModal fecha={fecha} onCerrar={() => setEsperaAbierta(false)} />}

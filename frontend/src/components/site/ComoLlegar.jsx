@@ -53,7 +53,7 @@ export default function ComoLlegar() {
               <WaIcon s={17} /> WhatsApp
             </a>
             <a className="btn btn-linea" href={IG_URL} target="_blank" rel="noreferrer">
-              <IgIcon s={17} /> @elpinarcomplejo
+              <IgIcon s={17} /> Instagram
             </a>
           </div>
         </div>

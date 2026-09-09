@@ -12,7 +12,7 @@ import MascotaRival from '../components/MascotaRival';
 import SiteNav from '../components/site/SiteNav';
 import Hero from '../components/site/Hero';
 import Servicios from '../components/site/Servicios';
-import CanchasInfo from '../components/site/CanchasInfo';
+import CanchaLado from '../components/site/CanchaLado';
 import ComoLlegar from '../components/site/ComoLlegar';
 import SiteFooter from '../components/site/SiteFooter';
 import MobileTabBar from '../components/site/MobileTabBar';
@@ -109,9 +109,10 @@ export default function PublicPage() {
 
       {/* ---------- RESERVAR ---------- */}
       <section className="seccion board" id="reservar">
-        <div className="envoltura">
+        <div className="envoltura board-cols">
           <div className="board-panel">
             <CourtSelector seleccionada={cancha} onSeleccionar={setCancha} />
+            <CanchaLado cancha={cancha} variant="banner" />
             <DateStrip seleccionada={fecha} onSeleccionar={setFecha} />
 
             {cargando && <p className="cargando">Cargando horarios…</p>}
@@ -147,12 +148,15 @@ export default function PublicPage() {
             )}
           </div>
 
-          <div className="board-lado">
-            <p className="eyebrow">Reservá online</p>
-            <h2>Reservá tu cancha online.</h2>
-            <p>Elegís día, horario y cancha, y a jugar.</p>
-            <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
-          </div>
+          <aside className="board-lado">
+            <div className="board-intro">
+              <p className="eyebrow">Reservá online</p>
+              <h2>Tres canchas, un pinar.<br />Reservá tu cancha online.</h2>
+              <p>Elegís día, horario y cancha, y a jugar.</p>
+              <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
+            </div>
+            <CanchaLado cancha={cancha} />
+          </aside>
         </div>
       </section>
 
@@ -181,7 +185,6 @@ export default function PublicPage() {
 
       <ComoLlegar />
       <Servicios />
-      <CanchasInfo onReservar={() => irA('reservar')} />
       <SiteFooter onIr={irA} />
 
       <MobileTabBar onIr={irA} />

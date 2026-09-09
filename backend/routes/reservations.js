@@ -41,7 +41,6 @@ function armarMensajeWhatsapp(reserva) {
     `Fecha: ${reserva.reservation_date}\n` +
     `Horario: ${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs\n` +
     `Nombre: ${reserva.client_name}\n` +
-    (reserva.parrilla ? `\n⚠️ CONSULTA: quiere usar la parrilla para el asado. Confirmale si hay lugar.\n` : '') +
     (monto ? `\nMonto: ${monto}\n` : '\n') +
     (alias ? `Alias para transferir: ${alias}\n` : '') +
     `\nEn breve adjunto el comprobante de pago.`

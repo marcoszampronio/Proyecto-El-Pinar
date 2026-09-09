@@ -1083,8 +1083,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   outline: 2px solid var(--s-oro); outline-offset: 3px; border-radius: 6px;
 }
 .sitio .envoltura { max-width: var(--s-envoltura); margin: 0 auto; padding: 0 24px; }
-.sitio .seccion { padding-block: clamp(56px, 8vw, 108px); position: relative; }
-.sitio [id] { scroll-margin-top: 78px; }
+.sitio .seccion { padding-block: clamp(36px, 4.5vw, 60px); position: relative; }
+.sitio [id] { scroll-margin-top: 40px; }
 .sitio .field-check {
   display: flex; align-items: flex-start; gap: 9px;
   font-size: 0.92rem; color: var(--s-cal); margin-bottom: 10px; line-height: 1.4;
@@ -1092,7 +1092,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .field-check input { width: auto; margin-top: 3px; flex: none; }
 .sitio .field-check label { display: flex; align-items: flex-start; gap: 9px; text-transform: none; color: var(--s-cal); font-size: 0.92rem; letter-spacing: 0; }
 .sitio .field-check label input { width: auto; }
-.sitio .seccion-cab { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; max-width: 48ch; }
+.sitio .seccion-cab { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; max-width: 48ch; }
 .sitio .seccion-cab h2 { font-size: clamp(2rem, 4.4vw, 3rem); }
 .sitio .seccion-cab p { color: var(--s-niebla); }
 
@@ -1233,11 +1233,67 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 /* --- SECCIÓN RESERVAR --- */
-.board .envoltura { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 52px; align-items: start; }
-.board-lado .eyebrow { margin-bottom: 12px; }
-.board-lado h2 { font-size: clamp(1.9rem, 3.6vw, 2.6rem); margin-bottom: 14px; }
-.board-lado p { color: var(--s-niebla); margin: 0 0 14px; }
+.sitio .board { padding-top: clamp(16px, 2vw, 24px); padding-bottom: clamp(40px, 5vw, 60px); }
+.board-cols { display: grid; grid-template-columns: 1fr 0.92fr; gap: 44px; align-items: start; }
 .board-panel { min-width: 0; }
+.board-lado { min-width: 0; display: flex; flex-direction: column; }
+.board-intro { margin-bottom: 20px; }
+.board-intro .eyebrow { margin-bottom: 8px; }
+.board-intro h2 { font-size: clamp(1.5rem, 2.4vw, 1.9rem); margin-bottom: 10px; line-height: 1.14; }
+.board-intro p { color: var(--s-niebla); margin: 0 0 6px; font-size: 0.94rem; }
+.board-intro p:last-child { margin-bottom: 0; }
+
+/* tarjeta de la cancha seleccionada (al lado del panel) */
+.clado-card {
+  background: #18344C; border: 1px solid rgba(148, 167, 186, 0.22);
+  border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 20px 44px -22px rgba(0, 0, 0, 0.6);
+}
+.clado-foto {
+  position: relative; aspect-ratio: 5 / 4; overflow: hidden;
+  background: var(--s-pino-900);
+  border-bottom: 1px solid rgba(148, 167, 186, 0.16);
+}
+.clado-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.clado-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; }
+.clado-body h3 { font-size: 1.5rem; }
+.clado-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.clado-tags span {
+  font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 4px 11px; border-radius: 999px; border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
+}
+.clado-nota { color: var(--s-niebla); margin: 14px 0 0; font-size: 0.9rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .clado-card, .clado-banner { animation: cladoIn .35s ease; }
+  @keyframes cladoIn { from { opacity: 0; transform: translateY(10px); } }
+}
+
+/* banda de la cancha para celular (debajo de los botones de cancha) */
+.clado-banner { display: none; }
+.clado-banner .clado-foto {
+  aspect-ratio: 2.5 / 1; border-bottom: none;
+}
+.clado-banner-cap {
+  position: absolute; inset: auto 0 0 0; z-index: 1;
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 26px 14px 11px;
+  background: linear-gradient(transparent, rgba(7, 17, 28, 0.78) 75%);
+}
+.clado-banner-cap h3 { font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem; color: var(--s-cal); }
+.clado-banner-cap span {
+  font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--s-oro-300);
+}
+
+@media (max-width: 940px) {
+  .board-cols { grid-template-columns: 1fr; gap: 26px; }
+  .board-lado { order: -1; }         /* el texto queda arriba del panel */
+  .board-intro { margin-bottom: 0; }
+  .clado-wrap { display: none; }     /* la tarjeta de escritorio se oculta */
+  .clado-banner {
+    display: block; position: relative; margin: 0 0 18px;
+    border-radius: 14px; overflow: hidden; border: 1px solid var(--s-linea-fria);
+  }
+}
 
 /* selector de canchas -> pills */
 .sitio .canchas-selector {
@@ -1277,32 +1333,34 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   touch-action: pan-y;
 }
 .sitio .dia-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  padding: 11px 2px 9px; border-radius: 13px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 9px 2px 8px; border-radius: 13px; cursor: pointer;
   background: var(--s-pino-800); border: 1px solid rgba(148, 167, 186, 0.32);
   transition: border-color .15s ease, background-color .15s ease;
 }
 .sitio .dia-btn:hover:not(.no-habilitado):not(.activo) { border-color: var(--s-oro); }
-.sitio .dia-btn .dia-nombre { display: none; }
-.sitio .dia-btn .dia-numero { font-family: var(--s-titulo); font-size: 1.55rem; line-height: 1; color: #fff; }
+.sitio .dia-btn .dia-nombre,
 .sitio .dia-btn .dia-mes {
-  display: block; font-size: 0.6rem; font-weight: 700;
+  display: block; font-size: 0.57rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.09em; color: var(--s-niebla);
 }
+.sitio .dia-btn .dia-numero { font-family: var(--s-titulo); font-size: 1.4rem; line-height: 1.05; color: #fff; }
 .sitio .dia-btn.activo { background: var(--s-oro); border-color: var(--s-oro); }
+.sitio .dia-btn.activo .dia-nombre,
 .sitio .dia-btn.activo .dia-numero,
 .sitio .dia-btn.activo .dia-mes { color: var(--s-pino-900); }
 .sitio .dia-btn:disabled, .sitio .dia-btn.no-habilitado {
   opacity: 0.2; background: transparent; border-color: transparent;
   padding-inline: 0; cursor: default; text-decoration: none;
 }
-.sitio .dia-btn.no-habilitado .dia-numero { font-size: 1.15rem; }
+.sitio .dia-btn.no-habilitado .dia-numero { font-size: 1.1rem; }
 
 @media (max-width: 620px) {
   .sitio .fechas { max-width: none; }
   .sitio .fechas-flecha--lado { width: 24px; font-size: 1.6rem; }
-  .sitio .fechas-dias { gap: 5px; grid-template-columns: 0.55fr 1fr 1fr 1fr 0.55fr; }
-  .sitio .dia-btn .dia-numero { font-size: 1.45rem; }
+  .sitio .fechas-dias { gap: 5px; grid-template-columns: 0.5fr 1fr 1fr 1fr 0.5fr; }
+  .sitio .dia-btn .dia-numero { font-size: 1.3rem; }
+  .sitio .dia-btn .dia-nombre, .sitio .dia-btn .dia-mes { font-size: 0.54rem; letter-spacing: 0.06em; }
 }
 
 /* turnos de fútbol */
@@ -1422,13 +1480,13 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* --- SERVICIOS --- */
 .serv { background: var(--s-pino-900); }
-.serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 @media (max-width: 900px) { .serv-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .serv-grid { grid-template-columns: 1fr; } }
 .serv-card {
   background: var(--s-marino); border: 1px solid var(--s-linea-fria);
-  border-radius: 16px; padding: 26px 24px;
-  display: flex; flex-direction: column; gap: 12px;
+  border-radius: 16px; padding: 20px 20px;
+  display: flex; flex-direction: column; gap: 10px;
   transition: transform .18s ease, border-color .18s ease;
 }
 .serv-card:hover { transform: translateY(-4px); border-color: var(--s-linea); }
@@ -1443,44 +1501,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv-card--cta h3 { color: var(--s-pino-900); }
 .serv-card--cta p { color: color-mix(in srgb, var(--s-pino-900) 72%, transparent); }
 
-/* --- CANCHAS (info) --- */
-.canchas-info { background: var(--s-pino-800); }
-.cinfo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-@media (max-width: 900px) { .cinfo-grid { grid-template-columns: 1fr; max-width: 420px; margin-inline: auto; } }
-.cinfo-card {
-  background: var(--s-marino); border: 1px solid var(--s-linea-fria);
-  border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;
-}
-.cinfo-foto { position: relative; aspect-ratio: 4/3; border-bottom: 1px solid var(--s-linea-fria); overflow: hidden; }
-.cinfo-foto::after {
-  content: attr(data-nota); position: absolute; left: 12px; bottom: 12px;
-  font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--s-cal); background: rgba(15,36,54,0.62); padding: 5px 9px; border-radius: 999px;
-}
-.cinfo-foto--noche { background:
-  radial-gradient(80% 55% at 20% -10%, rgba(242,193,78,0.30), transparent 60%),
-  radial-gradient(80% 55% at 80% -10%, rgba(242,193,78,0.22), transparent 60%),
-  radial-gradient(120% 90% at 50% 130%, #1d4a58, transparent 60%),
-  linear-gradient(180deg, #0a2032 0%, #123049 60%, #16405c 100%); }
-.cinfo-foto--dia { background:
-  radial-gradient(90% 60% at 50% 120%, #3f7d4b, transparent 65%),
-  linear-gradient(180deg, #7fa6c9 0%, #5f8fb2 30%, #3c7a52 55%, #2f6b45 100%); }
-.cinfo-foto--padel { background:
-  radial-gradient(90% 70% at 50% 120%, #2e6f86, transparent 65%),
-  linear-gradient(180deg, #8fb4d6 0%, #4f83ac 40%, #2f5f7a 100%); }
-.cinfo-foto svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.5; }
-.cinfo-body { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
-.cinfo-body h3 { font-size: 1.4rem; }
-.cinfo-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.cinfo-tags span {
-  font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 4px 10px; border-radius: 999px; border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
-}
-.cinfo-body .btn { margin-top: auto; align-self: flex-start; }
-
 /* --- CÓMO LLEGAR --- */
 .llegar { background: var(--s-pino-800); }
-.llegar .envoltura { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+.llegar .envoltura { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: start; }
 @media (max-width: 900px) { .llegar .envoltura { grid-template-columns: 1fr; gap: 28px; } }
 .mapa-card {
   position: relative; display: block; border-radius: 20px; overflow: hidden;
@@ -1488,7 +1511,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .mapa-card svg, .mapa-card img { display: block; width: 100%; }
 .mapa-card svg { height: auto; }
-.mapa-card img { aspect-ratio: 3 / 4; object-fit: cover; object-position: center 42%; }
+.mapa-card img { aspect-ratio: 4 / 3; object-fit: cover; object-position: center 42%; }
 @media (max-width: 900px) { .mapa-card img { aspect-ratio: 16 / 11; } }
 .mapa-btn { position: absolute; left: 16px; bottom: 16px; pointer-events: none; }
 .llegar-info .eyebrow { margin-bottom: 10px; }
@@ -1513,11 +1536,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .pie-nav button:hover { color: var(--s-cal); }
 .pie-social { display: flex; gap: 12px; }
 .pie-nota { width: 100%; margin: 20px 0 0; padding-top: 20px; border-top: 1px solid var(--s-linea-fria); color: var(--s-niebla); font-size: 0.78rem; }
-
-@media (max-width: 940px) {
-  .board .envoltura { grid-template-columns: 1fr; gap: 30px; }
-  .board-lado { order: -1; }
-}
 
 /* --- MODALES del sitio --- */
 .sitio .overlay { background: rgba(7,17,28,0.72); backdrop-filter: blur(2px); }

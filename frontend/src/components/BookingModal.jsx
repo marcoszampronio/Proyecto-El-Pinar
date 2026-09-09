@@ -32,7 +32,6 @@ export default function BookingModal({ slotInfo, onClose }) {
     lookingForRival: false,
     teamName: '',
     category: '',
-    parrilla: false,
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -80,7 +79,6 @@ export default function BookingModal({ slotInfo, onClose }) {
         lookingForRival: esCanchaFutbol ? form.lookingForRival : false,
         teamName: esCanchaFutbol ? (form.teamName.trim() || null) : null,
         category: esCanchaFutbol ? (form.category || null) : null,
-        parrilla: form.parrilla,
         date: slotInfo.date,
       };
 
@@ -144,7 +142,7 @@ export default function BookingModal({ slotInfo, onClose }) {
                 aria-label="Número"
               />
             </div>
-            <div style={{ fontSize: 12, color: '#5C6B60', marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--s-niebla)', marginTop: 4 }}>
               Poné la característica de tu zona y los números de tu celular (lo que va después del 15).
             </div>
           </div>
@@ -199,17 +197,9 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           )}
 
-          {/* Parrilla: consulta. La disponibilidad la maneja Mateo por WhatsApp. */}
-          <div className="field-check">
-            <label>
-              <input
-                type="checkbox"
-                checked={form.parrilla}
-                onChange={(e) => actualizar('parrilla', e.target.checked)}
-              />
-              {' Quiero consultar para usar parrilla'}
-            </label>
-          </div>
+          <p style={{ fontSize: 13, color: 'var(--s-niebla)', margin: '2px 0 14px' }}>
+            Consultá por la parrilla por WhatsApp.
+          </p>
 
           {error && <p className="error-msg">{error}</p>}
 

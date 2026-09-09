@@ -6,8 +6,8 @@ import { IG_URL } from './config';
 const LINKS = [
   { id: 'reservar', label: 'Reservar' },
   { id: 'rival', label: 'Busco rival' },
-  { id: 'servicios', label: 'El complejo' },
   { id: 'llegar', label: 'Cómo llegar' },
+  { id: 'servicios', label: 'El complejo' },
 ];
 
 export default function SiteNav({ onIr, onBuscarReserva }) {

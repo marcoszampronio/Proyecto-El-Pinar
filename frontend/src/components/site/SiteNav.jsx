@@ -10,7 +10,7 @@ const LINKS = [
   { id: 'servicios', label: 'El complejo' },
 ];
 
-export default function SiteNav({ onIr, onBuscarReserva }) {
+export default function SiteNav({ onIr }) {
   const [scroll, setScroll] = useState(false);
 
   useEffect(() => {
@@ -31,7 +31,6 @@ export default function SiteNav({ onIr, onBuscarReserva }) {
         {LINKS.map((l) => (
           <button key={l.id} onClick={() => onIr(l.id)}>{l.label}</button>
         ))}
-        <button onClick={onBuscarReserva}>Mi reserva</button>
       </nav>
 
       <div className="snav-acc">

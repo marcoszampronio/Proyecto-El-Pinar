@@ -101,7 +101,8 @@ export default function PublicPage() {
 
   return (
     <div className="sitio" id="top">
-      <SiteNav onIr={irA} onBuscarReserva={() => setConsultaAbierta((v) => !v)} />
+      <SiteNav onIr={irA} />
+      {/* "Mi reserva" (consulta pública) desactivada por ahora — sin disparadores en la UI */}
       {consultaAbierta && <ConsultaReserva onCerrar={() => setConsultaAbierta(false)} />}
 
       <Hero onReservar={() => irA('reservar')} />
@@ -181,7 +182,7 @@ export default function PublicPage() {
       <ComoLlegar />
       <Servicios />
       <CanchasInfo onReservar={() => irA('reservar')} />
-      <SiteFooter onIr={irA} onBuscarReserva={() => setConsultaAbierta((v) => !v)} />
+      <SiteFooter onIr={irA} />
 
       <MobileTabBar onIr={irA} />
 

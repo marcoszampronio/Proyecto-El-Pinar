@@ -1464,7 +1464,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .llegar-datos { margin: 0 0 22px; padding: 16px 0; border-block: 1px solid var(--s-linea-fria); }
 .llegar-datos dt { font-size: 0.7rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--s-oro); }
 .llegar-datos dd { margin: 4px 0 0; }
-.llegar-acc { display: flex; flex-wrap: wrap; gap: 12px; }
+.llegar-acc { display: flex; flex-wrap: nowrap; gap: 12px; }
+@media (max-width: 900px) {
+  .llegar-acc .btn { flex: 1 1 0; justify-content: center; padding-inline: 14px; min-width: 0; }
+}
 
 /* --- FOOTER --- */
 .pie { background: var(--s-pino-900); border-top: 1px solid var(--s-linea-fria); padding-block: 46px 30px; }

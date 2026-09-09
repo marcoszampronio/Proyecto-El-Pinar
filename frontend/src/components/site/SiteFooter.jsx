@@ -2,7 +2,7 @@ import LogoPino from './LogoPino';
 import { WaIcon, IgIcon } from './iconos';
 import { WA_URL, IG_URL } from './config';
 
-export default function SiteFooter({ onIr }) {
+export default function SiteFooter({ onIr, onBuscarReserva }) {
   return (
     <footer className="pie">
       <div className="envoltura">
@@ -15,6 +15,7 @@ export default function SiteFooter({ onIr }) {
           <button onClick={() => onIr('rival')}>Busco rival</button>
           <button onClick={() => onIr('llegar')}>Cómo llegar</button>
           <button onClick={() => onIr('servicios')}>El complejo</button>
+          {onBuscarReserva && <button onClick={onBuscarReserva}>Mi reserva</button>}
         </nav>
         <div className="pie-social">
           <a className="snav-ico" href={IG_URL} target="_blank" rel="noreferrer" aria-label="Instagram"><IgIcon /></a>

@@ -181,7 +181,7 @@ export default function PublicPage() {
       <ComoLlegar />
       <Servicios />
       <CanchasInfo onReservar={() => irA('reservar')} />
-      <SiteFooter onIr={irA} />
+      <SiteFooter onIr={irA} onBuscarReserva={() => setConsultaAbierta((v) => !v)} />
 
       <MobileTabBar onIr={irA} />
 

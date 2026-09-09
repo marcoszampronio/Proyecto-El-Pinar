@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 
@@ -37,6 +37,15 @@ export default function BookingModal({ slotInfo, onClose }) {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
+
+  // Mientras el modal está abierto, bloqueamos el scroll del fondo. El modal
+  // NO se cierra tocando fuera: sólo con los botones (Cancelar / Cerrar), así
+  // nadie pierde el alias por un toque accidental mientras copia y va a pagar.
+  useEffect(() => {
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previo; };
+  }, []);
 
   const esCanchaFutbol = slotInfo.court !== 'PAD';
 
@@ -95,8 +104,8 @@ export default function BookingModal({ slotInfo, onClose }) {
 
   if (!resultado) {
     return (
-      <div className="overlay" onClick={onClose}>
-        <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="overlay" role="dialog" aria-modal="true">
+        <div className="modal">
           <h3 className="modal-titulo">Solicitar turno</h3>
           <p className="modal-sub">
             {esCanchaFutbol
@@ -216,8 +225,8 @@ export default function BookingModal({ slotInfo, onClose }) {
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="overlay" role="dialog" aria-modal="true">
+      <div className="modal">
         <h3 className="modal-titulo">¡Ya casi!</h3>
         <p style={{ fontSize: 14, marginBottom: 6 }}>
           Transferí {resultado.montoReserva ? <strong>{resultado.montoReserva}</strong> : 'el monto'} al alias:
@@ -238,8 +247,12 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
         </div>
 
-        <p style={{ fontSize: 13.5, color: 'var(--ink)', marginBottom: 16 }}>
+        <p style={{ fontSize: 13.5, color: 'var(--s-cal)', marginBottom: 8 }}>
           Enviá el comprobante de pago por WhatsApp para confirmar tu turno.
+        </p>
+        <p style={{ fontSize: 12.5, color: 'var(--s-niebla)', marginTop: 0, marginBottom: 16 }}>
+          Ya guardamos tu pedido y te mandamos un email. Este cartel no se cierra solo:
+          copiá el alias tranquilo, pagá, y volvé a mandar el comprobante.
         </p>
 
         <div className="modal-actions">

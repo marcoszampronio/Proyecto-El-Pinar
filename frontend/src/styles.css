@@ -1283,20 +1283,22 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .chip {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 16px 20px; border-radius: 14px;
-  border: 1px solid var(--s-linea-fria); background: var(--s-pino-800);
-  color: var(--s-cal); font-family: var(--s-texto);
+  border: 1px solid rgba(148, 167, 186, 0.32); background: var(--s-marino-600);
+  color: #fff; font-family: var(--s-texto);
   font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  transition: border-color .15s, background-color .15s;
 }
-.sitio .chip::after { content: "Libre"; font-size: 0.82rem; font-weight: 600; color: var(--s-cesped); text-transform: none; }
+.sitio .chip:hover:not(.ocupado):not(.pendiente):not(.activo) { border-color: var(--s-oro); }
+.sitio .chip::after { content: "Libre"; font-size: 0.82rem; font-weight: 700; color: var(--s-cesped); text-transform: none; }
 .sitio .chip.activo {
-  background: color-mix(in srgb, var(--s-oro) 16%, var(--s-pino-800));
+  background: color-mix(in srgb, var(--s-oro) 22%, var(--s-marino-600));
   border-color: var(--s-oro);
 }
 .sitio .chip.ocupado, .sitio .chip.pendiente {
-  background: var(--s-marino-600); border-color: transparent; color: var(--s-cal);
-  opacity: 0.72; cursor: not-allowed; text-decoration: none;
+  background: var(--s-pino-800); border-color: rgba(148, 167, 186, 0.16); color: var(--s-niebla);
+  opacity: 1; cursor: not-allowed; text-decoration: none;
 }
-.sitio .chip.ocupado::after, .sitio .chip.pendiente::after { content: "Reservado"; color: var(--s-cal); opacity: 0.85; }
+.sitio .chip.ocupado::after, .sitio .chip.pendiente::after { content: "Reservado"; color: var(--s-niebla); opacity: 1; }
 .sitio .chip-leyenda { display: none; }
 
 .sitio .btn-reservar { margin: 20px 0 0; width: 100%; justify-content: center; }

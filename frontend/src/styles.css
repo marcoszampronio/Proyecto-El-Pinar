@@ -1259,70 +1259,50 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: var(--s-oro); border-color: var(--s-oro); color: var(--s-pino-900); box-shadow: none;
 }
 
-/* tira de fechas */
-.sitio .fechas { background: transparent; padding: 0; margin: 0 0 20px; }
-.sitio .fechas-nav { justify-content: flex-start; gap: 12px; margin-bottom: 14px; }
-.sitio .fechas-flecha {
-  width: 42px; height: 42px; border-radius: 12px; font-size: 1.35rem; flex: none;
-  display: grid; place-items: center;
-  background: transparent; border: 1.5px solid var(--s-linea-fria); color: var(--s-cal);
-  transition: border-color .15s, color .15s;
+/* tira de fechas — cuadrado con número + mes abajo, flechas a los costados
+   (misma estética en compu y celular) */
+.sitio .fechas { background: transparent; padding: 0; margin: 0 0 20px; max-width: 470px; }
+.sitio .fechas-nav { display: none; }
+.sitio .fechas-semana { display: flex; align-items: center; gap: 4px; }
+.sitio .fechas-flecha--lado {
+  display: grid; place-items: center; flex: none;
+  width: 30px; height: 48px; font-size: 1.8rem; line-height: 1;
+  border: none; background: transparent; color: var(--s-niebla); cursor: pointer;
+  transition: color .15s ease;
 }
-.sitio .fechas-flecha:hover:not(:disabled) { border-color: var(--s-oro); color: var(--s-oro); }
-.sitio .fechas-flecha:disabled { opacity: 0.3; cursor: default; }
-.sitio .fechas-flecha--lado { display: none; }
-.sitio .fechas-rango {
-  font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem;
-  color: var(--s-cal); letter-spacing: 0;
+.sitio .fechas-flecha--lado:hover:not(:disabled) { color: var(--s-oro); }
+.sitio .fechas-flecha--lado:disabled { opacity: 0.28; cursor: default; }
+.sitio .fechas-dias {
+  flex: 1; display: grid; grid-template-columns: 0.62fr 1fr 1fr 1fr 0.62fr; gap: 6px;
+  touch-action: pan-y;
 }
-.sitio .fechas-semana { display: contents; }
-.sitio .fechas-dias { gap: 8px; }
 .sitio .dia-btn {
-  border-radius: 12px; padding: 12px 2px;
-  border: 1.5px solid var(--s-linea-fria); background: transparent; color: var(--s-niebla);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 11px 2px 9px; border-radius: 13px; cursor: pointer;
+  background: var(--s-pino-800); border: 1px solid rgba(148, 167, 186, 0.32);
+  transition: border-color .15s ease, background-color .15s ease;
 }
-.sitio .dia-btn .dia-nombre { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
-.sitio .dia-btn .dia-numero { font-family: var(--s-titulo); font-size: 1.35rem; color: var(--s-cal); }
-.sitio .dia-btn .dia-mes { display: none; }
-.sitio .dia-btn.activo {
-  background: color-mix(in srgb, var(--s-oro) 14%, transparent);
-  border-color: var(--s-oro); color: var(--s-oro);
+.sitio .dia-btn:hover:not(.no-habilitado):not(.activo) { border-color: var(--s-oro); }
+.sitio .dia-btn .dia-nombre { display: none; }
+.sitio .dia-btn .dia-numero { font-family: var(--s-titulo); font-size: 1.55rem; line-height: 1; color: #fff; }
+.sitio .dia-btn .dia-mes {
+  display: block; font-size: 0.6rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.09em; color: var(--s-niebla);
 }
-.sitio .dia-btn.activo .dia-numero { color: var(--s-oro); }
-.sitio .dia-btn:disabled, .sitio .dia-btn.no-habilitado { opacity: 0.32; text-decoration: none; }
+.sitio .dia-btn.activo { background: var(--s-oro); border-color: var(--s-oro); }
+.sitio .dia-btn.activo .dia-numero,
+.sitio .dia-btn.activo .dia-mes { color: var(--s-pino-900); }
+.sitio .dia-btn:disabled, .sitio .dia-btn.no-habilitado {
+  opacity: 0.2; background: transparent; border-color: transparent;
+  padding-inline: 0; cursor: default; text-decoration: none;
+}
+.sitio .dia-btn.no-habilitado .dia-numero { font-size: 1.15rem; }
 
-/* tira de fechas — versión celular: cuadrado con número + mes, flechas al costado */
 @media (max-width: 620px) {
-  .sitio .fechas-nav { display: none; }
-  .sitio .fechas-semana { display: flex; align-items: center; gap: 2px; }
-  .sitio .fechas-flecha--lado {
-    display: grid; place-items: center; flex: none; width: 26px; height: 44px;
-    font-size: 1.7rem; line-height: 1; border-radius: 10px;
-    border: none; background: transparent; color: var(--s-niebla);
-  }
-  .sitio .fechas-flecha--lado:disabled { opacity: 0.28; }
-  .sitio .fechas-dias {
-    flex: 1; gap: 5px; grid-template-columns: 0.6fr 1fr 1fr 1fr 0.6fr;
-    touch-action: pan-y;
-  }
-  .sitio .dia-btn {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    padding: 10px 2px 8px; border-radius: 13px;
-    background: var(--s-pino-800); border: 1px solid rgba(148, 167, 186, 0.32);
-  }
-  .sitio .dia-btn .dia-nombre { display: none; }
-  .sitio .dia-btn .dia-numero { font-size: 1.5rem; line-height: 1; color: #fff; }
-  .sitio .dia-btn .dia-mes {
-    display: block; font-size: 0.58rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.09em; color: var(--s-niebla);
-  }
-  .sitio .dia-btn.activo { background: var(--s-oro); border-color: var(--s-oro); }
-  .sitio .dia-btn.activo .dia-numero,
-  .sitio .dia-btn.activo .dia-mes { color: var(--s-pino-900); }
-  .sitio .dia-btn.no-habilitado {
-    opacity: 0.2; background: transparent; border-color: transparent; padding-inline: 0;
-  }
-  .sitio .dia-btn.no-habilitado .dia-numero { font-size: 1.1rem; }
+  .sitio .fechas { max-width: none; }
+  .sitio .fechas-flecha--lado { width: 24px; font-size: 1.6rem; }
+  .sitio .fechas-dias { gap: 5px; grid-template-columns: 0.55fr 1fr 1fr 1fr 0.55fr; }
+  .sitio .dia-btn .dia-numero { font-size: 1.45rem; }
 }
 
 /* turnos de fútbol */

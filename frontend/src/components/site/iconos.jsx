@@ -24,3 +24,27 @@ export const MapaPin = ({ s = 16 }) => (
     <circle cx="12" cy="9" r="2.5" />
   </svg>
 );
+
+export const IconReservar = ({ s = 21 }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="4.5" width="18" height="16" rx="2.5" />
+    <path d="M3 9.5h18M8 2.5v4M16 2.5v4M8.5 14l2.5 2.5 4.5-4.5" />
+  </svg>
+);
+
+export const IconRival = ({ s = 21 }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="8" cy="8" r="3" />
+    <circle cx="16.5" cy="9.5" r="2.5" />
+    <path d="M2.5 20c.7-3.5 3-5.5 5.5-5.5s4.8 2 5.5 5.5M15 20c-.2-2.3-.9-4-2-5.2" />
+  </svg>
+);
+
+export const IconComplejo = ({ s = 21 }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="3.5" width="8" height="8" rx="1.5" />
+    <rect x="13" y="3.5" width="8" height="8" rx="1.5" />
+    <rect x="3" y="12.5" width="8" height="8" rx="1.5" />
+    <rect x="13" y="12.5" width="8" height="8" rx="1.5" />
+  </svg>
+);

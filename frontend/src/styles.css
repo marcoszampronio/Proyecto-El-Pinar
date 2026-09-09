@@ -1150,22 +1150,35 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .snav-ico:hover { border-color: var(--s-oro); color: var(--s-oro); }
 .snav-ico svg { width: 17px; height: 17px; }
-.snav-hamb { display: none; }
+.snav-mireserva { display: none; }
 @media (max-width: 900px) {
   .snav-links { display: none; }
-  .snav-hamb { display: grid; }
+  .snav-mireserva { display: grid; }
 }
-.snav-menu {
-  position: fixed; inset: 62px 0 auto 0; z-index: 49;
-  background: var(--s-pino-800); border-bottom: 1px solid var(--s-linea-fria);
-  display: flex; flex-direction: column; padding: 8px 24px 16px;
+
+/* --- barra de navegación fija (celular): reemplaza al menú hamburguesa --- */
+.mtab { display: none; }
+@media (max-width: 900px) {
+  .mtab {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    position: fixed; inset: auto 0 0 0; z-index: 45;
+    background: color-mix(in srgb, var(--s-pino-900) 92%, transparent);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--s-linea-fria);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+  .mtab button {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: none; border: none; cursor: pointer;
+    font-family: var(--s-texto); font-size: 0.64rem; font-weight: 600;
+    color: var(--s-niebla); padding: 7px 2px 5px; border-radius: 12px;
+    transition: color .15s ease;
+  }
+  .mtab button svg { width: 21px; height: 21px; }
+  .mtab button.on { color: var(--s-oro); }
+  .mtab button:active { background: var(--s-pino-800); }
+  .sitio { padding-bottom: 76px; }
 }
-.snav-menu button {
-  background: none; border: none; text-align: left; cursor: pointer;
-  color: var(--s-cal); font: inherit; font-size: 1rem; padding: 13px 2px;
-  border-bottom: 1px solid var(--s-linea-fria);
-}
-.snav-menu button:last-child { border-bottom: none; }
 
 /* --- HERO --- */
 .hero {

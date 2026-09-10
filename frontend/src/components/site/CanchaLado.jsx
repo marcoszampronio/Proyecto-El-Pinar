@@ -1,26 +1,18 @@
-// Muestra la cancha seleccionada. La foto cambia según la cancha elegida
-// en el CourtSelector.
+// Muestra el deporte elegido con una foto del complejo.
 //   variant="card"   -> tarjeta al lado del panel (escritorio)
 //   variant="banner" -> banda ancha y baja debajo de los botones (celular)
 // posCard / posBanner: object-position (el recorte de la tarjeta es más
 // alto que el del banner, así que a veces necesitan foco distinto).
 
 const DATOS = {
-  C1: {
-    nombre: 'Cancha 1',
-    foto: '/canchas/futbol-1.jpg',
-    posCard: 'center 42%',
-    posBanner: 'center 62%',
-    tags: ['Fútbol 11', 'Césped natural', 'Iluminación pro'],
-  },
-  C2: {
-    nombre: 'Cancha 2',
+  futbol: {
+    nombre: 'Fútbol 11',
     foto: '/canchas/futbol-2.jpg',
     posCard: 'center 66%',
     posBanner: 'center 70%',
-    tags: ['Fútbol 11', 'Césped natural', 'Iluminación pro'],
+    tags: ['Dos canchas', 'Césped natural', 'Iluminación pro'],
   },
-  PAD: {
+  padel: {
     nombre: 'Pádel',
     foto: '/canchas/padel.jpg',
     posCard: 'center 50%',
@@ -29,19 +21,19 @@ const DATOS = {
   },
 };
 
-export default function CanchaLado({ cancha, variant = 'card' }) {
-  const d = DATOS[cancha] || DATOS.C1;
+export default function CanchaLado({ deporte = 'futbol', variant = 'card' }) {
+  const d = DATOS[deporte] || DATOS.futbol;
   const pos = variant === 'banner' ? d.posBanner : d.posCard;
 
   const foto = (
     <div className="clado-foto">
-      <img src={d.foto} alt={`Cancha del complejo: ${d.nombre}`} style={{ objectPosition: pos }} loading="lazy" />
+      <img src={d.foto} alt={`Complejo El Pinar: ${d.nombre}`} style={{ objectPosition: pos }} loading="lazy" />
     </div>
   );
 
   if (variant === 'banner') {
     return (
-      <div className="clado-banner" key={cancha}>
+      <div className="clado-banner" key={deporte}>
         {foto}
         <div className="clado-banner-cap">
           <h3>{d.nombre}</h3>
@@ -53,7 +45,7 @@ export default function CanchaLado({ cancha, variant = 'card' }) {
 
   return (
     <div className="clado-wrap">
-      <article className="clado-card" key={cancha}>
+      <article className="clado-card" key={deporte}>
         {foto}
         <div className="clado-body">
           <h3>{d.nombre}</h3>
@@ -62,7 +54,7 @@ export default function CanchaLado({ cancha, variant = 'card' }) {
           </div>
         </div>
       </article>
-      <p className="clado-nota">Iluminación profesional en las tres. Se juega hasta tarde.</p>
+      <p className="clado-nota">Iluminación profesional en las tres canchas. Se juega hasta tarde.</p>
     </div>
   );
 }

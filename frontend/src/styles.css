@@ -1368,6 +1368,79 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   margin: 0 0 14px; font-family: var(--s-texto); font-size: 0.9rem;
   color: var(--s-niebla); text-transform: uppercase; letter-spacing: 0.1em;
 }
+
+/* --- grilla pública: Cancha 1 y Cancha 2 lado a lado --- */
+.sitio .grilla-pub {
+  display: grid; grid-template-columns: 52px 1fr 1fr; gap: 8px;
+}
+.sitio .grilla-pub-cab {
+  text-align: center; font-family: var(--s-texto);
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--s-niebla); padding-bottom: 2px;
+}
+.sitio .grilla-pub-hora {
+  display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+  font-weight: 700; font-size: 0.95rem; color: var(--s-cal);
+  font-variant-numeric: tabular-nums; line-height: 1.15; padding-right: 2px;
+}
+.sitio .grilla-pub-hora span { font-size: 0.76rem; font-weight: 400; color: var(--s-niebla); }
+.sitio .grilla-pub-celda {
+  min-height: 104px; border-radius: 12px; border: 1.5px solid transparent;
+  font-family: var(--s-texto); font-weight: 700; font-size: 0.98rem; letter-spacing: 0.02em;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .12s ease, border-color .15s ease, background-color .15s ease;
+}
+.sitio .grilla-pub-celda.libre {
+  background: rgba(91, 174, 107, 0.16);
+  border-color: rgba(91, 174, 107, 0.7);
+  color: #7ED498; cursor: pointer;
+}
+.sitio .grilla-pub-celda.libre:hover {
+  background: rgba(91, 174, 107, 0.3); border-color: var(--s-cesped); transform: translateY(-1px);
+}
+.sitio .grilla-pub-celda.libre:active { transform: translateY(0); }
+.sitio .grilla-pub-celda.ocupado {
+  background: var(--s-pino-900); border-color: var(--s-linea-fria);
+  color: var(--s-niebla); cursor: not-allowed;
+}
+/* reservado + busca rival: oscuro, con borde dorado y el nombre del equipo */
+.sitio .grilla-pub-celda.rival {
+  background: var(--s-pino-900);
+  border-color: rgba(242, 193, 78, 0.42);
+  color: var(--s-cal); cursor: pointer; min-height: 104px;
+  flex-direction: column; justify-content: space-between; align-items: center;
+  gap: 4px; padding: 11px 8px; line-height: 1.15;
+}
+.sitio .grilla-pub-celda.rival:hover { border-color: var(--s-oro); background: color-mix(in srgb, var(--s-oro) 8%, var(--s-pino-900)); }
+.sitio .gp-rival-top {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--s-niebla);
+}
+.sitio .gp-rival-mid { display: flex; flex-direction: column; align-items: center; max-width: 100%; }
+.sitio .gp-rival-eq {
+  font-weight: 700; font-size: 1.18rem; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sitio .gp-rival-cat {
+  font-size: 0.62rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
+  margin-top: 1px;
+}
+.sitio .gp-rival-sub {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.8rem; font-weight: 700; letter-spacing: 0.01em; color: var(--s-cal);
+}
+.sitio .gp-pelota { font-size: 1.25em; line-height: 1; }
+@media (max-width: 620px) {
+  .sitio .grilla-pub { grid-template-columns: 40px 1fr 1fr; gap: 6px; }
+  .sitio .grilla-pub-celda { min-height: 102px; font-size: 0.92rem; }
+  .sitio .grilla-pub-hora { font-size: 0.86rem; }
+  .sitio .grilla-pub-hora span { font-size: 0.68rem; }
+  .sitio .grilla-pub-cab { font-size: 0.68rem; letter-spacing: 0.04em; }
+  .sitio .grilla-pub-celda.rival { min-height: 102px; }
+  .sitio .gp-rival-eq { font-size: 1.1rem; }
+  .sitio .gp-rival-sub { font-size: 0.76rem; }
+  .sitio .gp-rival-top { font-size: 0.68rem; }
+}
 .sitio .chips { padding: 0; gap: 12px; flex-direction: column; }
 .sitio .chip {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -1546,6 +1619,16 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .modal h3, .sitio .modal-titulo {
   color: var(--s-cal); font-family: var(--s-titulo); text-transform: none; font-size: 1.5rem; font-weight: 600;
 }
+.sitio .modal-foto {
+  position: relative; margin: -6px 0 16px; border-radius: 12px; overflow: hidden;
+  aspect-ratio: 5 / 2; border: 1px solid var(--s-linea-fria);
+}
+.sitio .modal-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sitio .modal-foto span {
+  position: absolute; left: 12px; bottom: 10px;
+  font-family: var(--s-titulo); font-weight: 600; font-size: 1.05rem; color: var(--s-cal);
+  padding: 3px 10px; border-radius: 999px; background: rgba(7, 17, 28, 0.62);
+}
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
 .sitio .modal p { color: var(--s-cal); }
 .sitio .field label { color: var(--s-niebla); }
@@ -1563,6 +1646,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio select:disabled { background-color: var(--s-pino-800); }
 .sitio .modal-actions .btn, .sitio .modal-actions a.btn { flex: 1; justify-content: center; }
+.sitio .modal-actions--col { flex-direction: column; gap: 8px; }
 .sitio .btn-primary { background: var(--s-oro); color: var(--s-pino-900); border-color: transparent; }
 .sitio .btn-primary:hover:not(:disabled) { background: var(--s-oro-300); }
 .sitio .btn-ghost { background: transparent; border: 1.5px solid var(--s-linea); color: var(--s-cal); }

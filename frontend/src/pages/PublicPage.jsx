@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api';
-import CourtSelector, { CANCHAS } from '../components/CourtSelector';
+import DeporteSelector from '../components/DeporteSelector';
 import DateStrip from '../components/DateStrip';
-import FutbolSlots from '../components/FutbolSlots';
+import FutbolGrilla from '../components/FutbolGrilla';
 import PadelPicker from '../components/PadelPicker';
 import RivalsCalendar from '../components/RivalsCalendar';
+import RivalInfoModal from '../components/RivalInfoModal';
 import BookingModal from '../components/BookingModal';
 import ConsultaReserva from '../components/ConsultaReserva';
 import ListaEsperaModal from '../components/ListaEsperaModal';
@@ -28,10 +29,10 @@ function irA(id) {
 }
 
 export default function PublicPage() {
-  const [cancha, setCancha] = useState('C1');
+  const [deporte, setDeporte] = useState('futbol');
   const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
 
-  const [turnos, setTurnos] = useState([]);
+  const [futbol, setFutbol] = useState(null); // { C1: [...turnos], C2: [...turnos] }
   const [padel, setPadel] = useState(null);
   const [rivales, setRivales] = useState([]);
   const [cargando, setCargando] = useState(false);
@@ -41,6 +42,7 @@ export default function PublicPage() {
   const [mascotaOff, setMascotaOff] = useState(false);
   const [esperaAbierta, setEsperaAbierta] = useState(false);
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
+  const [rivalVisto, setRivalVisto] = useState(null);
   const [reintento, setReintento] = useState(0);
 
   useEffect(() => {
@@ -49,12 +51,15 @@ export default function PublicPage() {
       setCargando(true);
       setErrorCarga(null);
       try {
-        if (cancha === 'PAD') {
+        if (deporte === 'padel') {
           const data = await api.disponibilidadPadel(fecha);
           if (!cancelado) setPadel(data);
         } else {
-          const data = await api.disponibilidadFutbol(cancha, fecha);
-          if (!cancelado) setTurnos(data.turnos);
+          const [c1, c2] = await Promise.all([
+            api.disponibilidadFutbol('C1', fecha),
+            api.disponibilidadFutbol('C2', fecha),
+          ]);
+          if (!cancelado) setFutbol({ C1: c1.turnos, C2: c2.turnos });
         }
       } catch (e) {
         if (!cancelado) setErrorCarga(e.message);
@@ -64,7 +69,7 @@ export default function PublicPage() {
     }
     cargar();
     return () => { cancelado = true; };
-  }, [cancha, fecha, reintento]);
+  }, [deporte, fecha, reintento]);
 
   useEffect(() => {
     api.rivales().then((d) => setRivales(d.rivales)).catch((e) => console.error(e));
@@ -90,14 +95,15 @@ export default function PublicPage() {
   function recargarTodo() {
     setSlotSeleccionado(null);
     api.rivales().then((d) => setRivales(d.rivales)).catch(() => {});
-    if (cancha === 'PAD') {
+    if (deporte === 'padel') {
       api.disponibilidadPadel(fecha).then(setPadel).catch(() => {});
     } else {
-      api.disponibilidadFutbol(cancha, fecha).then((d) => setTurnos(d.turnos)).catch(() => {});
+      Promise.all([
+        api.disponibilidadFutbol('C1', fecha),
+        api.disponibilidadFutbol('C2', fecha),
+      ]).then(([c1, c2]) => setFutbol({ C1: c1.turnos, C2: c2.turnos })).catch(() => {});
     }
   }
-
-  const nombreCancha = CANCHAS.find((c) => c.id === cancha)?.nombre || cancha;
 
   return (
     <div className="sitio" id="top">
@@ -111,8 +117,8 @@ export default function PublicPage() {
       <section className="seccion board" id="reservar">
         <div className="envoltura board-cols">
           <div className="board-panel">
-            <CourtSelector seleccionada={cancha} onSeleccionar={setCancha} />
-            <CanchaLado cancha={cancha} variant="banner" />
+            <DeporteSelector seleccionado={deporte} onSeleccionar={setDeporte} />
+            <CanchaLado deporte={deporte} variant="banner" />
             <DateStrip seleccionada={fecha} onSeleccionar={setFecha} />
 
             {cargando && <p className="cargando">Cargando horarios…</p>}
@@ -128,18 +134,21 @@ export default function PublicPage() {
               </p>
             )}
 
-            {!cargando && !errorCarga && cancha !== 'PAD' && (
-              <FutbolSlots
-                key={`${cancha}-${fecha}`}
-                nombreCancha={nombreCancha}
-                turnos={turnos}
-                onReservar={(turn) => setSlotSeleccionado({ court: cancha, date: fecha, turn })}
+            {!cargando && !errorCarga && deporte === 'futbol' && futbol && (
+              <FutbolGrilla
+                key={fecha}
+                c1={futbol.C1}
+                c2={futbol.C2}
+                fecha={fecha}
+                rivales={rivales}
+                onReservar={(court, turn) => setSlotSeleccionado({ court, date: fecha, turn })}
+                onVerRival={setRivalVisto}
                 onListaEspera={() => setEsperaAbierta(true)}
               />
             )}
-            {!cargando && !errorCarga && cancha === 'PAD' && padel && (
+            {!cargando && !errorCarga && deporte === 'padel' && padel && (
               <PadelPicker
-                key={`${cancha}-${fecha}`}
+                key={fecha}
                 apertura={padel.apertura}
                 cierre={padel.cierre}
                 ocupados={padel.ocupados}
@@ -155,7 +164,7 @@ export default function PublicPage() {
               <p>Elegís día, horario y cancha, y a jugar.</p>
               <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
             </div>
-            <CanchaLado cancha={cancha} />
+            <CanchaLado deporte={deporte} />
           </aside>
         </div>
       </section>
@@ -190,6 +199,7 @@ export default function PublicPage() {
       <MobileTabBar onIr={irA} />
 
       {slotSeleccionado && <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />}
+      {rivalVisto && <RivalInfoModal rival={rivalVisto} onCerrar={() => setRivalVisto(null)} />}
       {esperaAbierta && <ListaEsperaModal fecha={fecha} onCerrar={() => setEsperaAbierta(false)} />}
       {!mascotaOff && !slotSeleccionado && (
         <MascotaRival onIr={() => { irA('rival'); setMascotaOff(true); }} />

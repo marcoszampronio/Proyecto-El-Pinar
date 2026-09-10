@@ -4,6 +4,11 @@ import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
+const FOTO_CANCHA = {
+  C1: { src: '/canchas/futbol-1.jpg', pos: 'center 60%' },
+  C2: { src: '/canchas/futbol-2.jpg', pos: 'center 68%' },
+  PAD: { src: '/canchas/padel.jpg', pos: 'center 50%' },
+};
 
 function BotonCopiar({ texto }) {
   const [copiado, setCopiado] = useState(false);
@@ -100,10 +105,18 @@ export default function BookingModal({ slotInfo, onClose }) {
     ? 'https://wa.me/' + resultado.numeroWhatsapp + '?text=' + encodeURIComponent(resultado.mensajeWhatsapp)
     : null;
 
+  const foto = FOTO_CANCHA[slotInfo.court];
+
   if (!resultado) {
     return (
       <div className="overlay" role="dialog" aria-modal="true">
         <div className="modal">
+          {foto && (
+            <div className="modal-foto">
+              <img src={foto.src} alt={NOMBRE_CANCHA[slotInfo.court]} style={{ objectPosition: foto.pos }} />
+              <span>{NOMBRE_CANCHA[slotInfo.court]}</span>
+            </div>
+          )}
           <h3 className="modal-titulo">Solicitar turno</h3>
           <p className="modal-sub">
             {esCanchaFutbol

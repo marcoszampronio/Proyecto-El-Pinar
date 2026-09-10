@@ -1640,6 +1640,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .field input:focus { border-color: var(--s-oro); box-shadow: 0 0 0 3px rgba(242,193,78,0.28); }
 .sitio .field .check { color: var(--s-cal); }
 .sitio .tel-fijo { color: var(--s-niebla); }
+/* campo con dato faltante */
+.sitio .field--error > label { color: #F2705C; }
+.sitio .field--error input,
+.sitio .field--error select { border-color: #F2705C; background: rgba(224, 90, 74, 0.08); }
+.sitio .field--error input:focus,
+.sitio .field--error select:focus { border-color: #F2705C; box-shadow: 0 0 0 3px rgba(224, 90, 74, 0.25); }
 .sitio select {
   background-color: var(--s-pino-900); border-color: var(--s-linea-fria); color: var(--s-cal);
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='14'%20height='14'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23F2C14E'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%209l6%206%206-6'/%3E%3C/svg%3E");
@@ -1659,7 +1665,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .dato-copiable { background: var(--s-pino-900); border-color: var(--s-linea); }
 .sitio .dato-copiable strong { color: var(--s-cal); }
 .sitio .btn-copiar { background: transparent; border-color: var(--s-linea); color: var(--s-cal); }
-.sitio .error-msg { color: #F0A58C; }
+.sitio .error-msg, .sitio .modal p.error-msg {
+  color: #FF7C6B; font-size: 0.86rem; font-weight: 700; margin: 10px 0 0;
+  padding: 10px 12px; border-radius: 9px;
+  background: rgba(230, 76, 60, 0.16); border: 1px solid rgba(230, 76, 60, 0.6);
+}
 .sitio .cargando { color: var(--s-niebla); }
 
 /* consulta "Mi reserva" -> panel dentro del hero/nav */

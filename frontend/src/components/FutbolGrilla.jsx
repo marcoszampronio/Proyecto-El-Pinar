@@ -39,7 +39,7 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
                   className={`grilla-pub-celda ${clase}`}
                   disabled={!libre && !rival}
                   onClick={() => {
-                    if (libre) onReservar(court, t.turn);
+                    if (libre) onReservar(court, t.turn, t.start, t.end);
                     else if (rival) onVerRival(rival);
                   }}
                   aria-label={

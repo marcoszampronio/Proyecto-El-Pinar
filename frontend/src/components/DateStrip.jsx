@@ -21,7 +21,14 @@ export default function DateStrip({ seleccionada, onSeleccionar }) {
 
   const irSemana = (delta) => {
     if (delta < 0 && !puedeRetroceder) return;
-    setAncla((a) => sumarDias(a, delta * 7));
+    const nuevaAncla = sumarDias(ancla, delta * 7);
+    setAncla(nuevaAncla);
+    // al cambiar de semana, saltar al primer día jugable (martes) de esa
+    // semana, así la fecha seleccionada no queda atrás sin que se note.
+    const primerHabil = semanaLaboral(nuevaAncla).find(
+      (d) => esDiaHabilitado(d) && !esPasado(d)
+    );
+    if (primerHabil) onSeleccionar(primerHabil);
   };
 
   // gesto táctil: deslizar la tira cambia de semana (y anula el tap del día)

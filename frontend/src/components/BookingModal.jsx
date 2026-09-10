@@ -40,6 +40,7 @@ export default function BookingModal({ slotInfo, onClose }) {
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
+  const [errs, setErrs] = useState({}); // { campo: true } — campos que faltan
   const [enviando, setEnviando] = useState(false);
 
   // Mientras el modal está abierto, bloqueamos el scroll del fondo. El modal
@@ -55,6 +56,8 @@ export default function BookingModal({ slotInfo, onClose }) {
 
   function actualizar(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }));
+    const k = campo === 'phoneArea' || campo === 'phoneNum' ? 'telefono' : campo;
+    setErrs((e) => (e[k] ? { ...e, [k]: false } : e));
   }
 
   const area = form.phoneArea.replace(/\D/g, '');
@@ -62,18 +65,18 @@ export default function BookingModal({ slotInfo, onClose }) {
   const telefonoCompleto = area && num ? `54 9 ${area} ${num}` : '';
 
   async function enviarSolicitud() {
+    const faltan = {};
+    if (!form.clientName.trim()) faltan.clientName = true;
+    if (area.length < 2 || num.length < 6) faltan.telefono = true;
+    if (!form.clientEmail.trim()) faltan.clientEmail = true;
+    if (esCanchaFutbol && form.lookingForRival && !form.teamName.trim()) faltan.teamName = true;
+    if (esCanchaFutbol && form.lookingForRival && !form.category) faltan.category = true;
+    setErrs(faltan);
+    if (Object.keys(faltan).length) {
+      setError('Faltan datos por completar (marcados en rojo).');
+      return;
+    }
     setError(null);
-    if (!form.clientName.trim()) { setError('Completá tu nombre.'); return; }
-    if (area.length < 2 || num.length < 6) { setError('Completá tu teléfono: característica y número.'); return; }
-    if (!form.clientEmail.trim()) { setError('Completá tu email.'); return; }
-    if (esCanchaFutbol && form.lookingForRival && !form.teamName.trim()) {
-      setError('Completá el nombre de tu equipo.');
-      return;
-    }
-    if (esCanchaFutbol && form.lookingForRival && !form.category) {
-      setError('Elegí la categoría del equipo.');
-      return;
-    }
 
     setEnviando(true);
     try {
@@ -119,12 +122,17 @@ export default function BookingModal({ slotInfo, onClose }) {
           )}
           <h3 className="modal-titulo">Solicitar turno</h3>
           <p className="modal-sub">
-            {esCanchaFutbol
-              ? 'Cancha ' + slotInfo.court.slice(1) + ' · ' + slotInfo.turn + ' · ' + slotInfo.date
-              : 'Pádel · ' + (slotInfo.startTime ? slotInfo.startTime.slice(0, 5) : '') + ' a ' + (slotInfo.endTime ? slotInfo.endTime.slice(0, 5) : '') + ' · ' + slotInfo.date}
+            {(() => {
+              const f = fechaLargaCompleta(slotInfo.date);
+              const fecha = f.charAt(0).toUpperCase() + f.slice(1);
+              const horario = esCanchaFutbol
+                ? `${hhmm(slotInfo.start)} a ${hhmm(slotInfo.end)}`
+                : `${hhmm(slotInfo.startTime)} a ${hhmm(slotInfo.endTime)}`;
+              return `${NOMBRE_CANCHA[slotInfo.court]} · ${fecha} · ${horario} hs`;
+            })()}
           </p>
 
-          <div className="field">
+          <div className={'field' + (errs.clientName ? ' field--error' : '')}>
             <label>Nombre completo</label>
             <input
               value={form.clientName}
@@ -133,7 +141,7 @@ export default function BookingModal({ slotInfo, onClose }) {
             />
           </div>
 
-          <div className="field">
+          <div className={'field' + (errs.telefono ? ' field--error' : '')}>
             <label>Teléfono / WhatsApp</label>
             <div className="tel-split">
               <span className="tel-fijo">+54&nbsp;9</span>
@@ -160,7 +168,7 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           </div>
 
-          <div className="field">
+          <div className={'field' + (errs.clientEmail ? ' field--error' : '')}>
             <label>Email</label>
             <input
               value={form.clientEmail}
@@ -185,7 +193,7 @@ export default function BookingModal({ slotInfo, onClose }) {
 
               {form.lookingForRival && (
                 <div>
-                  <div className="field">
+                  <div className={'field' + (errs.teamName ? ' field--error' : '')}>
                     <label>Nombre del equipo</label>
                     <input
                       value={form.teamName}
@@ -193,7 +201,7 @@ export default function BookingModal({ slotInfo, onClose }) {
                       placeholder="Ej: Los Pibes FC"
                     />
                   </div>
-                  <div className="field">
+                  <div className={'field' + (errs.category ? ' field--error' : '')}>
                     <label>Categoría</label>
                     <select
                       value={form.category}
@@ -250,12 +258,8 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
         </div>
 
-        <p style={{ fontSize: 13.5, color: 'var(--s-cal)', marginBottom: 8 }}>
+        <p style={{ fontSize: 13.5, color: 'var(--s-cal)', margin: '0 0 16px' }}>
           Enviá el comprobante de pago por WhatsApp para confirmar tu turno.
-        </p>
-        <p style={{ fontSize: 12.5, color: 'var(--s-niebla)', marginTop: 0, marginBottom: 16 }}>
-          Ya guardamos tu pedido y te mandamos un email. Este cartel no se cierra solo:
-          copiá el alias tranquilo, pagá, y volvé a mandar el comprobante.
         </p>
 
         <div className="modal-actions">

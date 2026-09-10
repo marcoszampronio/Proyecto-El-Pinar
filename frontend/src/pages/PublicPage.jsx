@@ -141,7 +141,7 @@ export default function PublicPage() {
                 c2={futbol.C2}
                 fecha={fecha}
                 rivales={rivales}
-                onReservar={(court, turn) => setSlotSeleccionado({ court, date: fecha, turn })}
+                onReservar={(court, turn, start, end) => setSlotSeleccionado({ court, date: fecha, turn, start, end })}
                 onVerRival={setRivalVisto}
                 onListaEspera={() => setEsperaAbierta(true)}
               />

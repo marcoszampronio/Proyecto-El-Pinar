@@ -30,20 +30,29 @@ const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 const MONTO = Number(process.env.MONTO_RESERVA || 10000);
 const montoTexto = () => (MONTO > 0 ? '$' + MONTO.toLocaleString('es-AR') : null);
 
+const DIAS_SEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const MESES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+function fechaLinda(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const dia = DIAS_SEM[d.getDay()];
+  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${d.getDate()} de ${MESES_LARGO[d.getMonth()]}`;
+}
+
 function armarMensajeWhatsapp(reserva) {
   const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
   const alias = process.env.ALIAS_TRANSFERENCIA;
   const monto = montoTexto();
+  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
   return (
-    `Hola! Quiero confirmar mi reserva en El Pinar.\n\n` +
-    `▶ CÓDIGO: ${reserva.code} ◀\n\n` +
-    `Cancha: ${cancha}\n` +
-    `Fecha: ${reserva.reservation_date}\n` +
-    `Horario: ${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs\n` +
-    `Nombre: ${reserva.client_name}\n` +
-    (monto ? `\nMonto: ${monto}\n` : '\n') +
-    (alias ? `Alias para transferir: ${alias}\n` : '') +
-    `\nEn breve adjunto el comprobante de pago.`
+    `¡Hola! Quiero reservar en El Pinar.\n\n` +
+    `${cancha} · ${fechaLinda(reserva.reservation_date)} · ${horario}\n` +
+    `A nombre de ${reserva.client_name}\n` +
+    `Reserva ${reserva.code}\n\n` +
+    (monto && alias
+      ? `Te transfiero ${monto} al alias ${alias} y te paso el comprobante. ¡Gracias!`
+      : monto
+      ? `Te transfiero ${monto} y te paso el comprobante. ¿Me pasás el alias? ¡Gracias!`
+      : `Coordinamos el pago por acá. ¡Gracias!`)
   );
 }
 

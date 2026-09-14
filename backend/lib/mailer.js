@@ -210,7 +210,6 @@ export async function enviarEmailConfirmacion(reserva) {
           <p style="margin:4px 0;"><strong>Cancha:</strong> ${cancha}</p>
           <p style="margin:4px 0;"><strong>Fecha:</strong> ${reserva.reservation_date}</p>
           <p style="margin:4px 0;"><strong>Horario:</strong> ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs</p>
-          ${reserva.parrilla ? '<p style="margin:4px 0;"><strong>Parrilla:</strong> consultó por la parrilla 🔥 — confirmale si hay lugar</p>' : ''}
           <p style="margin:4px 0;"><strong>Código de reserva:</strong> <span style="font-family:monospace;font-weight:bold;">${reserva.code}</span></p>
         </div>
 

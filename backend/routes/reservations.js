@@ -49,7 +49,7 @@ function armarMensajeWhatsapp(reserva) {
     `A nombre de ${reserva.client_name}\n` +
     `Reserva ${reserva.code}\n\n` +
     (monto && alias
-      ? `Te transfiero ${monto} al alias ${alias} y te paso el comprobante. ¡Gracias!`
+      ? `Te transfiero ${monto} al alias \`\`\`${alias}\`\`\` y te paso el comprobante. ¡Gracias!`
       : monto
       ? `Te transfiero ${monto} y te paso el comprobante. ¿Me pasás el alias? ¡Gracias!`
       : `Coordinamos el pago por acá. ¡Gracias!`)

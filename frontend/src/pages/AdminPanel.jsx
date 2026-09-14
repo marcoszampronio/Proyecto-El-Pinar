@@ -107,6 +107,31 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
 
   const esFutbol = cancha !== 'PAD';
 
+  // Disponibilidad real de la cancha/fecha elegida, para no ofrecer turnos
+  // que ya están ocupados (antes solo se enteraba al chocar con el error
+  // del servidor después de completar todo el formulario).
+  const [disponibilidad, setDisponibilidad] = useState(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    setDisponibilidad(null);
+    const pedido = cancha === 'PAD' ? api.disponibilidadPadel(fecha) : api.disponibilidadFutbol(cancha, fecha);
+    pedido.then((d) => { if (!cancelado) setDisponibilidad(d); }).catch(() => {});
+    return () => { cancelado = true; };
+  }, [cancha, fecha]);
+
+  // si el turno elegido queda ocupado al cambiar cancha/fecha, saltar al
+  // primer turno libre para que el formulario nunca quede en un estado
+  // que el servidor va a rechazar.
+  useEffect(() => {
+    if (!esFutbol || !disponibilidad?.turnos) return;
+    const actual = disponibilidad.turnos.find((x) => x.turn === turn);
+    if (actual && actual.status !== 'libre') {
+      const libre = disponibilidad.turnos.find((x) => x.status === 'libre');
+      if (libre) setTurn(libre.turn);
+    }
+  }, [disponibilidad, esFutbol]);
+
   async function agendar() {
     setError(null);
     if (esFutbol && lookingForRival && !teamName.trim()) {
@@ -191,9 +216,15 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
           <div className="field">
             <label>Turno</label>
             <select value={turn} onChange={(e) => setTurn(e.target.value)}>
-              {Object.entries(TURNOS_FUTBOL_LABEL).map(([t, label]) => (
-                <option key={t} value={t}>{label}</option>
-              ))}
+              {Object.entries(TURNOS_FUTBOL_LABEL).map(([t, label]) => {
+                const info = disponibilidad?.turnos?.find((x) => x.turn === t);
+                const ocupado = info && info.status !== 'libre';
+                return (
+                  <option key={t} value={t} disabled={ocupado}>
+                    {label}{ocupado ? ' — ocupado' : ''}
+                  </option>
+                );
+              })}
             </select>
           </div>
         ) : (
@@ -207,6 +238,12 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
               <input type="time" value={padelEnd} onChange={(e) => setPadelEnd(e.target.value)} min="20:30" max="23:30" />
             </div>
           </div>
+        )}
+
+        {!esFutbol && disponibilidad?.ocupados?.length > 0 && (
+          <p style={{ fontSize: 12.5, color: 'var(--p-mut)', margin: '-6px 0 14px' }}>
+            Ya ocupado ese día: {disponibilidad.ocupados.map((o) => `${hhmm(o.start_time)}–${hhmm(o.end_time)}`).join(', ')}
+          </p>
         )}
 
         {esFutbol && (

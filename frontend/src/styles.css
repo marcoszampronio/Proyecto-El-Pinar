@@ -1683,10 +1683,13 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .consulta-estado { color: var(--s-oro); }
 .sitio .consulta-nota { color: var(--s-niebla); }
 
-/* mascota — solo en compu (en el celu satura) */
+/* mascota "buscá rival" — en compu pegada abajo a la derecha; en el
+   celu, arriba de la barra de navegación fija para no taparla */
 .sitio .mascota { bottom: 20px; right: 18px; }
 .sitio .mascota-globo { background: var(--s-oro); color: var(--s-pino-900); }
-@media (max-width: 900px) { .sitio .mascota { display: none !important; } }
+@media (max-width: 900px) {
+  .sitio .mascota { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 14px; }
+}
 
 @media (max-width: 620px) {
   .sitio { font-size: 15.5px; }

@@ -44,6 +44,8 @@ estos dos lentes antes de darlo por terminado:
 
 ## Pendientes conocidos del proyecto (ver memoria para detalle)
 
-- Fotos reales del complejo y dirección exacta: pendientes de Mateo.
 - Revisar si un turno "pendiente" debería seguir mostrándose como "Reservado" en el
   sitio público (decisión ya tomada, pero queda anotado por si se repiensa).
+- Dominio propio: pendiente de comprar (~$11/año en Cloudflare) hasta que Mateo formalice
+  el lanzamiento. Cuando se compre, actualizar todas las URLs hardcodeadas de
+  `complejo-el-pinar.pages.dev` (index.html, robots.txt, sitemap.xml) al dominio nuevo.

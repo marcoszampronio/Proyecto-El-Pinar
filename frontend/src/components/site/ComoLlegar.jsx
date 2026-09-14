@@ -44,6 +44,8 @@ export default function ComoLlegar() {
           <h2>Estamos en el pinar.</h2>
           <p className="sub">Tocá el mapa o el botón para abrir la ubicación en Google Maps.</p>
           <dl className="llegar-datos">
+            <dt>Dirección</dt>
+            <dd>Calle 814, Paraná (E3100)</dd>
             <dt>Días de juego</dt>
             <dd>Martes, miércoles y jueves — a partir de las 20 hs</dd>
           </dl>

@@ -55,6 +55,26 @@ toda la conversación original.
       mensajes de WhatsApp, etc. son placeholders).
 - [ ] Ajustar el diseño visual con lo que definamos en base a las imágenes
       que mande el usuario.
+- [ ] Hero dinámico: hoy `Hero.jsx` es una escena ilustrada (SVG de pinos que
+      va cambiando sola). Idea para reemplazar/sumar: algo con movimiento real
+      del complejo, mezclando dos referencias — el video de fondo apenas
+      entrás a dondejuegoapp.com, y la vista aérea de complejos que usa
+      atcsports.io/sistema-de-gestion-de-clubes. Opciones evaluadas:
+      1) Rápido y sin costo: animar en loop (Ken Burns / crossfade) las 3
+         fotos reales que ya existen en `frontend/public/canchas/` — no hace
+         falta nada nuevo, se puede hacer ahora.
+      2) La mejor a mediano plazo: conseguir 15-30s de video real del
+         complejo (celular o dron — un dron chico es barato y da justo el
+         plano aéreo tipo ATC). Es contenido real, no fabricado.
+      3) Con IA: usar una herramienta externa (Runway/Kling/Luma) para
+         animar una de las fotos reales existentes (efecto "image-to-video":
+         pasto que se mueve, luz que cambia), NUNCA generar de cero un video
+         que no sea el complejo real — el sitio es de producción, con
+         clientes reales que después van a ir físicamente, así que no
+         conviene mostrar algo inventado.
+      Se puede sumar una tarjeta flotante encima del video/foto (estilo
+      ATC) con algo tipo "Cancha 1 · Disponible hoy" para combinar las dos
+      referencias.
 
 ## Convenciones de código
 - Todo el texto de cara al usuario está en español.

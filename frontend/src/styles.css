@@ -1630,6 +1630,24 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   padding: 3px 10px; border-radius: 999px; background: rgba(7, 17, 28, 0.62);
 }
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
+.sitio .resumen-turno{
+  background:var(--s-pino-900); border:1px solid var(--s-linea);
+  border-radius:14px; padding:16px 18px 14px; margin:4px 0 18px;
+  display:grid; grid-template-columns:1fr 1fr; gap:14px 16px;
+}
+.sitio .resumen-item{ min-width:0; }
+.sitio .resumen-label{
+  display:flex; align-items:center; gap:6px;
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;
+  color:var(--s-oro); margin:0 0 5px;
+}
+.sitio .resumen-label svg{ width:14px; height:14px; flex:none; }
+.sitio .resumen-valor{
+  font-family:var(--s-titulo); font-weight:600; font-size:1.32rem; line-height:1.15;
+  color:var(--s-cal); font-variant-numeric:tabular-nums;
+}
+.sitio .resumen-full{ grid-column:1 / -1; border-top:1px solid var(--s-linea-fria); margin-top:2px; padding-top:12px; }
+.sitio .resumen-full .resumen-valor{ font-size:1.12rem; }
 .sitio .modal p { color: var(--s-cal); }
 .sitio .field label { color: var(--s-niebla); }
 .sitio .field input {

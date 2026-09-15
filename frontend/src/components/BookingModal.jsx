@@ -121,16 +121,41 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           )}
           <h3 className="modal-titulo">Solicitar turno</h3>
-          <p className="modal-sub">
-            {(() => {
-              const f = fechaLargaCompleta(slotInfo.date);
-              const fecha = f.charAt(0).toUpperCase() + f.slice(1);
-              const horario = esCanchaFutbol
-                ? `${hhmm(slotInfo.start)} a ${hhmm(slotInfo.end)}`
-                : `${hhmm(slotInfo.startTime)} a ${hhmm(slotInfo.endTime)}`;
-              return `${NOMBRE_CANCHA[slotInfo.court]} · ${fecha} · ${horario} hs`;
-            })()}
-          </p>
+          {(() => {
+            const f = fechaLargaCompleta(slotInfo.date);
+            const fecha = f.charAt(0).toUpperCase() + f.slice(1);
+            const horario = esCanchaFutbol
+              ? `${hhmm(slotInfo.start)} a ${hhmm(slotInfo.end)}`
+              : `${hhmm(slotInfo.startTime)} a ${hhmm(slotInfo.endTime)}`;
+            const cancha = esCanchaFutbol
+              ? `${NOMBRE_CANCHA[slotInfo.court]} · Fútbol 11`
+              : NOMBRE_CANCHA[slotInfo.court];
+            return (
+              <div className="resumen-turno">
+                <div className="resumen-item">
+                  <span className="resumen-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="16" y1="3" x2="16" y2="7"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Fecha
+                  </span>
+                  <span className="resumen-valor">{fecha}</span>
+                </div>
+                <div className="resumen-item">
+                  <span className="resumen-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+                    Horario
+                  </span>
+                  <span className="resumen-valor">{horario}</span>
+                </div>
+                <div className="resumen-item resumen-full">
+                  <span className="resumen-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20 C4 15 8 15 8 11 C8 8 6 7 6 4"></path><path d="M12 20 C12 14 17 15 17 10 C17 6 14 6 14 3"></path></svg>
+                    Cancha
+                  </span>
+                  <span className="resumen-valor">{cancha}</span>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className={'field' + (errs.clientName ? ' field--error' : '')}>
             <label>Nombre completo</label>

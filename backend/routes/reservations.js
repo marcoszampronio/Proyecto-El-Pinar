@@ -47,7 +47,8 @@ function armarMensajeWhatsapp(reserva) {
     `¡Hola! Quiero reservar en El Pinar.\n\n` +
     `${cancha} · ${fechaLinda(reserva.reservation_date)} · ${horario}\n` +
     `A nombre de ${reserva.client_name}\n` +
-    `Reserva ${reserva.code}\n\n` +
+    // `Reserva ${reserva.code}\n\n` +
+    `\n` +
     (monto && alias
       ? `Te transfiero ${monto} al alias \`\`\`${alias}\`\`\` y te paso el comprobante. ¡Gracias!`
       : monto

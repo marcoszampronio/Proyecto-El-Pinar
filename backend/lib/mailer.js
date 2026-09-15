@@ -210,10 +210,10 @@ export async function enviarEmailConfirmacion(reserva) {
           <p style="margin:4px 0;"><strong>Cancha:</strong> ${cancha}</p>
           <p style="margin:4px 0;"><strong>Fecha:</strong> ${reserva.reservation_date}</p>
           <p style="margin:4px 0;"><strong>Horario:</strong> ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs</p>
-          <p style="margin:4px 0;"><strong>Código de reserva:</strong> <span style="font-family:monospace;font-weight:bold;">${reserva.code}</span></p>
+          <!-- <p style="margin:4px 0;"><strong>Código de reserva:</strong> <span style="font-family:monospace;font-weight:bold;">${reserva.code}</span></p> -->
         </div>
 
-        <p style="color:#555;font-size:14px;">Guardá este email como comprobante. Si necesitás cancelar, escribinos por WhatsApp con tu código de reserva.</p>
+        <p style="color:#555;font-size:14px;">Guardá este email como comprobante. Si necesitás cancelar, escribinos por WhatsApp.</p>
         <p style="color:#2E6B4F;font-weight:bold;">¡Te esperamos!</p>
         <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
         <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · ${FROM_EMAIL}</p>
@@ -240,7 +240,7 @@ export async function enviarEmailCancelacion(reserva) {
           <p style="margin:4px 0;"><strong>Cancha:</strong> ${cancha}</p>
           <p style="margin:4px 0;"><strong>Fecha:</strong> ${reserva.reservation_date}</p>
           <p style="margin:4px 0;"><strong>Horario:</strong> ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs</p>
-          <p style="margin:4px 0;"><strong>Código:</strong> <span style="font-family:monospace;">${reserva.code}</span></p>
+          <!-- <p style="margin:4px 0;"><strong>Código:</strong> <span style="font-family:monospace;">${reserva.code}</span></p> -->
         </div>
 
         <p style="color:#555;font-size:14px;">Si tenés alguna duda, escribinos por WhatsApp.</p>

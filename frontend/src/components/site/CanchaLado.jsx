@@ -10,7 +10,7 @@ const DATOS = {
     foto: '/canchas/futbol-2.jpg',
     posCard: 'center 66%',
     posBanner: 'center 70%',
-    tags: ['Dos canchas', 'Césped natural', 'Iluminación pro'],
+    tags: ['Dos canchas', 'Césped natural', 'Iluminación profesional'],
   },
   padel: {
     nombre: 'Pádel',

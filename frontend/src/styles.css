@@ -1137,7 +1137,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .snav-links { display: flex; align-items: center; gap: 28px; }
 .snav-links button {
   background: none; border: none; cursor: pointer; font: inherit;
-  color: var(--s-niebla); font-size: 0.9rem; font-weight: 500;
+  color: color-mix(in srgb, var(--s-cal) 62%, var(--s-niebla)); font-size: 0.9rem; font-weight: 500;
   transition: color .15s ease;
 }
 .snav-links button:hover { color: var(--s-cal); }
@@ -1166,14 +1166,14 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
   }
   .mtab button {
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
     background: none; border: none; cursor: pointer;
-    font-family: var(--s-texto); font-size: 0.64rem; font-weight: 600;
-    color: var(--s-niebla); padding: 7px 2px 5px; border-radius: 12px;
-    transition: color .15s ease;
+    font-family: var(--s-texto); font-size: 0.72rem; font-weight: 700;
+    color: var(--s-cal); padding: 8px 2px 6px; border-radius: 12px;
+    transition: color .15s ease, background .15s ease;
   }
-  .mtab button svg { width: 21px; height: 21px; }
-  .mtab button.on { color: var(--s-oro); }
+  .mtab button svg { width: 24px; height: 24px; }
+  .mtab button.on { color: var(--s-oro); background: color-mix(in srgb, var(--s-oro) 14%, transparent); }
   .mtab button:active { background: var(--s-pino-800); }
   .sitio { padding-bottom: 76px; }
 }

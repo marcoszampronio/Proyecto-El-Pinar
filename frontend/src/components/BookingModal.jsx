@@ -52,6 +52,20 @@ export default function BookingModal({ slotInfo, onClose }) {
     return () => { document.body.style.overflow = previo; };
   }, []);
 
+  // El botón "atrás" del navegador cierra el modal y vuelve a la grilla de
+  // turnos, en vez de sacar al cliente de la página. Empujamos una entrada
+  // de historial al abrir (solo si no está puesta ya — en StrictMode el
+  // efecto se monta/desmonta dos veces seguidas) y, si el cliente vuelve con
+  // el botón atrás, cerramos el modal.
+  useEffect(() => {
+    if (window.history.state?.turnoModal !== true) {
+      window.history.pushState({ turnoModal: true }, '');
+    }
+    const onPopState = () => onClose();
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   const esCanchaFutbol = slotInfo.court !== 'PAD';
 
   function actualizar(campo, valor) {

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { hoyISO, sumarDias, semanaLaboral, esDiaHabilitado, esPasado, lunesDeLaSemana } from '../lib/fechas';
 
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -34,15 +34,10 @@ export default function DateStrip({ seleccionada, onSeleccionar }) {
   // gesto táctil: deslizar la tira cambia de semana (y anula el tap del día)
   const touch = useRef(null);
   const swiped = useRef(false);
+  const stripRef = useRef(null);
   const onTouchStart = (e) => {
     touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     swiped.current = false;
-  };
-  const onTouchMove = (e) => {
-    if (!touch.current) return;
-    const dx = e.touches[0].clientX - touch.current.x;
-    const dy = e.touches[0].clientY - touch.current.y;
-    if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) swiped.current = true;
   };
   const onTouchEnd = (e) => {
     if (!touch.current) return;
@@ -51,6 +46,26 @@ export default function DateStrip({ seleccionada, onSeleccionar }) {
     touch.current = null;
     if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) irSemana(dx < 0 ? 1 : -1);
   };
+
+  // el touchmove va con un listener nativo no-pasivo: en cuanto el gesto es
+  // claramente horizontal, frenamos el scroll vertical de la página con
+  // preventDefault — si no, al deslizar de costado la página "pelea" y se
+  // mueve para arriba/abajo sola en vez de solo cambiar de semana.
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const onTouchMove = (e) => {
+      if (!touch.current) return;
+      const dx = e.touches[0].clientX - touch.current.x;
+      const dy = e.touches[0].clientY - touch.current.y;
+      if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+        swiped.current = true;
+        e.preventDefault();
+      }
+    };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, []);
 
   const Flecha = ({ dir, lado }) => (
     <button
@@ -77,8 +92,8 @@ export default function DateStrip({ seleccionada, onSeleccionar }) {
         <Flecha dir={-1} lado />
         <div
           className="fechas-dias"
+          ref={stripRef}
           onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
           {dias.map((dia) => {

@@ -1322,11 +1322,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .fechas-semana { display: flex; align-items: center; gap: 4px; }
 .sitio .fechas-flecha--lado {
   display: grid; place-items: center; flex: none;
-  width: 30px; height: 48px; font-size: 1.8rem; line-height: 1;
-  border: none; background: transparent; color: var(--s-niebla); cursor: pointer;
+  width: 36px; height: 52px; font-size: 2.1rem; line-height: 1;
+  border: none; background: transparent; color: var(--s-oro); cursor: pointer;
   transition: color .15s ease;
 }
-.sitio .fechas-flecha--lado:hover:not(:disabled) { color: var(--s-oro); }
+.sitio .fechas-flecha--lado:hover:not(:disabled) { color: var(--s-oro-300); }
 .sitio .fechas-flecha--lado:disabled { opacity: 0.28; cursor: default; }
 .sitio .fechas-dias {
   flex: 1; display: grid; grid-template-columns: 0.62fr 1fr 1fr 1fr 0.62fr; gap: 6px;
@@ -1357,7 +1357,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 @media (max-width: 620px) {
   .sitio .fechas { max-width: none; }
-  .sitio .fechas-flecha--lado { width: 24px; font-size: 1.6rem; }
+  .sitio .fechas-flecha--lado { width: 30px; font-size: 1.9rem; }
   .sitio .fechas-dias { gap: 5px; grid-template-columns: 0.5fr 1fr 1fr 1fr 0.5fr; }
   .sitio .dia-btn .dia-numero { font-size: 1.3rem; }
   .sitio .dia-btn .dia-nombre, .sitio .dia-btn .dia-mes { font-size: 0.54rem; letter-spacing: 0.06em; }

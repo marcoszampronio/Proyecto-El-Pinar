@@ -14,11 +14,22 @@ import 'dotenv/config';
 
 const router = Router();
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function validarDatosCliente(body) {
-  if (!body.clientName || !body.clientPhone) return 'Completá tu nombre y teléfono.';
-  if (!body.clientEmail) return 'Completá tu email para recibir la confirmación.';
+  const nombre = String(body.clientName || '').trim();
+  const telefono = String(body.clientPhone || '').trim();
+  const email = String(body.clientEmail || '').trim();
+
+  if (!nombre || !telefono) return 'Completá tu nombre y teléfono.';
+  if (nombre.length > 80) return 'El nombre es demasiado largo.';
+  if (telefono.replace(/\D/g, '').length < 8) return 'Revisá tu número de WhatsApp.';
+  if (!email) return 'Completá tu email para recibir la confirmación.';
+  if (email.length > 120 || !EMAIL_RE.test(email)) return 'Revisá tu email, no parece válido.';
   if (body.lookingForRival) {
-    if (!body.teamName) return 'Completá el nombre de tu equipo.';
+    const equipo = String(body.teamName || '').trim();
+    if (!equipo) return 'Completá el nombre de tu equipo.';
+    if (equipo.length > 80) return 'El nombre del equipo es demasiado largo.';
     if (!body.category) return 'Elegí la categoría del equipo.';
   }
   return null;
@@ -129,11 +140,11 @@ router.post('/futbol', async (req, res) => {
       start_time: turnoInfo.start,
       end_time: turnoInfo.end,
       turn: body.turn,
-      client_name: body.clientName,
-      client_phone: body.clientPhone,
-      client_email: body.clientEmail,
+      client_name: String(body.clientName).trim(),
+      client_phone: String(body.clientPhone).trim(),
+      client_email: String(body.clientEmail).trim(),
       category: body.category || null,
-      team_name: body.teamName || null,
+      team_name: body.teamName ? String(body.teamName).trim() : null,
       looking_for_rival: !!body.lookingForRival,
       ...(body.parrilla ? { parrilla: true } : {}),
       status: 'pendiente',
@@ -189,9 +200,9 @@ router.post('/padel', async (req, res) => {
       start_time: body.startTime,
       end_time: body.endTime,
       turn: null,
-      client_name: body.clientName,
-      client_phone: body.clientPhone,
-      client_email: body.clientEmail,
+      client_name: String(body.clientName).trim(),
+      client_phone: String(body.clientPhone).trim(),
+      client_email: String(body.clientEmail).trim(),
       category: null,
       team_name: null,
       looking_for_rival: false,

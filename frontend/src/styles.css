@@ -839,6 +839,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .btn-copiar:hover { border-color: var(--p-oro); color: var(--p-oro); }
 
 .error-msg { color: #F0A58C; font-size: 13px; margin-top: 8px; }
+/* dentro de un modal del panel: cajita roja para que un aviso que bloquea el botón no pase desapercibido */
+.modal .error-msg {
+  color: #FF9B88; font-weight: 700; margin: 10px 0 0; padding: 9px 12px; border-radius: 9px;
+  background: rgba(230, 76, 60, 0.14); border: 1px solid rgba(230, 76, 60, 0.5);
+}
 .cargando { padding: 40px 18px; text-align: center; color: var(--p-mut); }
 
 /* ---------- panel admin ---------- */

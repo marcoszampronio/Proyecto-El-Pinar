@@ -132,6 +132,23 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
     }
   }, [disponibilidad, esFutbol]);
 
+  // Avisar y frenar el botón acá mismo, en vez de que Mateo se entere recién
+  // con el error del servidor después de completar todo.
+  const turnoActual = esFutbol ? disponibilidad?.turnos?.find((x) => x.turn === turn) : null;
+  const turnoOcupado = !!turnoActual && turnoActual.status !== 'libre';
+  const sinTurnosLibres = esFutbol && !!disponibilidad?.turnos && disponibilidad.turnos.every((x) => x.status !== 'libre');
+  const padelRangoInvalido = !esFutbol && padelStart >= padelEnd;
+  const padelSolapa = !esFutbol && !padelRangoInvalido && !!disponibilidad?.ocupados
+    && disponibilidad.ocupados.some((o) => padelStart < hhmm(o.end_time) && padelEnd > hhmm(o.start_time));
+  const bloqueoMsg = padelRangoInvalido
+    ? 'La hora "Hasta" tiene que ser posterior a "Desde".'
+    : padelSolapa
+    ? 'Ese horario se pisa con otra reserva de pádel. Elegí otro rango.'
+    : sinTurnosLibres
+    ? 'No quedan turnos libres ese día en esta cancha. Probá con otro día u otra cancha.'
+    : null;
+  const bloqueado = !!bloqueoMsg || turnoOcupado;
+
   async function agendar() {
     setError(null);
     if (esFutbol && lookingForRival && !teamName.trim()) {
@@ -279,11 +296,12 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
           </label>
         </div>
 
+        {bloqueoMsg && <p className="error-msg">{bloqueoMsg}</p>}
         {error && <p className="error-msg">{error}</p>}
 
         <div className="modal-actions">
           <button className="btn btn-ghost" onClick={onCerrar}>Cancelar</button>
-          <button className="btn btn-primary" onClick={agendar} disabled={enviando}>
+          <button className="btn btn-primary" onClick={agendar} disabled={enviando || bloqueado}>
             {enviando ? 'Agendando…' : 'Agendar y confirmar'}
           </button>
         </div>
@@ -361,8 +379,9 @@ function ExportPanel() {
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--p-linea)', margin: '14px 0' }} />
       <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        <strong>Backup automático:</strong> todos los días a las 3:00 se manda el CSV completo
-        por email a los administradores. También lo podés disparar ahora:
+        <strong>Backup automático:</strong> el sistema manda el CSV completo por email a los
+        administradores (el día y la hora figuran en "Estado del sistema", arriba).
+        También lo podés disparar ahora:
       </p>
       <button className="btn btn-ghost" onClick={backupAhora} disabled={backup === '...'} style={{ width: '100%' }}>
         {backup === '...' ? 'Enviando...' : 'Enviar backup ahora'}

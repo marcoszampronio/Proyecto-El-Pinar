@@ -1,3 +1,16 @@
+/* Fraunces (Google Fonts, licencia OFL) alojada acá en vez de cargarla desde
+   fonts.googleapis.com: esa hoja de estilos externa bloqueaba el primer pintado
+   ~1 s en celular. Subset latin (cubre tildes, ñ, ¿ ¡ y puntuación del español).
+   El archivo normal es variable: un solo archivo sirve para los pesos 500 y 600. */
+@font-face {
+  font-family: "Fraunces"; font-style: normal; font-weight: 500 600; font-display: swap;
+  src: url("/fonts/Fraunces-Variable.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces"; font-style: italic; font-weight: 500; font-display: swap;
+  src: url("/fonts/Fraunces-Italic.woff2") format("woff2");
+}
+
 /* Satoshi (Fontshare, licencia gratuita para uso comercial), alojada en
    /public/fonts. El 600 que usa el CSS cae automáticamente en el Bold (700). */
 @font-face {
@@ -11,6 +24,12 @@
 @font-face {
   font-family: "Satoshi"; font-weight: 700; font-style: normal; font-display: swap;
   src: url("/fonts/Satoshi-Bold.woff2") format("woff2");
+}
+
+/* Texto solo para lectores de pantalla y buscadores (no se ve en pantalla). */
+.sr-solo {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 
 /* La web es siempre clara. Le dice al navegador del celular que NO aplique su
@@ -44,7 +63,7 @@
   --s-oro:      #F2C14E;    /* dorado del logo: luz de reflector */
   --s-oro-300:  #F8DFA6;
   --s-cal:      #F3EEE1;    /* texto claro / cal de las líneas */
-  --s-niebla:   #94A7BA;    /* texto secundario (gris azulado) */
+  --s-niebla:   #9DB0C3;    /* texto secundario (gris azulado) — ≥4.5:1 sobre --s-marino */
   --s-cesped:   #5BAE6B;    /* disponible */
   --s-brasa:    #C86B43;    /* ocupado */
   --s-linea:    rgba(242,193,78,0.20);
@@ -1127,8 +1146,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .btn-oro:hover:not(:disabled) { background: var(--s-oro-300); }
 .sitio .btn-linea { border-color: var(--s-linea); color: var(--s-cal); }
 .sitio .btn-linea:hover:not(:disabled) { border-color: var(--s-oro); color: var(--s-oro); }
-.sitio .btn-wa { background: #25A65B; color: #fff; }
-.sitio .btn-wa:hover:not(:disabled) { background: #2BBE68; }
+.sitio .btn-wa { background: #1A7F45; color: #fff; } /* contraste blanco ≥4.5:1 */
+.sitio .btn-wa:hover:not(:disabled) { background: #1C8B4B; }
 .sitio .btn-sm { padding: 9px 16px; font-size: 0.85rem; }
 
 /* --- NAV --- */
@@ -1294,7 +1313,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   padding: 26px 14px 11px;
   background: linear-gradient(transparent, rgba(7, 17, 28, 0.78) 75%);
 }
-.clado-banner-cap h3 { font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem; color: var(--s-cal); }
+.clado-banner-cap .clado-banner-titulo {
+  margin: 0; font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem;
+  line-height: 1.08; letter-spacing: -0.012em; color: var(--s-cal);
+}
 .clado-banner-cap span {
   font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--s-oro-300);
 }
@@ -1539,7 +1561,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); }
 .sitio .rival-cel-meta { color: var(--s-niebla); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.sitio .rival-cel-btn { background: #25A65B; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
+.sitio .rival-cel-btn { background: #1A7F45; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
 .sitio .rival-cel-btn--off { background: var(--s-marino-600); color: var(--s-niebla); }
 .sitio .rival-cel-hora {
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
@@ -1549,7 +1571,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 /* vista celular de "busco rival": lista por día en vez de grilla */
 .rivales-lista { display: none; }
 .sitio .rivales-lista-dia { margin-bottom: 22px; }
-.sitio .rivales-lista-dia h4 {
+.sitio .rivales-lista-dia h3 {
   font-family: var(--s-texto); font-weight: 700; font-size: 1.1rem; color: var(--s-cal);
   margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--s-linea-fria);
   text-transform: capitalize;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +7,7 @@
   <meta name="color-scheme" content="only light" />
   <meta name="supported-color-schemes" content="light" />
   <meta name="description" content="Reservá cancha de fútbol 11 o pádel en Complejo El Pinar, Paraná. Elegí día y horario online, confirmá por WhatsApp y a jugar. Parrilla disponible." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
   <link rel="canonical" href="https://complejo-el-pinar.pages.dev/" />
 
   <meta property="og:title" content="Complejo El Pinar — Canchas en Paraná" />
@@ -21,21 +22,24 @@
   <meta name="twitter:image" content="https://complejo-el-pinar.pages.dev/canchas/futbol-2.jpg" />
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="/fonts/Satoshi-Regular.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/Satoshi-Bold.woff2" as="font" type="font/woff2" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap" rel="stylesheet" />
+  <link rel="preload" href="/fonts/Fraunces-Variable.woff2" as="font" type="font/woff2" crossorigin />
   <title>Complejo El Pinar — Canchas de Fútbol y Pádel en Paraná</title>
 
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SportsActivityLocation",
+    "@id": "https://complejo-el-pinar.pages.dev/#complejo",
     "name": "Complejo El Pinar",
-    "description": "Complejo deportivo con canchas de fútbol 11, pádel y parrilla, en Paraná, Entre Ríos.",
+    "description": "Complejo deportivo en Paraná, Entre Ríos, con 2 canchas de fútbol 11 de césped natural con iluminación profesional, una cancha de pádel con paneles de vidrio y parrilla. Reservas online.",
     "url": "https://complejo-el-pinar.pages.dev/",
-    "image": "https://complejo-el-pinar.pages.dev/canchas/futbol-2.jpg",
+    "image": [
+      "https://complejo-el-pinar.pages.dev/canchas/futbol-2.jpg",
+      "https://complejo-el-pinar.pages.dev/canchas/futbol-1.jpg",
+      "https://complejo-el-pinar.pages.dev/canchas/padel.jpg"
+    ],
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Calle 814",
@@ -44,7 +48,29 @@
       "addressRegion": "Entre Ríos",
       "addressCountry": "AR"
     },
-    "openingHours": "Tu,We,Th 20:00-23:30"
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -31.7838099,
+      "longitude": -60.4570381
+    },
+    "hasMap": "https://maps.app.goo.gl/iwggmLmbxJggAMPP7",
+    "sameAs": ["https://www.instagram.com/elpinarcomplejo/"],
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Tuesday", "Wednesday", "Thursday"],
+        "opens": "20:00",
+        "closes": "23:30"
+      }
+    ],
+    "amenityFeature": [
+      { "@type": "LocationFeatureSpecification", "name": "Canchas de fútbol 11 de césped natural", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Cancha de pádel con paneles de vidrio", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Iluminación profesional", "value": true },
+      { "@type": "LocationFeatureSpecification", "name": "Parrilla", "value": true }
+    ],
+    "sport": ["Fútbol 11", "Pádel"],
+    "inLanguage": "es-AR"
   }
   </script>
 </head>

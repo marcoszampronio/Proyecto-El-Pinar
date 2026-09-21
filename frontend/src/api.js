@@ -1,9 +1,10 @@
-import { supabase } from './supabaseClient';
-
 // Debe apuntar al backend incluyendo /api (ej: http://localhost:3001/api).
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Import dinámico: el cliente de Supabase solo lo necesita el panel de admin,
+// así que no viaja en el JavaScript del sitio público.
 async function tokenAdmin() {
+  const { supabase } = await import('./supabaseClient');
   const { data } = await supabase.auth.getSession();
   return data?.session?.access_token || null;
 }

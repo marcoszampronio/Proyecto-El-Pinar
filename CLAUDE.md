@@ -35,6 +35,19 @@ estos dos lentes antes de darlo por terminado:
   que ya existe en la sección.
 - Estados de carga/vacío/error tienen el mismo tratamiento visual en todo el sitio.
 
+## SEO y rendimiento (medido con Lighthouse, celular simulado)
+
+- Cero recursos de terceros en la carga inicial: las fuentes (Fraunces y Satoshi) están
+  alojadas en `frontend/public/fonts`. La hoja de Google Fonts bloqueaba ~1 s el primer pintado.
+- El panel de admin y el cliente de Supabase se cargan bajo demanda (`React.lazy` en
+  `App.jsx`, import dinámico en `api.js`). No importar `supabaseClient` desde código del sitio público.
+- Encabezados en orden (h1 → h2 → h3, sin saltos), `<main>` alrededor del contenido, imágenes con
+  `alt` descriptivo (con "Paraná"), contraste ≥ 4.5:1 (ojo con `--s-niebla` sobre `--s-marino`).
+- Medir antes/después: `npx lighthouse <url> --only-categories=performance,accessibility,seo`.
+  Referencia 21/9/2026 (local): performance 94, accesibilidad 100, SEO 100, JS público 68 KB gzip.
+- Datos estructurados (JSON-LD en `index.html`): si cambian dirección, horarios o link de Maps,
+  actualizarlos ahí también. Teléfono NO cargado a propósito: debe coincidir con Google Business Profile.
+
 ## Cómo se prueban los cambios visuales antes de subir
 
 1. Cambios grandes o inciertos → rama aparte + `npm run build`, verificar en el

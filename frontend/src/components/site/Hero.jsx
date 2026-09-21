@@ -35,7 +35,7 @@ export default function Hero({ onReservar }) {
 
       <div className="envoltura hero-in">
         <p className="eyebrow">Complejo deportivo · Paraná, Entre Ríos</p>
-        <h1>El Pinar</h1>
+        <h1>El Pinar<span className="sr-solo"> — canchas de fútbol y pádel en Paraná, Entre Ríos</span></h1>
         <p className="hero-sub">
           Canchas de fútbol 11 con iluminación profesional, pádel con paneles de vidrio y parrilla para el asado post partido.
         </p>

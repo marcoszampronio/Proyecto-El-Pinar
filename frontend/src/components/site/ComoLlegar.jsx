@@ -28,9 +28,9 @@ export default function ComoLlegar() {
   return (
     <section className="seccion llegar reveal" id="llegar">
       <div className="envoltura">
-        <a className="mapa-card" href={MAPS_URL} target="_blank" rel="noreferrer" aria-label="Abrir en Google Maps">
+        <a className="mapa-card" href={MAPS_URL} target="_blank" rel="noreferrer" aria-label="Ver en Google Maps">
           {imgOk ? (
-            <img src={MAPA_IMG} alt="Ubicación de El Pinar en el mapa" onError={() => setImgOk(false)} loading="lazy" />
+            <img src={MAPA_IMG} alt="Mapa de la ubicación de Complejo El Pinar en Paraná, Entre Ríos" onError={() => setImgOk(false)} loading="lazy" />
           ) : (
             <MapaDibujado />
           )}

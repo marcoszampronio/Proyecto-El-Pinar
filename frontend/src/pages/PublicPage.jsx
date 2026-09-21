@@ -111,6 +111,7 @@ export default function PublicPage() {
       {/* "Mi reserva" (consulta pública) desactivada por ahora — sin disparadores en la UI */}
       {consultaAbierta && <ConsultaReserva onCerrar={() => setConsultaAbierta(false)} />}
 
+      <main>
       <Hero onReservar={() => irA('reservar')} />
 
       {/* ---------- RESERVAR ---------- */}
@@ -194,6 +195,7 @@ export default function PublicPage() {
 
       <ComoLlegar />
       <Servicios />
+      </main>
       <SiteFooter onIr={irA} />
 
       <MobileTabBar onIr={irA} />

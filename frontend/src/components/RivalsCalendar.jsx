@@ -91,7 +91,7 @@ export default function RivalsCalendar({ rivales }) {
           {porDia.map((dg) => (
             dg.items.length === 0 ? null : (
               <div key={dg.iso} className="rivales-lista-dia">
-                <h4>{dg.nombre} {dg.num}</h4>
+                <h3>{dg.nombre} {dg.num}</h3>
                 <div className="rivales-lista-items">
                   {dg.items.map(({ r, hhmm }, i) => (
                     <RivalCard key={i} r={r} hora={hhmm} />

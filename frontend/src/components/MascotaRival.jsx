@@ -24,7 +24,7 @@ export default function MascotaRival({ onIr }) {
     <button
       className={`mascota ${visible ? 'mascota--on' : ''}`}
       onClick={onIr}
-      aria-label="Ir a Busco rival"
+      aria-label="¿Buscás rival? Ver equipos que buscan partido"
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
     >

@@ -130,7 +130,7 @@ export default function BookingModal({ slotInfo, onClose }) {
         <div className="modal">
           {foto && (
             <div className="modal-foto">
-              <img src={foto.src} alt={NOMBRE_CANCHA[slotInfo.court]} style={{ objectPosition: foto.pos }} />
+              <img src={foto.src} alt={`${NOMBRE_CANCHA[slotInfo.court]} de Complejo El Pinar, Paraná`} style={{ objectPosition: foto.pos }} />
               <span>{NOMBRE_CANCHA[slotInfo.court]}</span>
             </div>
           )}

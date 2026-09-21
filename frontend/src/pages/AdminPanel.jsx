@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
+import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado,
@@ -104,6 +105,7 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
   const [hecho, setHecho] = useState(null);
   const [waConfirm, setWaConfirm] = useState(null);
   const [waAbierto, setWaAbierto] = useState(false);
+  const [imagenAbierta, setImagenAbierta] = useState(false);
 
   const esFutbol = cancha !== 'PAD';
 
@@ -192,6 +194,23 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
               ? 'Mandale la confirmación por WhatsApp con todos los datos del turno.'
               : 'El teléfono del contacto no sirve para WhatsApp — avisale vos por otro medio.'}
           </p>
+          {hecho.looking_for_rival && ['C1', 'C2'].includes(hecho.court) && (
+            <button
+              className="btn btn-ghost"
+              style={{ width: '100%', marginBottom: 12 }}
+              onClick={() => setImagenAbierta(true)}
+            >
+              Generar imagen para Instagram
+            </button>
+          )}
+          {imagenAbierta && (
+            <ImagenBuscoRivalModal
+              reserva={hecho}
+              fecha={hecho.reservation_date || fecha}
+              nombreCancha={NOMBRE_CANCHA[hecho.court]}
+              onCerrar={() => setImagenAbierta(false)}
+            />
+          )}
           <div className="modal-actions">
             <button className="btn btn-ghost" onClick={() => onCreado(hecho)}>Listo</button>
             {waConfirm && (
@@ -475,12 +494,13 @@ function EstadoSistema() {
 // Activa/desactiva "busco rival" en una reserva confirmada de fútbol:
 // "Ya consiguió rival" la saca del calendario público, "Poner en Busco rival"
 // la agrega (con equipo/categoría).
-function RivalToggle({ reserva, onCambio }) {
+function RivalToggle({ reserva, fecha, onCambio }) {
   const [abrir, setAbrir] = useState(false);
   const [teamName, setTeamName] = useState(reserva.team_name || '');
   const [category, setCategory] = useState(reserva.category || '');
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
+  const [imagenAbierta, setImagenAbierta] = useState(false);
 
   async function sacar() {
     setEnviando(true);
@@ -518,6 +538,17 @@ function RivalToggle({ reserva, onCambio }) {
           className="btn btn-ghost"
           style={{ width: '100%' }}
         />
+        <button className="btn btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={() => setImagenAbierta(true)}>
+          Generar imagen para Instagram
+        </button>
+        {imagenAbierta && (
+          <ImagenBuscoRivalModal
+            reserva={reserva}
+            fecha={reserva.reservation_date || fecha}
+            nombreCancha={NOMBRE_CANCHA[reserva.court]}
+            onCerrar={() => setImagenAbierta(false)}
+          />
+        )}
         {error && <p className="error-msg">{error}</p>}
       </div>
     );
@@ -655,7 +686,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       </p>
 
       {reserva.status === 'confirmada' && ['C1', 'C2'].includes(reserva.court) && (
-        <RivalToggle reserva={reserva} onCambio={onCancelado} />
+        <RivalToggle reserva={reserva} fecha={fecha} onCambio={onCancelado} />
       )}
     </div>
   );
@@ -695,7 +726,7 @@ function GrillaFutbol({ agenda, sel, onCelda }) {
                 <span className="grilla-celda-nombre">{r ? r.client_name.split(' ')[0] : ''}</span>
                 <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
                 {r && r.parrilla && <span className="grilla-celda-tag">🔥</span>}
-                {r && r.looking_for_rival && <span className="grilla-celda-tag" style={{ left: 4 }}>🤝</span>}
+                {r && r.looking_for_rival && <span className="grilla-celda-rival">Busco rival</span>}
               </button>
             );
           })}
@@ -861,7 +892,7 @@ function AgendaPanel() {
               <span><i className="pt libre" /> Libre</span>
               <span><i className="pt pendiente" /> A confirmar</span>
               <span><i className="pt confirmada" /> Reservado</span>
-              <span>🔥 parrilla · 🤝 busca rival</span>
+              <span>🔥 parrilla · "Busco rival" = busca rival</span>
             </div>
           </div>
 

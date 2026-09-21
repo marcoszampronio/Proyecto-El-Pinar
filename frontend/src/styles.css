@@ -1013,6 +1013,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .grilla-celda.confirmada .grilla-celda-nombre { color: var(--p-txt); }
 .grilla-celda.confirmada .grilla-celda-estado { color: var(--p-mut); }
 .grilla-celda-tag { position: absolute; top: 3px; right: 4px; font-size: 11px; }
+.grilla-celda-rival {
+  font-size: 11px; font-weight: 700; color: #fff; line-height: 1.1;
+  border-top: 1px solid rgba(255,255,255,0.25); padding-top: 3px; margin-top: 1px;
+}
 
 .grilla-leyenda {
   display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px;

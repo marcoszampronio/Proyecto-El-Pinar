@@ -1,6 +1,6 @@
-export default function LogoPino({ className }) {
+export default function LogoPino({ className, style }) {
   return (
-    <svg className={className} viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg className={className} style={style} viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path
         d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z"
         fill="currentColor"

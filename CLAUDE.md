@@ -62,6 +62,9 @@ estos dos lentes antes de darlo por terminado:
 
 - Revisar si un turno "pendiente" debería seguir mostrándose como "Reservado" en el
   sitio público (decisión ya tomada, pero queda anotado por si se repiensa).
+- SEO y página: hay una lista de pendientes (prerender, teléfono en JSON-LD, Google Business
+  Profile, reseñas, foto horizontal, etc.) en la memoria `pendientes-seo-y-pagina`. Si el
+  usuario pregunta "qué más falta", repasarla.
 - Dominio propio: pendiente de comprar (~$11/año en Cloudflare) hasta que Mateo formalice
   el lanzamiento. Cuando se compre, actualizar todas las URLs hardcodeadas de
   `complejo-el-pinar.pages.dev` (index.html, robots.txt, sitemap.xml) al dominio nuevo.

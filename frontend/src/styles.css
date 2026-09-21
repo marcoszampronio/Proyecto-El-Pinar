@@ -998,7 +998,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .grilla-celda-estado { font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
 .grilla-celda.libre .grilla-celda-nombre { color: var(--p-mut); font-weight: 600; }
-.grilla-celda.libre .grilla-celda-estado { color: var(--p-ok); }
+/* "LIBRE" bien visible para Mateo: más grande, en negrita y con un verde más luminoso */
+.grilla-celda.libre .grilla-celda-estado {
+  color: #7DDC8F; font-size: 15px; font-weight: 800; letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgba(125, 220, 143, 0.45);
+}
 .grilla-celda.pendiente .grilla-celda-nombre { color: var(--p-txt); }
 .grilla-celda.pendiente .grilla-celda-estado { color: var(--p-oro); }
 .grilla-celda.confirmada .grilla-celda-nombre { color: var(--p-txt); }

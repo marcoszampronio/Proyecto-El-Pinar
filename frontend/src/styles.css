@@ -1,3 +1,18 @@
+/* Satoshi (Fontshare, licencia gratuita para uso comercial), alojada en
+   /public/fonts. El 600 que usa el CSS cae automáticamente en el Bold (700). */
+@font-face {
+  font-family: "Satoshi"; font-weight: 400; font-style: normal; font-display: swap;
+  src: url("/fonts/Satoshi-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Satoshi"; font-weight: 500; font-style: normal; font-display: swap;
+  src: url("/fonts/Satoshi-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Satoshi"; font-weight: 700; font-style: normal; font-display: swap;
+  src: url("/fonts/Satoshi-Bold.woff2") format("woff2");
+}
+
 /* La web es siempre clara. Le dice al navegador del celular que NO aplique su
    modo oscuro automático (que invierte los colores y los deja rojizos). */
 :root, html {
@@ -36,7 +51,7 @@
   --s-linea-fria: rgba(148,167,186,0.20);
   --s-sombra:   0 22px 50px -18px rgba(0,0,0,0.55);
   --s-titulo: "Fraunces", "Iowan Old Style", Georgia, serif;
-  --s-texto: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --s-texto: "Satoshi", "Segoe UI", system-ui, sans-serif;
   --s-envoltura: 1180px;
 
   /* --- panel de Mateo (mismo mundo nocturno, calibrado como herramienta) --- */
@@ -60,7 +75,7 @@ html, body, #root {
   padding: 0;
   background: var(--s-pino-900);
   color: var(--s-cal);
-  font-family: 'Outfit', 'Segoe UI', -apple-system, sans-serif;
+  font-family: var(--s-texto);
   -webkit-font-smoothing: antialiased;
 }
 button { font-family: inherit; }
@@ -885,10 +900,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   padding: 18px;
   margin: 0 0 16px;
 }
-.stat-card h3 { font-family: var(--s-titulo); font-weight: 600; color: var(--p-txt); }
+.stat-card h3 { font-family: var(--s-texto); font-weight: 700; color: var(--p-txt); }
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0; }
 .stat-grid .stat-card { margin: 0; background: var(--p-fila); border-color: transparent; }
-.big-num { font-family: var(--s-titulo); font-size: 1.9rem; font-weight: 600; color: var(--p-txt); font-variant-numeric: tabular-nums; }
+.big-num { font-family: var(--s-texto); font-size: 1.9rem; font-weight: 700; color: var(--p-txt); font-variant-numeric: tabular-nums; }
 .tab-btn { display: none; }
 
 .pendiente-item {
@@ -916,7 +931,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .agenda-flecha:hover { border-color: var(--p-oro); color: var(--p-oro); }
 .agenda-flecha:active { background: rgba(255,255,255,0.06); }
 .agenda-fecha { flex: 1; border: none; background: transparent; color: var(--p-txt); cursor: pointer; padding: 4px; line-height: 1.2; text-align: left; }
-.agenda-fecha-dia { display: block; font-family: var(--s-titulo); font-size: 1.35rem; font-weight: 600; text-transform: capitalize; }
+.agenda-fecha-dia { display: block; font-family: var(--s-texto); font-size: 1.35rem; font-weight: 700; text-transform: capitalize; }
 .agenda-fecha-mes { display: block; font-size: 0.8rem; color: var(--p-mut); text-transform: capitalize; }
 .agenda-datepicker { margin-top: 8px; width: 100%; padding: 10px; border-radius: 9px; border: 1.5px solid var(--p-linea); background: var(--p-bg); color: var(--p-txt); }
 .agenda-resumen { font-size: 0.85rem; font-weight: 600; color: var(--p-mut); margin: 0 0 14px; }
@@ -1002,7 +1017,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .tl-tramo.confirmada { background: var(--p-alto); }
 .tl-tramo.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; }
 .agenda-card-titulo {
-  font-family: var(--s-titulo); font-weight: 600; font-size: 15px; color: var(--p-txt);
+  font-family: var(--s-texto); font-weight: 700; font-size: 15px; color: var(--p-txt);
   margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
 }
 .agenda-contador {
@@ -1033,7 +1048,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: var(--p-card); border: 1.5px solid var(--p-oro);
 }
 .agenda-detalle-code { font-family: monospace; font-weight: 700; font-size: 15px; color: var(--p-oro); }
-.agenda-detalle-cancha { font-family: var(--s-titulo); font-size: 21px; font-weight: 600; color: var(--p-txt); line-height: 1.2; }
+.agenda-detalle-cancha { font-family: var(--s-texto); font-size: 21px; font-weight: 700; color: var(--p-txt); line-height: 1.2; }
 .agenda-detalle-estado { display: inline-block; margin: 6px 0; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; }
 .agenda-detalle-estado.pendiente { background: rgba(242,193,78,0.2); color: var(--p-oro); }
 .agenda-detalle-estado.confirmada { background: rgba(91,174,107,0.18); color: var(--p-ok); }
@@ -1344,7 +1359,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   display: block; font-size: 0.57rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.09em; color: var(--s-niebla);
 }
-.sitio .dia-btn .dia-numero { font-family: var(--s-titulo); font-size: 1.4rem; line-height: 1.05; color: #fff; }
+.sitio .dia-btn .dia-numero { font-family: var(--s-texto); font-weight: 700; font-size: 1.45rem; line-height: 1.05; color: #fff; }
 .sitio .dia-btn.activo { background: var(--s-oro); border-color: var(--s-oro); }
 .sitio .dia-btn.activo .dia-nombre,
 .sitio .dia-btn.activo .dia-numero,
@@ -1506,12 +1521,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: transparent; border: 1.5px solid var(--s-linea-fria); color: var(--s-cal);
 }
 .sitio .rivales-cal-flecha:hover:not(:disabled) { border-color: var(--s-oro); color: var(--s-oro); }
-.sitio .rivales-cal-rango { font-family: var(--s-titulo); font-size: 1.15rem; color: var(--s-cal); }
+.sitio .rivales-cal-rango { font-family: var(--s-texto); font-weight: 700; font-size: 1.1rem; color: var(--s-cal); }
 .sitio .rivales-cal-vacio { color: var(--s-niebla); }
 .sitio .rivales-grid { gap: 10px; }
 .sitio .rivales-grid-dia { color: var(--s-cal); }
 .sitio .rivales-grid-dia span { color: var(--s-niebla); font-size: 0.72rem; letter-spacing: 0.08em; }
-.sitio .rivales-grid-dia strong { font-family: var(--s-titulo); font-size: 1.5rem; }
+.sitio .rivales-grid-dia strong { font-family: var(--s-texto); font-weight: 700; font-size: 1.4rem; }
 .sitio .rivales-grid-hora { color: var(--s-niebla); font-variant-numeric: tabular-nums; }
 .sitio .rivales-grid-celda {
   min-height: 116px; background: transparent;
@@ -1522,7 +1537,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   border-radius: 12px; padding: 14px; gap: 8px; color: var(--s-cal);
   justify-content: space-between;
 }
-.sitio .rival-cel-eq { font-family: var(--s-titulo); font-size: 1.2rem; font-weight: 600; color: var(--s-cal); }
+.sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); }
 .sitio .rival-cel-meta { color: var(--s-niebla); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .sitio .rival-cel-btn { background: #25A65B; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
 .sitio .rival-cel-btn--off { background: var(--s-marino-600); color: var(--s-niebla); }
@@ -1535,7 +1550,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .rivales-lista { display: none; }
 .sitio .rivales-lista-dia { margin-bottom: 22px; }
 .sitio .rivales-lista-dia h4 {
-  font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem; color: var(--s-cal);
+  font-family: var(--s-texto); font-weight: 700; font-size: 1.1rem; color: var(--s-cal);
   margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--s-linea-fria);
   text-transform: capitalize;
 }
@@ -1626,14 +1641,14 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .modal-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sitio .modal-foto span {
   position: absolute; left: 12px; bottom: 10px;
-  font-family: var(--s-titulo); font-weight: 600; font-size: 1.05rem; color: var(--s-cal);
+  font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal);
   padding: 3px 10px; border-radius: 999px; background: rgba(7, 17, 28, 0.62);
 }
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
 .sitio .resumen-turno{
   background:var(--s-pino-900); border:1px solid var(--s-linea);
   border-radius:14px; padding:16px 18px 14px; margin:4px 0 18px;
-  display:grid; grid-template-columns:1fr 1fr; gap:14px 16px;
+  display:grid; grid-template-columns:1.3fr 1fr; gap:14px 16px;
 }
 .sitio .resumen-item{ min-width:0; }
 .sitio .resumen-label{
@@ -1643,7 +1658,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .resumen-label svg{ width:14px; height:14px; flex:none; }
 .sitio .resumen-valor{
-  font-family:var(--s-titulo); font-weight:600; font-size:1.32rem; line-height:1.15;
+  font-family:var(--s-texto); font-weight:700; font-size:1.25rem; line-height:1.2;
   color:var(--s-cal); font-variant-numeric:tabular-nums;
 }
 .sitio .resumen-full{ grid-column:1 / -1; border-top:1px solid var(--s-linea-fria); margin-top:2px; padding-top:12px; }

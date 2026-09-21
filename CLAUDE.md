@@ -24,8 +24,11 @@ estos dos lentes antes de darlo por terminado:
 - Paleta: navy/pino oscuro (`--s-pino-900` #0F2436, `--s-marino` #1D3E5A) + dorado
   (`--s-oro` #F2C14E) para el sitio; equivalentes `--p-*` para el panel. Verde
   (`--s-cesped`) = disponible/positivo, rojo/coral = error, nunca mezclar semántica.
-- Tipografía: **Fraunces** (serif, títulos) + **Archivo** (texto/UI). No mezclar otras
-  familias sin razón.
+- Tipografía: **Fraunces** (serif) solo para títulos grandes y la marca ("El Pinar");
+  **Satoshi** (sans, alojada en `frontend/public/fonts`) para todo lo que se lee o
+  se escanea: texto, botones, días, horarios, nombres de equipos, cifras del panel.
+  Regla: si es un dato que hay que leer al vuelo, va en Satoshi. No mezclar otras
+  familias sin razón. (Satoshi solo tiene pesos 400/500/700: un `600` cae en el 700.)
 - Todo nuevo componente reusa los tokens y clases `.sitio *` / `.grilla-pub-*` /
   `.clado-*` existentes en `frontend/src/styles.css` antes de inventar uno nuevo.
 - Espaciado consistente, nada centrado "porque sí" — cada elemento alineado a la grilla

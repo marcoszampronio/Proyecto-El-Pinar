@@ -75,6 +75,23 @@ toda la conversación original.
       Se puede sumar una tarjeta flotante encima del video/foto (estilo
       ATC) con algo tipo "Cancha 1 · Disponible hoy" para combinar las dos
       referencias.
+- [ ] Videos cortos para redes (probado con el skill `/brag` + HyperFrames —
+      corre 100% local, sin pago de ningún servicio). Se planea armar DOS
+      videos distintos, no uno solo:
+      1) **Para jugadores**: muestra el flujo real de reserva del sitio
+         (elegir cancha/horario → confirmar), hablándole al jugador.
+      2) **Para vender el sistema a otros dueños de complejos** (parte del
+         armado de "Cancha Libre" / prospección): el eje es el dolor del
+         DUEÑO, no del jugador — mostrar a Mateo desbordado por WhatsApp, no
+         a un jugador con una molestia menor. Escena de WhatsApp combinando:
+         - Mensajes con el doble tilde azul (visto) sin responder.
+         - Alguien pregunta, no le contestan a tiempo, y termina yéndose a
+           reservar a otro lado (plata perdida, no solo demora).
+         Cierra con 3-4 ítems de beneficios (elegir entre: reservas
+         organizadas en un solo lugar, marca propia en vez de una app
+         compartida, menos tiempo respondiendo WhatsApp, precio fijo sin
+         comisión por reserva, control total de horarios/precios/reglas) y
+         un CTA de contacto real en vez de solo el logo + tagline.
 
 ## Convenciones de código
 - Todo el texto de cara al usuario está en español.

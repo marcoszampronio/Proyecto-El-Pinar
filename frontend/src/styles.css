@@ -1284,6 +1284,20 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--s-oro-300);
 }
 
+/* mapa ilustrado del complejo, solo celular (debajo del texto "Abrimos...") */
+.mapa-complejo { display: none; }
+.mapa-complejo-tag {
+  position: absolute; transform: translate(-50%, -50%);
+  font-family: var(--s-texto); font-weight: 700; font-size: 0.62rem;
+  letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+  color: var(--s-cal); background: rgba(15, 36, 54, 0.82);
+  padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(242, 193, 78, 0.35);
+}
+.mapa-complejo-tag--grande {
+  font-family: var(--s-titulo); font-weight: 600; font-size: 0.85rem;
+  letter-spacing: 0; text-transform: none; padding: 5px 12px;
+}
+
 @media (max-width: 940px) {
   .board-cols { grid-template-columns: 1fr; gap: 26px; }
   .board-lado { order: -1; }         /* el texto queda arriba del panel */
@@ -1293,6 +1307,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
     display: block; position: relative; margin: 0 0 18px;
     border-radius: 14px; overflow: hidden; border: 1px solid var(--s-linea-fria);
   }
+  .mapa-complejo {
+    display: block; position: relative; margin: 14px 0 0;
+    border-radius: 14px; overflow: hidden; border: 1px solid var(--s-linea-fria);
+  }
+  .mapa-complejo img { display: block; width: 100%; height: auto; }
 }
 
 /* selector de canchas -> pills */

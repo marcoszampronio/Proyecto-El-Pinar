@@ -3,7 +3,7 @@ import { WaIcon } from './site/iconos';
 import { WA_URL } from './site/config';
 
 // Jugadorcito cabezón que invita a la sección "Busco rival".
-// Aparece a los 5 s y después cicla: 30 s visible / 5 s oculto, siempre
+// Aparece a los 5 s y después cicla: 15 s visible / 15 s oculto, siempre
 // (hasta que lo tocan). Mientras está oculto, en su lugar aparece un botón
 // de WhatsApp — así el rincón nunca queda vacío, siempre invitando a algo.
 export default function MascotaRival({ onIr }) {
@@ -13,11 +13,11 @@ export default function MascotaRival({ onIr }) {
     let t;
     const mostrar = () => {
       setVisible(true);
-      t = setTimeout(ocultar, 30000);
+      t = setTimeout(ocultar, 15000);
     };
     const ocultar = () => {
       setVisible(false);
-      t = setTimeout(mostrar, 5000);
+      t = setTimeout(mostrar, 15000);
     };
     t = setTimeout(mostrar, 5000);
     return () => clearTimeout(t);

@@ -47,29 +47,37 @@ export default function Servicios() {
           <p>El Pinar es un predio arbolado en las afueras de Paraná. Venís, jugás, y te quedás al asado.</p>
         </div>
 
-        <div className="serv-grid">
-          {SERVICIOS.map((s) => (
-            <div className="serv-card" key={s.titulo}>
-              {s.foto ? (
-                <div className="serv-ico serv-ico--foto">
-                  <img src={s.foto} alt={s.fotoAlt} loading="lazy" />
+        <div className="serv-carrusel">
+          <div className="serv-grid">
+            {SERVICIOS.map((s) => (
+              s.foto ? (
+                <div className="serv-card serv-card--foto" key={s.titulo}>
+                  <div className="serv-card-foto">
+                    <img src={s.foto} alt={s.fotoAlt} loading="lazy" />
+                  </div>
+                  <div className="serv-card-body">
+                    <h3>{s.titulo}</h3>
+                    <p>{s.texto}</p>
+                  </div>
                 </div>
               ) : (
-                <div className="serv-ico">{s.icono}</div>
-              )}
-              <h3>{s.titulo}</h3>
-              <p>{s.texto}</p>
-            </div>
-          ))}
+                <div className="serv-card" key={s.titulo}>
+                  <div className="serv-ico">{s.icono}</div>
+                  <h3>{s.titulo}</h3>
+                  <p>{s.texto}</p>
+                </div>
+              )
+            ))}
 
-          <div className="serv-card serv-card--cta">
-            <div>
-              <h3>¿Otra consulta?</h3>
-              <p>Contactanos por WhatsApp: disponibilidad, cumpleaños, torneos.</p>
+            <div className="serv-card serv-card--cta">
+              <div>
+                <h3>¿Otra consulta?</h3>
+                <p>Contactanos por WhatsApp: disponibilidad, cumpleaños, torneos.</p>
+              </div>
+              <a className="btn btn-wa" href={WA_URL} target="_blank" rel="noreferrer">
+                <WaIcon s={16} /> El Pinar
+              </a>
             </div>
-            <a className="btn btn-wa" href={WA_URL} target="_blank" rel="noreferrer">
-              <WaIcon s={16} /> El Pinar
-            </a>
           </div>
         </div>
       </div>

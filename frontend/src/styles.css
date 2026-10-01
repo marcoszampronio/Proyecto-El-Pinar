@@ -1131,7 +1131,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .envoltura { max-width: var(--s-envoltura); margin: 0 auto; padding: 0 24px; }
 .sitio .seccion { padding-block: clamp(36px, 4.5vw, 60px); position: relative; }
-.sitio [id] { scroll-margin-top: 40px; }
+.sitio [id] { scroll-margin-top: 90px; }
 .sitio .field-check {
   display: flex; align-items: flex-start; gap: 9px;
   font-size: 0.92rem; color: var(--s-cal); margin-bottom: 10px; line-height: 1.4;
@@ -1252,6 +1252,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .hero-vin {
   position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
+    /* funde el pie del hero al color plano de la página de abajo, para que
+       no quede un escalón de color justo en el borde de la sección */
+    linear-gradient(180deg, transparent 0%, transparent 88%, var(--s-pino-900) 100%),
     radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(7,17,28,0.55) 100%),
     linear-gradient(180deg, rgba(7,17,28,0.35) 0%, transparent 25%, transparent 60%, rgba(7,17,28,0.72) 100%);
 }
@@ -1276,9 +1279,18 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 /* --- reveal suave --- */
+/* overflow-anchor: none siempre (no solo con el media query de abajo) para
+   que el navegador no "corrija" el scroll por el cambio de tamaño aparente
+   cuando una sección vecina hace fade-in justo mientras se hace scroll
+   programático (ej. al apretar "Ver equipos") — si no, el scroll automático
+   puede cortarse a mitad de camino. */
+.sitio .reveal { overflow-anchor: none; }
 @media (prefers-reduced-motion: no-preference) {
-  .sitio .reveal { transform: translateY(16px); transition: transform .7s cubic-bezier(.2,.7,.2,1); }
-  .sitio .reveal.vista { transform: none; }
+  .sitio .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+  }
+  .sitio .reveal.vista { opacity: 1; transform: none; }
 }
 
 /* --- SECCIÓN RESERVAR --- */
@@ -1313,27 +1325,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .clado-nota { color: var(--s-niebla); margin: 14px 0 0; font-size: 0.9rem; }
 @media (prefers-reduced-motion: no-preference) {
-  .clado-card, .clado-banner { animation: cladoIn .35s ease; }
+  .clado-card { animation: cladoIn .35s ease; }
   @keyframes cladoIn { from { opacity: 0; transform: translateY(10px); } }
-}
-
-/* banda de la cancha para celular (debajo de los botones de cancha) */
-.clado-banner { display: none; }
-.clado-banner .clado-foto {
-  aspect-ratio: 2.5 / 1; border-bottom: none;
-}
-.clado-banner-cap {
-  position: absolute; inset: auto 0 0 0; z-index: 1;
-  display: flex; align-items: baseline; gap: 10px;
-  padding: 26px 14px 11px;
-  background: linear-gradient(transparent, rgba(7, 17, 28, 0.78) 75%);
-}
-.clado-banner-cap .clado-banner-titulo {
-  margin: 0; font-family: var(--s-titulo); font-weight: 600; font-size: 1.15rem;
-  line-height: 1.08; letter-spacing: -0.012em; color: var(--s-cal);
-}
-.clado-banner-cap span {
-  font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--s-oro-300);
 }
 
 /* mapa ilustrado del complejo (Cancha 1 / Cancha 2), solo celular */
@@ -1348,10 +1341,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .mapa-complejo {
     display: block; margin: 14px 0 0; border-radius: 14px; overflow: hidden;
     border: 1px solid var(--s-linea-fria);
-  }
-  .clado-banner {
-    display: block; position: relative; margin: 0 0 18px;
-    border-radius: 14px; overflow: hidden; border: 1px solid var(--s-linea-fria);
   }
 }
 
@@ -1620,7 +1609,20 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv { background: var(--s-pino-900); }
 .serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 @media (max-width: 900px) { .serv-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .serv-grid { grid-template-columns: 1fr; } }
+
+/* en celular: carrusel horizontal con snap en vez de la grilla apilada, para
+   que el usuario deslice las comodidades sin tener que bajar tanto. Sin
+   flechas: el pedacito de la siguiente tarjeta que se asoma ya indica que
+   se puede deslizar. */
+@media (max-width: 620px) {
+  .serv-grid {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    gap: 14px; padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .serv-grid::-webkit-scrollbar { display: none; }
+  .serv-grid > * { flex: 0 0 85%; scroll-snap-align: start; }
+}
 .serv-card {
   background: var(--s-marino); border: 1px solid var(--s-linea-fria);
   border-radius: 16px; padding: 20px 20px;
@@ -1633,8 +1635,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: color-mix(in srgb, var(--s-oro) 20%, transparent); color: var(--s-oro-300);
 }
 .serv-ico svg { width: 26px; height: 26px; }
-.serv-ico--foto { overflow: hidden; background: none; }
-.serv-ico--foto img { width: 100%; height: 100%; object-fit: cover; }
+.serv-card--foto { padding: 0; gap: 0; overflow: hidden; }
+.serv-card-foto { aspect-ratio: 4 / 3; }
+.serv-card-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.serv-card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
 .serv-card h3 { font-size: 1.22rem; }
 .serv-card p { color: var(--s-niebla); font-size: 0.94rem; line-height: 1.5; }
 .serv-card--cta { background: var(--s-oro); color: var(--s-pino-900); justify-content: space-between; }

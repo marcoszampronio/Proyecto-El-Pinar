@@ -22,11 +22,18 @@ import { FlechaAbajo } from '../components/site/iconos';
 import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
 
 function irA(id) {
-  if (id === 'top') {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    return;
-  }
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Si el click vino de un botón, el navegador a veces hace su propio ajuste
+  // de scroll para dejarlo visible (foco), y esa animación corta pisa la
+  // nuestra a mitad de camino. Sacamos el foco y arrancamos el scroll recién
+  // en el siguiente frame para que el nuestro sea el que gana.
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  requestAnimationFrame(() => {
+    if (id === 'top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 }
 
 export default function PublicPage() {
@@ -120,7 +127,6 @@ export default function PublicPage() {
         <div className="envoltura board-cols">
           <div className="board-panel">
             <DeporteSelector seleccionado={deporte} onSeleccionar={setDeporte} />
-            <CanchaLado deporte={deporte} variant="banner" />
             <DateStrip seleccionada={fecha} onSeleccionar={setFecha} />
 
             {cargando && <p className="cargando">Cargando horarios…</p>}

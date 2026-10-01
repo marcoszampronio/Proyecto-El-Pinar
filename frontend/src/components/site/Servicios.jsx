@@ -41,9 +41,9 @@ const SERVICIOS = [
 
 export default function Servicios() {
   return (
-    <section className="seccion serv reveal" id="servicios">
+    <section className="seccion serv" id="servicios">
       <div className="envoltura">
-        <div className="seccion-cab">
+        <div className="seccion-cab reveal">
           <p className="eyebrow">El complejo</p>
           <h2>Todo para el partido y el after.</h2>
           <p>El Pinar es un predio arbolado en las afueras de Paraná. Venís, jugás, y te quedás al asado.</p>
@@ -51,14 +51,14 @@ export default function Servicios() {
 
         <div className="serv-grid">
           {SERVICIOS.map((s) => (
-            <div className="serv-card" key={s.titulo}>
+            <div className="serv-card reveal" key={s.titulo}>
               <div className="serv-ico">{s.icono}</div>
               <h3>{s.titulo}</h3>
               <p>{s.texto}</p>
             </div>
           ))}
 
-          <div className="serv-card serv-card--cta">
+          <div className="serv-card serv-card--cta reveal">
             <div>
               <h3>¿Otra consulta?</h3>
               <p>Contactanos por WhatsApp: disponibilidad, cumpleaños, torneos.</p>

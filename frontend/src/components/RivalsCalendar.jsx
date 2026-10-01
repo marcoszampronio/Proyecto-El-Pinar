@@ -19,7 +19,7 @@ function etiquetaDia(iso) {
   return { nombre: DIAS_CORTO[d.getDay()], num: d.getDate() };
 }
 
-export default function RivalsCalendar({ rivales }) {
+export default function RivalsCalendar({ rivales, onIr }) {
   const lunesInicial = lunesDeLaSemana(proximoDiaHabilitado(hoyISO()));
   const [ancla, setAncla] = useState(lunesInicial);
   const dias = semanaLaboral(ancla).filter(esDiaHabilitado); // Mar, Mié, Jue
@@ -107,7 +107,14 @@ export default function RivalsCalendar({ rivales }) {
       )}
 
       {!hayRivales && (
-        <p className="rivales-cal-vacio">Todavía no hay equipos buscando rival.</p>
+        <div className="rivales-cal-vacio">
+          <p>Todavía no hay equipos buscando rival esta semana.</p>
+          {onIr && (
+            <button className="btn btn-oro" onClick={() => onIr('reservar')}>
+              Reservá tu cancha y marcá “Busco rival”
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

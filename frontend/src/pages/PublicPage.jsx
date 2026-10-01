@@ -189,7 +189,7 @@ export default function PublicPage() {
             <h2>Equipos que buscan partido</h2>
             <p>Ya reservaron su cancha. Escribiles por WhatsApp y coordinen. Para aparecer acá, marcá “Estoy buscando rival” cuando reservás.</p>
           </div>
-          <RivalsCalendar rivales={rivales} />
+          <RivalsCalendar rivales={rivales} onIr={irA} />
         </div>
       </section>
 

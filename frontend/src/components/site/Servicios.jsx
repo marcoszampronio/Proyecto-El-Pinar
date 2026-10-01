@@ -5,16 +5,14 @@ const SERVICIOS = [
   {
     titulo: '2 canchas de fútbol 11',
     texto: 'Césped natural bajo iluminación profesional.',
-    icono: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M12 3v6" /><circle cx="12" cy="12" r="3" /><path d="M4 21c1.5-4 4-6 8-6s6.5 2 8 6" /><path d="M4 6h4M16 6h4" /></svg>
-    ),
+    foto: '/canchas/futbol-2.jpg',
+    fotoAlt: 'Cancha de fútbol 11 de Complejo El Pinar',
   },
   {
     titulo: 'Cancha de pádel',
     texto: 'Paneles de vidrio y luces para jugar de noche, entre los pinos.',
-    icono: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><circle cx="9" cy="8" r="5" /><path d="M9 13v4M6 21h6M12.5 12.5 20 20" /></svg>
-    ),
+    foto: '/canchas/padel.jpg',
+    fotoAlt: 'Cancha de pádel de Complejo El Pinar',
   },
   {
     titulo: 'Parrilla',
@@ -52,7 +50,13 @@ export default function Servicios() {
         <div className="serv-grid">
           {SERVICIOS.map((s) => (
             <div className="serv-card" key={s.titulo}>
-              <div className="serv-ico">{s.icono}</div>
+              {s.foto ? (
+                <div className="serv-ico serv-ico--foto">
+                  <img src={s.foto} alt={s.fotoAlt} loading="lazy" />
+                </div>
+              ) : (
+                <div className="serv-ico">{s.icono}</div>
+              )}
               <h3>{s.titulo}</h3>
               <p>{s.texto}</p>
             </div>

@@ -1567,7 +1567,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .rivales-cal-flecha:hover:not(:disabled) { border-color: var(--s-oro); color: var(--s-oro); }
 .sitio .rivales-cal-rango { font-family: var(--s-texto); font-weight: 700; font-size: 1.1rem; color: var(--s-cal); }
-.sitio .rivales-cal-vacio { color: var(--s-niebla); }
+.sitio .rivales-cal-vacio {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  text-align: center; color: var(--s-niebla);
+  padding: 40px 20px; border: 1px dashed var(--s-linea-fria); border-radius: 14px;
+}
+.sitio .rivales-cal-vacio p { margin: 0; }
 .sitio .rivales-grid { gap: 10px; }
 .sitio .rivales-grid-dia { color: var(--s-cal); }
 .sitio .rivales-grid-dia span { color: var(--s-niebla); font-size: 0.72rem; letter-spacing: 0.08em; }
@@ -1628,6 +1633,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: color-mix(in srgb, var(--s-oro) 20%, transparent); color: var(--s-oro-300);
 }
 .serv-ico svg { width: 26px; height: 26px; }
+.serv-ico--foto { overflow: hidden; background: none; }
+.serv-ico--foto img { width: 100%; height: 100%; object-fit: cover; }
 .serv-card h3 { font-size: 1.22rem; }
 .serv-card p { color: var(--s-niebla); font-size: 0.94rem; line-height: 1.5; }
 .serv-card--cta { background: var(--s-oro); color: var(--s-pino-900); justify-content: space-between; }

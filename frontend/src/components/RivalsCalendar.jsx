@@ -34,7 +34,8 @@ export default function RivalsCalendar({ rivales }) {
 
   const primero = etiquetaDia(dias[0]);
   const ultimo = etiquetaDia(dias[dias.length - 1]);
-  const mes = MESES_CORTO[desdeISO(dias[0]).getMonth()];
+  const mesPrimero = MESES_CORTO[desdeISO(dias[0]).getMonth()];
+  const mesUltimo = MESES_CORTO[desdeISO(dias[dias.length - 1]).getMonth()];
 
   // para la vista de celular: rivales agrupados por día (con su horario)
   const porDia = dias.map((d) => {
@@ -56,7 +57,9 @@ export default function RivalsCalendar({ rivales }) {
           aria-label="Semana anterior"
         >‹</button>
         <span className="rivales-cal-rango">
-          {primero.num} al {ultimo.num} de {mes}
+          {mesPrimero === mesUltimo
+            ? `${primero.num} al ${ultimo.num} de ${mesPrimero}`
+            : `${primero.num} de ${mesPrimero} al ${ultimo.num} de ${mesUltimo}`}
         </span>
         <button
           className="rivales-cal-flecha"

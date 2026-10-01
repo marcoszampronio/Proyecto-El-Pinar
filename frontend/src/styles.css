@@ -1774,6 +1774,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (max-width: 900px) {
   .sitio .mascota { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); right: 14px; }
 }
+@media (max-width: 620px) {
+  /* más chica en celular: a este ancho tapa más contenido al pasar */
+  .sitio .mascota-svg { width: 52px; }
+  .sitio .mascota-globo { font-size: 11px; padding: 5px 9px; }
+}
 
 @media (max-width: 620px) {
   .sitio { font-size: 15.5px; }

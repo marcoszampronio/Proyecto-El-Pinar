@@ -20,7 +20,7 @@ export default function SiteFooter({ onIr }) {
           <a className="snav-ico" href={IG_URL} target="_blank" rel="noreferrer" aria-label="Instagram"><IgIcon /></a>
           <a className="snav-ico" href={WA_URL} target="_blank" rel="noreferrer" aria-label="WhatsApp"><WaIcon /></a>
         </div>
-        <p className="pie-nota">Complejo El Pinar · Paraná, Entre Ríos. Algunas fotos y datos son de ejemplo hasta cargar los definitivos.</p>
+        <p className="pie-nota">Complejo El Pinar · Paraná, Entre Ríos.</p>
       </div>
     </footer>
   );

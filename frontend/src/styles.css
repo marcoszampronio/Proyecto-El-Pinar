@@ -1478,6 +1478,14 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: var(--s-pino-900); border-color: var(--s-linea-fria);
   color: var(--s-niebla); cursor: not-allowed;
 }
+/* "Reservado" pero todavía pendiente de confirmar: se ve IGUAL en reposo
+   (de cara al público no hay estado intermedio), pero es clickeable —
+   lleva a anotarse a la lista de espera por si no se confirma y se libera. */
+.sitio .grilla-pub-celda.ocupado-espera { cursor: pointer; }
+.sitio .grilla-pub-celda.ocupado-espera:hover {
+  border-color: rgba(242, 193, 78, 0.35);
+  background: color-mix(in srgb, var(--s-oro) 5%, var(--s-pino-900));
+}
 /* reservado + busca rival: oscuro, con borde dorado y el nombre del equipo */
 .sitio .grilla-pub-celda.rival {
   background: var(--s-pino-900);

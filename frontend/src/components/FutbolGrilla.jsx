@@ -2,7 +2,11 @@ import { hhmm } from '../lib/fechas';
 
 // Grilla pública de fútbol: Cancha 1 y Cancha 2 en columnas, turnos en filas.
 // - Celda "Libre": tocás y abre la reserva de esa cancha + turno.
-// - Celda "Reservado": oscura, no se toca.
+// - Celda "Reservado" (confirmada): oscura, no se toca.
+// - Celda "Reservado" (pendiente, sin confirmar aún): se ve IGUAL que una
+//   confirmada a propósito (de cara al público no hay estado intermedio),
+//   pero es clickeable y lleva a anotarse a la lista de espera por si no
+//   llega a confirmarse y se libera.
 // - Celda "Reservado" + busca rival: muestra el equipo; tocás y abre su info.
 //
 // c1 / c2 : [{ turn, start, end, status }]
@@ -32,21 +36,25 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
             {[['C1', c1[i]], ['C2', c2[i]]].map(([court, slot]) => {
               const libre = slot && slot.status === 'libre';
               const rival = !libre ? idxRival[`${court}|${hhmm(t.start)}`] : null;
-              const clase = libre ? 'libre' : rival ? 'rival' : 'ocupado';
+              const pendienteSinRival = !libre && !rival && slot?.status === 'pendiente' && !!onListaEspera;
+              const clase = libre ? 'libre' : rival ? 'rival' : pendienteSinRival ? 'ocupado ocupado-espera' : 'ocupado';
               return (
                 <button
                   key={court}
                   className={`grilla-pub-celda ${clase}`}
-                  disabled={!libre && !rival}
+                  disabled={!libre && !rival && !pendienteSinRival}
                   onClick={() => {
                     if (libre) onReservar(court, t.turn, t.start, t.end);
                     else if (rival) onVerRival(rival);
+                    else if (pendienteSinRival) onListaEspera();
                   }}
                   aria-label={
                     libre
                       ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)} a ${hhmm(t.end)}: libre, tocá para reservar`
                       : rival
                       ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado por ${rival.team_name}, busca rival`
+                      : pendienteSinRival
+                      ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado. Todavía no se confirmó — tocá para anotarte a la lista de espera por si se libera.`
                       : `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado`
                   }
                 >

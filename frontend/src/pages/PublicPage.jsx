@@ -123,7 +123,7 @@ export default function PublicPage() {
       <Hero onReservar={() => irA('reservar')} />
 
       {/* ---------- RESERVAR ---------- */}
-      <section className="seccion board" id="reservar">
+      <section className="seccion board reveal" id="reservar">
         <div className="envoltura board-cols">
           <div className="board-panel">
             <DeporteSelector seleccionado={deporte} onSeleccionar={setDeporte} />

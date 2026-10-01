@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
+import { WaIcon } from './site/iconos';
+import { WA_URL } from './site/config';
 
 // Jugadorcito cabezón que invita a la sección "Busco rival".
 // Aparece a los 5 s y después cicla: 30 s visible / 5 s oculto, siempre
-// (hasta que lo tocan).
+// (hasta que lo tocan). Mientras está oculto, en su lugar aparece un botón
+// de WhatsApp — así el rincón nunca queda vacío, siempre invitando a algo.
 export default function MascotaRival({ onIr }) {
   const [visible, setVisible] = useState(false);
 
@@ -21,16 +24,30 @@ export default function MascotaRival({ onIr }) {
   }, []);
 
   return (
-    <button
-      className={`mascota ${visible ? 'mascota--on' : ''}`}
-      onClick={onIr}
-      aria-label="¿Buscás rival? Ver equipos que buscan partido"
-      aria-hidden={!visible}
-      tabIndex={visible ? 0 : -1}
-    >
-      <span className="mascota-globo">¿Buscás rival?</span>
-      <Jugador />
-    </button>
+    <div className="mascota-slot">
+      <button
+        className={`mascota ${visible ? 'mascota--on' : ''}`}
+        onClick={onIr}
+        aria-label="¿Buscás rival? Ver equipos que buscan partido"
+        aria-hidden={!visible}
+        tabIndex={visible ? 0 : -1}
+      >
+        <span className="mascota-globo">¿Buscás rival?</span>
+        <Jugador />
+      </button>
+
+      <a
+        className={`mascota-wa ${!visible ? 'mascota-wa--on' : ''}`}
+        href={WA_URL}
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Escribinos por WhatsApp"
+        aria-hidden={visible}
+        tabIndex={visible ? -1 : 0}
+      >
+        <WaIcon s={28} />
+      </a>
+    </div>
   );
 }
 

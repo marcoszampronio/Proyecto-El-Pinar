@@ -19,7 +19,7 @@ import ComoLlegar from '../components/site/ComoLlegar';
 import SiteFooter from '../components/site/SiteFooter';
 import MobileTabBar from '../components/site/MobileTabBar';
 import { FlechaAbajo } from '../components/site/iconos';
-import { hoyISO, proximoDiaHabilitado } from '../lib/fechas';
+import { hoyISO, proximoDiaHabilitado, sumarDias } from '../lib/fechas';
 
 function irA(id) {
   // Si el click vino de un botón, el navegador a veces hace su propio ajuste
@@ -52,6 +52,15 @@ export default function PublicPage() {
   const [slotSeleccionado, setSlotSeleccionado] = useState(null);
   const [rivalVisto, setRivalVisto] = useState(null);
   const [reintento, setReintento] = useState(0);
+  const [diasEspeciales, setDiasEspeciales] = useState(() => new Set());
+
+  useEffect(() => {
+    const desde = hoyISO();
+    const hasta = sumarDias(desde, 90);
+    api.diasEspeciales(desde, hasta)
+      .then((d) => setDiasEspeciales(new Set(d.fechas)))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let cancelado = false;
@@ -127,7 +136,7 @@ export default function PublicPage() {
         <div className="envoltura board-cols">
           <div className="board-panel">
             <DeporteSelector seleccionado={deporte} onSeleccionar={setDeporte} />
-            <DateStrip seleccionada={fecha} onSeleccionar={setFecha} />
+            <DateStrip seleccionada={fecha} onSeleccionar={setFecha} diasEspeciales={diasEspeciales} />
 
             {cargando && <p className="cargando">Cargando horarios…</p>}
             {errorCarga && (

@@ -13,6 +13,13 @@ import {
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
+import {
+  listarAperturasEspeciales,
+  crearAperturaEspecial,
+  quitarAperturaEspecial,
+  esDiaDeAperturaPermitido,
+  esFechaAbierta,
+} from '../lib/aperturasEspeciales.js';
 
 const router = Router();
 
@@ -380,8 +387,8 @@ router.post('/manual', async (req, res) => {
   if (!body.clientName || !body.clientPhone) {
     return res.status(400).json({ error: 'Falta el nombre y el teléfono del cliente.' });
   }
-  if (!esDiaHabilitado(body.date)) {
-    return res.status(400).json({ error: 'Solo se puede agendar martes, miércoles o jueves.' });
+  if (!(await esFechaAbierta(body.date))) {
+    return res.status(400).json({ error: 'Ese día no está habilitado. Abrilo primero desde "Suspender" si querés agendar igual.' });
   }
   if (!['C1', 'C2', 'PAD'].includes(body.court)) {
     return res.status(400).json({ error: 'Cancha inválida.' });
@@ -543,6 +550,45 @@ router.delete('/bloqueos/:id', async (req, res) => {
   const { error } = await supabaseAdmin.from('bloqueos').delete().eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
+});
+
+// GET /api/admin/aperturas-especiales?desde&hasta - lo inverso de un bloqueo:
+// días fuera de mar/mié/jue que Mateo abrió puntualmente.
+router.get('/aperturas-especiales', async (req, res) => {
+  try {
+    const data = await listarAperturasEspeciales({ desde: req.query.desde, hasta: req.query.hasta });
+    res.json({ aperturas: data });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/aperturas-especiales - abre un lunes o viernes puntual.
+router.post('/aperturas-especiales', async (req, res) => {
+  const { date, nota } = req.body || {};
+  if (!date) return res.status(400).json({ error: 'Falta la fecha.' });
+  if (!esDiaDeAperturaPermitido(date)) {
+    return res.status(400).json({ error: 'Por ahora solo se puede abrir un lunes o un viernes.' });
+  }
+  if (esDiaHabilitado(date)) {
+    return res.status(400).json({ error: 'Ese día ya está habilitado normalmente.' });
+  }
+  try {
+    const data = await crearAperturaEspecial({ date, nota, createdBy: req.adminEmail });
+    res.json({ apertura: data });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// DELETE /api/admin/aperturas-especiales/:id - cierra esa apertura puntual.
+router.delete('/aperturas-especiales/:id', async (req, res) => {
+  try {
+    await quitarAperturaEspecial(req.params.id);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // GET /api/admin/turnos-fijos - lista de turnos fijos activos.

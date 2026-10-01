@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
-import { esDiaHabilitado } from '../lib/codeGenerator.js';
+import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
 
 const router = Router();
 
@@ -12,8 +12,8 @@ router.post('/', async (req, res) => {
   const clientName = String(body.clientName || '').trim();
   const clientPhone = String(body.clientPhone || '').trim();
 
-  if (!date || !esDiaHabilitado(date)) {
-    return res.status(400).json({ error: 'Elegí un día habilitado (martes, miércoles o jueves).' });
+  if (!date || !(await esFechaAbierta(date))) {
+    return res.status(400).json({ error: 'Elegí un día habilitado.' });
   }
   if (!clientName || clientPhone.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá tu nombre y tu WhatsApp.' });

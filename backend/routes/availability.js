@@ -6,8 +6,22 @@ import {
   PADEL_CIERRE,
 } from '../lib/codeGenerator.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
+import { listarAperturasEspeciales } from '../lib/aperturasEspeciales.js';
 
 const router = Router();
+
+// GET /api/availability/dias-especiales?desde=2026-10-01&hasta=2026-11-30
+// Fechas (fuera de mar/mié/jue) que Mateo abrió puntualmente, para que el
+// sitio sepa qué días marcar como habilitados en la tira de fechas.
+router.get('/dias-especiales', async (req, res) => {
+  const { desde, hasta } = req.query;
+  try {
+    const data = await listarAperturasEspeciales({ desde, hasta });
+    res.json({ fechas: data.map((a) => a.reservation_date) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // GET /api/availability/futbol?date=2026-08-30&court=C1
 router.get('/futbol', async (req, res) => {

@@ -82,6 +82,9 @@ export const api = {
   disponibilidadPadel: (date) =>
     requestPublico(`/availability/padel?date=${date}`),
 
+  diasEspeciales: (desde, hasta) =>
+    requestPublico(`/availability/dias-especiales?desde=${desde}&hasta=${hasta}`),
+
   reservarFutbol: (payload) =>
     requestPublico('/reservations/futbol', { method: 'POST', body: JSON.stringify(payload) }),
 
@@ -129,4 +132,10 @@ export const api = {
     requestAdmin('/admin/turnos-fijos', { method: 'POST', body: JSON.stringify(payload) }),
   adminBajaTurnoFijo: (id) =>
     requestAdmin(`/admin/turnos-fijos/${id}`, { method: 'DELETE' }),
+  adminAperturas: (desde, hasta) =>
+    requestAdmin(`/admin/aperturas-especiales?desde=${desde}&hasta=${hasta}`),
+  adminCrearApertura: (payload) =>
+    requestAdmin('/admin/aperturas-especiales', { method: 'POST', body: JSON.stringify(payload) }),
+  adminQuitarApertura: (id) =>
+    requestAdmin(`/admin/aperturas-especiales/${id}`, { method: 'DELETE' }),
 };

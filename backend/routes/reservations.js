@@ -6,10 +6,10 @@ import {
   PADEL_CIERRE,
   generarCodigoFutbol,
   generarCodigoPadel,
-  esDiaHabilitado,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
+import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
 import 'dotenv/config';
 
 const router = Router();
@@ -119,8 +119,8 @@ router.get('/estado/:code', async (req, res) => {
 
 router.post('/futbol', async (req, res) => {
   const body = req.body;
-  if (!esDiaHabilitado(body.date)) {
-    return res.status(400).json({ error: 'Solo se puede reservar los martes, miércoles y jueves.' });
+  if (!(await esFechaAbierta(body.date))) {
+    return res.status(400).json({ error: 'Ese día no está habilitado para reservar.' });
   }
   const errorCliente = validarDatosCliente(body);
   if (errorCliente) return res.status(400).json({ error: errorCliente });
@@ -166,8 +166,8 @@ router.post('/futbol', async (req, res) => {
 
 router.post('/padel', async (req, res) => {
   const body = req.body;
-  if (!esDiaHabilitado(body.date)) {
-    return res.status(400).json({ error: 'Solo se puede reservar los martes, miércoles y jueves.' });
+  if (!(await esFechaAbierta(body.date))) {
+    return res.status(400).json({ error: 'Ese día no está habilitado para reservar.' });
   }
   const errorCliente = validarDatosCliente(body);
   if (errorCliente) return res.status(400).json({ error: errorCliente });

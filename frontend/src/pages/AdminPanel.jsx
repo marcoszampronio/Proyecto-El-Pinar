@@ -896,6 +896,15 @@ function AgendaPanel() {
             </div>
           </div>
 
+          {reservaSel && reservaSel.court !== 'PAD' && (
+            <DetalleReserva
+              reserva={reservaSel}
+              espera={agenda.espera || []}
+              fecha={fecha}
+              onCancelado={cargar}
+            />
+          )}
+
           <div className="agenda-card">
             <div className="agenda-card-titulo">Pádel</div>
             {agenda.padel.length === 0 ? (
@@ -904,6 +913,15 @@ function AgendaPanel() {
               <TimelinePadel reservas={agenda.padel} sel={sel} onTramo={toggle} />
             )}
           </div>
+
+          {reservaSel && reservaSel.court === 'PAD' && (
+            <DetalleReserva
+              reserva={reservaSel}
+              espera={agenda.espera || []}
+              fecha={fecha}
+              onCancelado={cargar}
+            />
+          )}
 
           <div className="agenda-card">
             <div className="agenda-card-titulo">
@@ -938,15 +956,6 @@ function AgendaPanel() {
                 <EsperaItem key={e.id} e={e} onAccion={cargar} />
               ))}
             </div>
-          )}
-
-          {reservaSel && (
-            <DetalleReserva
-              reserva={reservaSel}
-              espera={agenda.espera || []}
-              fecha={fecha}
-              onCancelado={cargar}
-            />
           )}
         </>
       )}
@@ -1351,6 +1360,112 @@ function BloqueosPanel() {
               {b.motivo && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{b.motivo}</div>}
             </div>
             <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(b.id)}>
+              Quitar
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Apertura especial: lo inverso de un bloqueo. Abre puntualmente un lunes o
+// viernes (fuera de mar/mié/jue) para que el público lo vea y pueda reservar
+// online como un día más.
+function AperturasEspecialesPanel() {
+  const [fecha, setFecha] = useState(() => hoyISO());
+  const [aperturas, setAperturas] = useState([]);
+  const [cargando, setCargando] = useState(false);
+  const [error, setError] = useState(null);
+  const [nota, setNota] = useState('');
+  const [creando, setCreando] = useState(false);
+
+  async function cargar() {
+    setCargando(true);
+    setError(null);
+    try {
+      const desde = hoyISO();
+      const hasta = sumarDias(desde, 90);
+      const data = await api.adminAperturas(desde, hasta);
+      setAperturas(data.aperturas);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); /* eslint-disable-next-line */ }, []);
+
+  const diaSemana = new Date(fecha + 'T00:00:00').getDay();
+  const diaValido = diaSemana === 1 || diaSemana === 5;
+
+  async function crear() {
+    setCreando(true);
+    setError(null);
+    try {
+      await api.adminCrearApertura({ date: fecha, nota: nota.trim() || null });
+      setNota('');
+      cargar();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCreando(false);
+    }
+  }
+
+  async function quitar(id) {
+    try {
+      await api.adminQuitarApertura(id);
+      cargar();
+    } catch (e) {
+      alert('No se pudo quitar: ' + e.message);
+    }
+  }
+
+  return (
+    <div className="stat-card">
+      <h3 style={{ marginTop: 0 }}>Abrir un día especial</h3>
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+        Para abrir puntualmente un lunes o un viernes (fuera de los días de
+        siempre) y que el público lo vea en la web y pueda reservar online,
+        igual que un martes/miércoles/jueves normal.
+      </p>
+
+      <div className="field">
+        <label>Qué día abrir</label>
+        <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+        {!diaValido && (
+          <p style={{ fontSize: 12, color: 'var(--p-mut)', margin: '4px 0 0' }}>
+            Por ahora solo se puede abrir un lunes o un viernes.
+          </p>
+        )}
+      </div>
+
+      <div className="field">
+        <label>Nota (opcional)</label>
+        <input value={nota} onChange={(e) => setNota(e.target.value)} placeholder="Ej: torneo, feriado largo" />
+      </div>
+
+      {error && <p className="error-msg">{error}</p>}
+
+      <button className="btn btn-primary" style={{ width: '100%' }} onClick={crear} disabled={creando || !diaValido}>
+        {creando ? 'Abriendo…' : 'Abrir este día'}
+      </button>
+
+      <div style={{ marginTop: 14 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+          Próximas aperturas {cargando ? '' : `(${aperturas.length})`}
+        </p>
+        {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
+        {!cargando && aperturas.length === 0 && <p className="agenda-vacio">No hay días especiales abiertos.</p>}
+        {aperturas.map((a) => (
+          <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{fechaLargaCompleta(a.reservation_date)}</div>
+              {a.nota && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{a.nota}</div>}
+            </div>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(a.id)}>
               Quitar
             </button>
           </div>
@@ -1819,7 +1934,7 @@ export default function AdminPanel() {
     { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
     { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
     { id: 'fijos', label: 'Turnos fijos', ico: <path d="M12 7v5l3 2M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" /> },
-    { id: 'suspender', label: 'Suspender', ico: <path d="M4 15a4 4 0 0 1 1-7.5A5.5 5.5 0 0 1 16 6a4 4 0 0 1 1 8.9M8 19l-1 2M12 19l-1 2M16 19l-1 2" /> },
+    { id: 'suspender', label: 'Eventos especiales', ico: <path d="M4 15a4 4 0 0 1 1-7.5A5.5 5.5 0 0 1 16 6a4 4 0 0 1 1 8.9M8 19l-1 2M12 19l-1 2M16 19l-1 2" /> },
     { id: 'stats', label: 'Estadísticas', ico: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /> },
   ];
 
@@ -1851,6 +1966,7 @@ export default function AdminPanel() {
         <>
           <SuspensionPanel />
           <BloqueosPanel />
+          <AperturasEspecialesPanel />
         </>
       )}
       {tab === 'contactos' && <ContactosPanel />}

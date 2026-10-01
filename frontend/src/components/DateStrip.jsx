@@ -9,12 +9,16 @@ function info(iso) {
   return { dia: DIAS[d.getDay()], num: String(d.getDate()).padStart(2, '0'), mes: MESES[d.getMonth()] };
 }
 
-export default function DateStrip({ seleccionada, onSeleccionar }) {
+export default function DateStrip({ seleccionada, onSeleccionar, diasEspeciales }) {
   // semana visible: la que contiene la fecha seleccionada (o la de hoy)
   const [ancla, setAncla] = useState(() => lunesDeLaSemana(seleccionada || hoyISO()));
   const dias = semanaLaboral(ancla);
   const lunesActual = lunesDeLaSemana(hoyISO());
   const puedeRetroceder = ancla > lunesActual;
+
+  // un día cuenta como habilitado si es mar/mié/jue de siempre, o si Mateo
+  // lo abrió puntualmente (lunes/viernes marcado en aperturas especiales).
+  const habilitado = (iso) => esDiaHabilitado(iso) || diasEspeciales?.has(iso);
 
   const primero = info(dias[0]);
   const ultimo = info(dias[4]);
@@ -23,10 +27,10 @@ export default function DateStrip({ seleccionada, onSeleccionar }) {
     if (delta < 0 && !puedeRetroceder) return;
     const nuevaAncla = sumarDias(ancla, delta * 7);
     setAncla(nuevaAncla);
-    // al cambiar de semana, saltar al primer día jugable (martes) de esa
-    // semana, así la fecha seleccionada no queda atrás sin que se note.
+    // al cambiar de semana, saltar al primer día jugable de esa semana, así
+    // la fecha seleccionada no queda atrás sin que se note.
     const primerHabil = semanaLaboral(nuevaAncla).find(
-      (d) => esDiaHabilitado(d) && !esPasado(d)
+      (d) => habilitado(d) && !esPasado(d)
     );
     if (primerHabil) onSeleccionar(primerHabil);
   };
@@ -98,17 +102,17 @@ export default function DateStrip({ seleccionada, onSeleccionar }) {
         >
           {dias.map((dia) => {
             const i = info(dia);
-            const habilitado = esDiaHabilitado(dia) && !esPasado(dia);
+            const diaHabilitado = habilitado(dia) && !esPasado(dia);
             return (
               <button
                 key={dia}
                 className={
                   'dia-btn' +
                   (dia === seleccionada ? ' activo' : '') +
-                  (habilitado ? '' : ' no-habilitado')
+                  (diaHabilitado ? '' : ' no-habilitado')
                 }
-                disabled={!habilitado}
-                onClick={() => { if (!swiped.current && habilitado) onSeleccionar(dia); }}
+                disabled={!diaHabilitado}
+                onClick={() => { if (!swiped.current && diaHabilitado) onSeleccionar(dia); }}
                 aria-pressed={dia === seleccionada}
               >
                 <span className="dia-nombre">{i.dia}</span>

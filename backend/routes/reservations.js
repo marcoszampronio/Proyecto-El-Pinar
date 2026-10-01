@@ -88,10 +88,14 @@ router.get('/estado/:code', async (req, res) => {
   const code = (req.params.code || '').trim();
   if (!code) return res.status(400).json({ error: 'Ingresá tu código de reserva.' });
 
+  // Escapamos % y _ (comodines de ILIKE) para que alguien no pueda mandar
+  // "%" y pescar la reserva ajena más reciente sin saber el código real.
+  const codeSeguro = code.replace(/[%_]/g, '\\$&');
+
   const { data, error } = await supabaseAdmin
     .from('reservations')
     .select('code, court, reservation_date, start_time, end_time, turn, status, parrilla, cancelled_by')
-    .ilike('code', code)
+    .ilike('code', codeSeguro)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();

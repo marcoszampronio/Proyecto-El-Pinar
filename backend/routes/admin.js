@@ -247,11 +247,14 @@ router.post('/suspender/:date', async (req, res) => {
 // Busca una reserva por codigo y le dice al frontend que accion corresponde
 router.get('/search/:code', async (req, res) => {
   const code = req.params.code.trim();
+  // Escapamos % y _ (comodines de ILIKE) para que una búsqueda con esos
+  // caracteres no termine trayendo una reserva distinta a la buscada.
+  const codeSeguro = code.replace(/[%_]/g, '\\$&');
 
   const { data, error } = await supabaseAdmin
     .from('reservations')
     .select('*')
-    .ilike('code', code)
+    .ilike('code', codeSeguro)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();

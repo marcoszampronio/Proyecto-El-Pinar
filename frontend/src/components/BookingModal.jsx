@@ -129,9 +129,14 @@ export default function BookingModal({ slotInfo, onClose }) {
       <div className="overlay" role="dialog" aria-modal="true">
         <div className="modal">
           {foto && (
-            <div className="modal-foto">
+            <div className={`modal-foto${esCanchaFutbol ? ' modal-foto-real--futbol' : ''}`}>
               <img src={foto.src} alt={`${NOMBRE_CANCHA[slotInfo.court]} de Complejo El Pinar, Paraná`} style={{ objectPosition: foto.pos }} />
               <span>{NOMBRE_CANCHA[slotInfo.court]}</span>
+            </div>
+          )}
+          {esCanchaFutbol && (
+            <div className="modal-foto modal-foto-mapa">
+              <img src="/mapa-complejo.webp" alt="Mapa del complejo: Cancha 1 y Cancha 2" />
             </div>
           )}
           <h3 className="modal-titulo">Solicitar turno</h3>

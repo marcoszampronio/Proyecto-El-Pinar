@@ -14,6 +14,7 @@ import SiteNav from '../components/site/SiteNav';
 import Hero from '../components/site/Hero';
 import Servicios from '../components/site/Servicios';
 import CanchaLado from '../components/site/CanchaLado';
+import MapaComplejo from '../components/site/MapaComplejo';
 import ComoLlegar from '../components/site/ComoLlegar';
 import SiteFooter from '../components/site/SiteFooter';
 import MobileTabBar from '../components/site/MobileTabBar';
@@ -161,9 +162,8 @@ export default function PublicPage() {
           <aside className="board-lado">
             <div className="board-intro">
               <p className="eyebrow">Reservá online</p>
-              <h2>Tres canchas, un pinar.<br />Reservá tu cancha online.</h2>
-              <p>Elegís día, horario y cancha, y a jugar.</p>
               <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
+              <MapaComplejo />
             </div>
             <CanchaLado deporte={deporte} />
           </aside>

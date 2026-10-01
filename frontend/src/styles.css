@@ -1268,8 +1268,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 @media (max-width: 620px) {
-  .hero { min-height: 460px; padding-top: 96px; }
-  .sitio .hero .hero-in { padding-bottom: 78px; }
+  /* el primer bloque ocupa toda la pantalla del celular: se centra en vez
+     de apilarse abajo, para no dejar un bloque vacío arriba */
+  .hero { min-height: 100vh; min-height: 100dvh; padding-top: 96px; align-items: center; }
+  .sitio .hero .hero-in { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   .hero-baja { margin-top: 22px; }
 }
 
@@ -1334,11 +1336,19 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   font-size: 0.62rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--s-oro-300);
 }
 
+/* mapa ilustrado del complejo (Cancha 1 / Cancha 2), solo celular */
+.mapa-complejo { display: none; }
+.mapa-complejo img { display: block; width: 100%; height: auto; }
+
 @media (max-width: 940px) {
   .board-cols { grid-template-columns: 1fr; gap: 26px; }
   .board-lado { order: -1; }         /* el texto queda arriba del panel */
   .board-intro { margin-bottom: 0; }
   .clado-wrap { display: none; }     /* la tarjeta de escritorio se oculta */
+  .mapa-complejo {
+    display: block; margin: 14px 0 0; border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--s-linea-fria);
+  }
   .clado-banner {
     display: block; position: relative; margin: 0 0 18px;
     border-radius: 14px; overflow: hidden; border: 1px solid var(--s-linea-fria);
@@ -1678,6 +1688,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   position: absolute; left: 12px; bottom: 10px;
   font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal);
   padding: 3px 10px; border-radius: 999px; background: rgba(7, 17, 28, 0.62);
+}
+/* en la reserva de fútbol: foto real en celular, mapa del complejo en compu */
+.sitio .modal-foto-mapa { display: none; }
+@media (min-width: 941px) {
+  .sitio .modal-foto-real--futbol { display: none; }
+  .sitio .modal-foto-mapa { display: block; }
 }
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
 .sitio .resumen-turno{

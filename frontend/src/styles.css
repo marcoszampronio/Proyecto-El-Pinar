@@ -1256,6 +1256,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   position: relative; display: flex; align-items: flex-end;
   min-height: 640px; padding-top: 120px; overflow: hidden; isolation: isolate;
 }
+/* el hero ocupa toda la pantalla también en compu: así "Reservar" no se ve al
+   abrir la página y su animación de aparición se dispara recién al bajar */
+@media (min-width: 621px) {
+  .hero { min-height: 100vh; min-height: 100dvh; }
+}
 .hero-esc { position: absolute; inset: 0; z-index: -3; }
 .escena { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
 .escena--on { opacity: 1; }
@@ -1593,7 +1598,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .rivales-cal-vacio {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
   text-align: center; color: var(--s-niebla);
-  padding: 40px 20px; border: 1px dashed var(--s-linea-fria); border-radius: 14px;
+  padding: 40px 20px; border-radius: 14px;
 }
 .sitio .rivales-cal-vacio p { margin: 0; }
 .sitio .rivales-grid { gap: 10px; }
@@ -1670,9 +1675,14 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .serv-ico svg { width: 26px; height: 26px; }
 .serv-card--foto { padding: 0; gap: 0; overflow: hidden; }
-.serv-card-foto { aspect-ratio: 4 / 3; }
-.serv-card-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.serv-card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+/* la imagen va en absoluto para que su tamaño original no estire la caja:
+   si no, cada foto mide distinto según su resolución y las tarjetas quedan
+   desparejas (el 4/3 se ignoraba apenas cargaba la foto) */
+.serv-card-foto { aspect-ratio: 4 / 3; position: relative; overflow: hidden; }
+.serv-card-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+/* flex: 1 → el texto rellena el alto sobrante de la tarjeta, así el recuadro
+   de fútbol y el de pádel miden lo mismo aunque un texto sea más corto */
+.serv-card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .serv-card h3 { font-size: 1.22rem; }
 .serv-card p { color: var(--s-niebla); font-size: 0.94rem; line-height: 1.5; }
 .serv-card--cta { background: var(--s-oro); color: var(--s-pino-900); justify-content: space-between; }

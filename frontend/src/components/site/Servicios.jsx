@@ -3,7 +3,7 @@ import { WA_URL } from './config';
 
 const SERVICIOS = [
   {
-    titulo: '2 canchas de fútbol 11',
+    titulo: 'Canchas de fútbol 11',
     texto: 'Césped natural bajo iluminación profesional.',
     foto: '/canchas/futbol-2.jpg',
     fotoAlt: 'Cancha de fútbol 11 de Complejo El Pinar',

@@ -1354,7 +1354,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
   padding: 4px 11px; border-radius: 999px; border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
 }
-.clado-nota { color: var(--s-niebla); margin: 14px 0 0; font-size: 0.9rem; }
 @media (prefers-reduced-motion: no-preference) {
   .clado-card { animation: cladoIn .35s ease; }
   @keyframes cladoIn { from { opacity: 0; transform: translateY(10px); } }

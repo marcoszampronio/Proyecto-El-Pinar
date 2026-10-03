@@ -7,7 +7,7 @@ const DATOS = {
     alt: 'Cancha de fútbol 11 de césped natural con arcos e iluminación en Complejo El Pinar, Paraná',
     foto: '/canchas/futbol-2.jpg',
     posCard: 'center 66%',
-    tags: ['Dos canchas', 'Césped natural', 'Iluminación profesional'],
+    tags: ['Césped natural', 'Iluminación profesional'],
   },
   padel: {
     nombre: 'Pádel',
@@ -38,7 +38,6 @@ export default function CanchaLado({ deporte = 'futbol' }) {
           </div>
         </div>
       </article>
-      <p className="clado-nota">Iluminación profesional en las tres canchas. Se juega hasta tarde.</p>
     </div>
   );
 }

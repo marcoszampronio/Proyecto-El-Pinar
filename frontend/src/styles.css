@@ -1893,3 +1893,60 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .escena { transition: none; }
   .sitio .reveal { transform: none; }
 }
+
+/* ============================================================
+   COMPU (≥941px): textos más grandes
+   Auditoría de legibilidad: varios textos del sitio medían 9–13px, que en una
+   pantalla de compu se leen chicos (día/mes del selector 9px, encabezados de
+   cancha 12px, notas 13px, etiquetas 11px). Esta sección va AL FINAL del
+   archivo a propósito, para ganarle a las reglas base con igual especificidad.
+   El celular no se toca: ahí el espacio es más justo.
+   ============================================================ */
+@media (min-width: 941px) {
+  /* navegación y rótulos */
+  .snav-links button { font-size: 1rem; }
+  .sitio .eyebrow { font-size: 0.85rem; }
+  .sitio .seccion-cab p { font-size: 1.1rem; }
+  .sitio .board-intro p { font-size: 1.05rem; }
+
+  /* selector de día */
+  .sitio .dia-btn .dia-nombre,
+  .sitio .dia-btn .dia-mes { font-size: 0.78rem; }
+  .sitio .dia-btn .dia-numero { font-size: 1.6rem; }
+
+  /* grilla de turnos (la columna de horas se ensancha: 52 → 62px) */
+  .sitio .grilla-pub { grid-template-columns: 62px 1fr 1fr; }
+  .sitio .grilla-pub-cab { font-size: 0.9rem; }
+  .sitio .grilla-pub-hora { font-size: 1.1rem; }
+  .sitio .grilla-pub-hora span { font-size: 0.88rem; }
+  .sitio .grilla-pub-celda { font-size: 1.1rem; }
+  .sitio .espera-cta { margin-left: 70px; } /* 62px de horas + 8px de separación */
+  .sitio .btn-espera { font-size: 1.05rem; }
+  .sitio .espera-nota { font-size: 0.92rem; }
+
+  /* tarjeta de la cancha (al lado de la grilla) */
+  .clado-tags span { font-size: 0.82rem; }
+
+  /* busco rival */
+  .rival-cta span { font-size: 1.05rem; }
+  .sitio .rivales-cal-rango { font-size: 1.2rem; }
+  .sitio .rivales-grid-dia span { font-size: 0.85rem; }
+  .sitio .rivales-grid-dia strong { font-size: 1.6rem; }
+  .sitio .rivales-grid-hora { font-size: 0.9rem; }
+  .sitio .rivales-cal-vacio p { font-size: 1.05rem; }
+
+  /* cómo llegar */
+  .llegar-info .sub { font-size: 1.1rem; }
+  .llegar-datos dt { font-size: 0.85rem; }
+  .llegar-datos dd { font-size: 1.1rem; }
+  .llegar-datos dd + dt { margin-top: 16px; } /* aire entre un dato y el rótulo siguiente */
+
+  /* el complejo */
+  .serv-card h3 { font-size: 1.35rem; }
+  .serv-card p { font-size: 1rem; }
+
+  /* pie y mascota */
+  .pie-nav button { font-size: 1rem; }
+  .pie-nota { font-size: 0.88rem; }
+  .sitio .mascota-globo { font-size: 14px; }
+}

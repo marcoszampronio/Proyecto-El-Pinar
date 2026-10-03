@@ -1551,7 +1551,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .chip-leyenda { display: none; }
 
 .sitio .btn-reservar { margin: 20px 0 0; width: 100%; justify-content: center; }
-.sitio .espera-cta { margin: 12px 0 0; text-align: center; }
+/* margen izquierdo = columna de horas (52px) + separación (8px) de .grilla-pub,
+   para que el botón quede alineado con Cancha 1 y Cancha 2 y no con las horas */
+.sitio .espera-cta { margin: 12px 0 0 60px; text-align: center; }
+@media (max-width: 620px) {
+  .sitio .espera-cta { margin-left: 46px; } /* 40px de horas + 6px de separación */
+}
 .sitio .btn-espera {
   width: 100%; justify-content: center; border: 1.5px dashed var(--s-linea);
   color: var(--s-cal); background: transparent;

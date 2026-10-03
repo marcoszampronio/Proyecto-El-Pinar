@@ -1552,7 +1552,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .chip-leyenda { display: none; }
 
 .sitio .btn-reservar { margin: 20px 0 0; width: 100%; justify-content: center; }
-.sitio .espera-cta { margin: 12px 0 0; text-align: left; }
+.sitio .espera-cta { margin: 12px 0 0; text-align: center; }
 .sitio .btn-espera {
   width: 100%; justify-content: center; border: 1.5px dashed var(--s-linea);
   color: var(--s-cal); background: transparent;

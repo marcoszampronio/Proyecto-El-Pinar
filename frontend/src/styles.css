@@ -1307,8 +1307,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
      svh (no dvh): dvh cambia de valor cada vez que la barra del navegador se
      esconde/aparece al deslizar, y el hero se estiraba y arrastraba todo lo de
      abajo (micro saltos de ~56px). svh queda fijo. */
-  .hero { min-height: 100vh; min-height: 100svh; padding-top: 96px; align-items: center; }
-  .sitio .hero .hero-in { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  /* 88svh y no 100: así Reservar queda apenas por debajo de la línea donde el
+     efecto de aparición se dispara (borde inferior − 12%), o sea: oculto al
+     abrir, pero con el primer deslizamiento ya empieza a aparecer, y se pierde
+     menos pantalla vacía debajo del botón. */
+  .hero { min-height: 88vh; min-height: 88svh; padding-top: 96px; align-items: center; }
+  .sitio .hero .hero-in { padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
   .hero-baja { margin-top: 22px; }
 }
 
@@ -1848,6 +1852,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .snav { padding: 12px 18px; }
   .sitio .seccion { padding-block: clamp(44px, 11vw, 72px); }
   .sitio .envoltura { padding: 0 18px; }
+  /* Reservar: menos aire arriba y entre el texto/mapa y los botones de deporte,
+     para que con un solo deslizamiento ya se vea el panel de reservas */
+  .sitio .board { padding-top: 20px; }
+  .board-cols { gap: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

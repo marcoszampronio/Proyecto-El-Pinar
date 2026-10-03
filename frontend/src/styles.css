@@ -1259,7 +1259,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 /* el hero ocupa toda la pantalla también en compu: así "Reservar" no se ve al
    abrir la página y su animación de aparición se dispara recién al bajar */
 @media (min-width: 621px) {
-  .hero { min-height: 100vh; min-height: 100dvh; }
+  .hero { min-height: 100vh; min-height: 100svh; }
 }
 .hero-esc { position: absolute; inset: 0; z-index: -3; }
 .escena { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
@@ -1303,8 +1303,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 @media (max-width: 620px) {
   /* el primer bloque ocupa toda la pantalla del celular: se centra en vez
-     de apilarse abajo, para no dejar un bloque vacío arriba */
-  .hero { min-height: 100vh; min-height: 100dvh; padding-top: 96px; align-items: center; }
+     de apilarse abajo, para no dejar un bloque vacío arriba.
+     svh (no dvh): dvh cambia de valor cada vez que la barra del navegador se
+     esconde/aparece al deslizar, y el hero se estiraba y arrastraba todo lo de
+     abajo (micro saltos de ~56px). svh queda fijo. */
+  .hero { min-height: 100vh; min-height: 100svh; padding-top: 96px; align-items: center; }
   .sitio .hero .hero-in { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
   .hero-baja { margin-top: 22px; }
 }

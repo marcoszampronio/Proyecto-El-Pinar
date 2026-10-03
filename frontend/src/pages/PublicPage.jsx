@@ -14,7 +14,7 @@ import SiteNav from '../components/site/SiteNav';
 import Hero from '../components/site/Hero';
 import Servicios from '../components/site/Servicios';
 import CanchaLado from '../components/site/CanchaLado';
-import MapaComplejo from '../components/site/MapaComplejo';
+import FotoCanchaMovil from '../components/site/FotoCanchaMovil';
 import ComoLlegar from '../components/site/ComoLlegar';
 import SiteFooter from '../components/site/SiteFooter';
 import MobileTabBar from '../components/site/MobileTabBar';
@@ -178,7 +178,7 @@ export default function PublicPage() {
             <div className="board-intro">
               <p className="eyebrow">Reservá online</p>
               <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
-              <MapaComplejo />
+              <FotoCanchaMovil />
             </div>
             <CanchaLado deporte={deporte} />
           </aside>

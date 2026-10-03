@@ -1259,7 +1259,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 /* el hero ocupa toda la pantalla también en compu: así "Reservar" no se ve al
    abrir la página y su animación de aparición se dispara recién al bajar */
 @media (min-width: 621px) {
-  .hero { min-height: 100vh; min-height: 100svh; }
+  /* el bloque principal va centrado en vertical (padding simétrico: 120px
+     arriba por la barra y 120px abajo) y con textos más grandes, para que
+     no quede pegado abajo con aire de sobra arriba */
+  .hero { min-height: 100vh; min-height: 100svh; align-items: center; padding-bottom: 120px; }
+  .sitio .hero .hero-in { padding-bottom: 0; }
 }
 .hero-esc { position: absolute; inset: 0; z-index: -3; }
 .escena { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
@@ -1299,6 +1303,17 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .hero-baja {
   margin-top: 26px; display: inline-flex; gap: 10px;
+}
+
+/* compu: textos del bloque principal más grandes (va después de las reglas
+   base de arriba para que las pise; el celular tiene su propio bloque abajo) */
+@media (min-width: 621px) {
+  .sitio .hero-in .eyebrow { font-size: 0.86rem; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(4rem, 8.5vw, 7.4rem); margin-bottom: 20px; }
+  .hero-sub { max-width: 50ch; font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 1.55; }
+  .hero-firma { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-top: 18px; }
+  .hero-baja { margin-top: 32px; }
+  .sitio .hero-baja .btn { padding: 16px 32px; font-size: 1.05rem; }
 }
 
 @media (max-width: 620px) {
@@ -1366,16 +1381,18 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   @keyframes cladoIn { from { opacity: 0; transform: translateY(10px); } }
 }
 
-/* mapa ilustrado del complejo (Cancha 1 / Cancha 2), solo celular */
-.mapa-complejo { display: none; }
-.mapa-complejo img { display: block; width: 100%; height: auto; }
+/* foto de la cancha 2 bajo "Reservá online", solo celular */
+.foto-cancha-movil { display: none; }
+.foto-cancha-movil img {
+  display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; object-position: center 66%;
+}
 
 @media (max-width: 940px) {
   .board-cols { grid-template-columns: 1fr; gap: 26px; }
   .board-lado { order: -1; }         /* el texto queda arriba del panel */
   .board-intro { margin-bottom: 0; }
   .clado-wrap { display: none; }     /* la tarjeta de escritorio se oculta */
-  .mapa-complejo {
+  .foto-cancha-movil {
     display: block; margin: 14px 0 0; border-radius: 14px; overflow: hidden;
     border: 1px solid var(--s-linea-fria);
   }
@@ -1755,11 +1772,25 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal);
   padding: 3px 10px; border-radius: 999px; background: rgba(7, 17, 28, 0.62);
 }
-/* en la reserva de fútbol: foto real en celular, mapa del complejo en compu */
-.sitio .modal-foto-mapa { display: none; }
-@media (min-width: 941px) {
-  .sitio .modal-foto-real--futbol { display: none; }
-  .sitio .modal-foto-mapa { display: block; }
+/* en la reserva de fútbol: mapa del complejo con la cancha elegida marcada
+   (cuatro esquinas doradas, la otra cancha apagada y la etiqueta "Tu cancha") */
+.sitio .modal-foto-mapa { aspect-ratio: 1024 / 506; }
+.sitio .modal-foto-mapa svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sitio .mapa-apagada { fill: rgba(7, 17, 28, 0.5); }
+.sitio .mapa-esquina {
+  fill: none; stroke: var(--s-oro); stroke-width: 4;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.sitio .modal-foto-mapa .mapa-tucancha {
+  position: absolute; bottom: auto; transform: translate(-50%, -50%); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--s-texto); font-weight: 700; font-size: 0.74rem; line-height: 1;
+  padding: 5px 10px 5px 6px; border-radius: 999px;
+  background: var(--s-oro); color: var(--s-pino-900); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+}
+.sitio .modal-foto-mapa .mapa-tucancha i {
+  width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--s-pino-900); color: var(--s-oro); font-style: normal; font-size: 0.6rem;
 }
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
 .sitio .resumen-turno{

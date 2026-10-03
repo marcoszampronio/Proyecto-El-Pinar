@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
+import MapaCanchaElegida from './MapaCanchaElegida';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
+// Fútbol usa el mapa (MapaCanchaElegida); solo el pádel lleva foto.
 const FOTO_CANCHA = {
-  C1: { src: '/canchas/futbol-1.jpg', pos: 'center 60%' },
-  C2: { src: '/canchas/futbol-2.jpg', pos: 'center 68%' },
   PAD: { src: '/canchas/padel.jpg', pos: 'center 50%' },
 };
 
@@ -128,15 +128,12 @@ export default function BookingModal({ slotInfo, onClose }) {
     return (
       <div className="overlay" role="dialog" aria-modal="true">
         <div className="modal">
-          {foto && (
-            <div className={`modal-foto${esCanchaFutbol ? ' modal-foto-real--futbol' : ''}`}>
+          {esCanchaFutbol ? (
+            <MapaCanchaElegida court={slotInfo.court} />
+          ) : foto && (
+            <div className="modal-foto">
               <img src={foto.src} alt={`${NOMBRE_CANCHA[slotInfo.court]} de Complejo El Pinar, Paraná`} style={{ objectPosition: foto.pos }} />
               <span>{NOMBRE_CANCHA[slotInfo.court]}</span>
-            </div>
-          )}
-          {esCanchaFutbol && (
-            <div className="modal-foto modal-foto-mapa">
-              <img src="/mapa-complejo.webp" alt="Mapa del complejo: Cancha 1 y Cancha 2" />
             </div>
           )}
           <h3 className="modal-titulo">Solicitar turno</h3>

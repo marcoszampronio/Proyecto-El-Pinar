@@ -34,9 +34,10 @@ export const IconReservar = ({ s = 21 }) => (
 
 export const IconRival = ({ s = 21 }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="8" cy="8" r="3" />
-    <circle cx="16.5" cy="9.5" r="2.5" />
-    <path d="M2.5 20c.7-3.5 3-5.5 5.5-5.5s4.8 2 5.5 5.5M15 20c-.2-2.3-.9-4-2-5.2" />
+    {/* pelota: círculo, pentágono central y las 5 costuras hacia el borde */}
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 8l3.8 2.76-1.45 4.48H9.65L8.2 10.76Z" />
+    <path d="M12 8V3M15.8 10.76l4.76-1.54M14.35 15.24l2.94 4.04M9.65 15.24l-2.94 4.04M8.2 10.76 3.44 9.22" />
   </svg>
 );
 

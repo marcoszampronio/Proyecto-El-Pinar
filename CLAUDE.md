@@ -24,7 +24,9 @@ estos dos lentes antes de darlo por terminado:
 - Paleta: navy/pino oscuro (`--s-pino-900` #0F2436, `--s-marino` #1D3E5A) + dorado
   (`--s-oro` #F2C14E) para el sitio; equivalentes `--p-*` para el panel. Verde
   (`--s-cesped`) = disponible/positivo, rojo/coral = error, nunca mezclar semántica.
-- Tipografía: **Fraunces** (serif) solo para títulos grandes y la marca ("El Pinar");
+- Tipografía: **DM Serif Display** (serif, un solo peso; la variable `--s-titulo` dentro
+  de `.sitio`) solo para títulos grandes y la marca ("El Pinar"). El panel de Mateo sigue
+  con **Fraunces** (`--s-titulo` en `:root`);
   **Satoshi** (sans, alojada en `frontend/public/fonts`) para todo lo que se lee o
   se escanea: texto, botones, días, horarios, nombres de equipos, cifras del panel.
   Regla: si es un dato que hay que leer al vuelo, va en Satoshi. No mezclar otras
@@ -37,7 +39,7 @@ estos dos lentes antes de darlo por terminado:
 
 ## SEO y rendimiento (medido con Lighthouse, celular simulado)
 
-- Cero recursos de terceros en la carga inicial: las fuentes (Fraunces y Satoshi) están
+- Cero recursos de terceros en la carga inicial: las fuentes (DM Serif Display, Fraunces y Satoshi) están
   alojadas en `frontend/public/fonts`. La hoja de Google Fonts bloqueaba ~1 s el primer pintado.
 - El panel de admin y el cliente de Supabase se cargan bajo demanda (`React.lazy` en
   `App.jsx`, import dinámico en `api.js`). No importar `supabaseClient` desde código del sitio público.

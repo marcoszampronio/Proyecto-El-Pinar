@@ -26,6 +26,23 @@
   src: url("/fonts/Satoshi-Bold.woff2") format("woff2");
 }
 
+/* DM Serif Display (Google Fonts, licencia OFL): tipografía de los títulos del
+   sitio público, alojada acá igual que las otras. Subset latin (tildes, ñ, ¿ ¡).
+   Solo existe en un peso (400): se declara con el rango 400–700 para que los
+   títulos que piden 500/600 la usen tal cual y el navegador NO le simule
+   negrita (la negrita falsa deforma las letras). */
+@font-face {
+  font-family: "DM Serif Display"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("/fonts/DMSerifDisplay-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Serif Display"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("/fonts/DMSerifDisplay-Italic.woff2") format("woff2");
+}
+/* El sitio público usa DM Serif Display en los títulos; el panel de Mateo sigue
+   con Fraunces (viene de :root). */
+.sitio { --s-titulo: "DM Serif Display", "Iowan Old Style", Georgia, serif; }
+
 /* Texto solo para lectores de pantalla y buscadores (no se ve en pantalla). */
 .sr-solo {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
@@ -1204,7 +1221,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .snav-marca { display: flex; align-items: center; gap: 10px; }
 .snav-marca svg { width: 24px; height: 32px; color: var(--s-oro); flex: none; }
 .snav-marca b {
-  font-family: var(--s-titulo); font-weight: 600; font-size: 1.12rem;
+  font-family: var(--s-titulo); font-weight: 600; font-size: 1.1rem;
   letter-spacing: 0.06em; color: var(--s-cal);
 }
 .snav-links { display: flex; align-items: center; gap: 28px; }
@@ -1308,7 +1325,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 /* compu: textos del bloque principal más grandes (va después de las reglas
    base de arriba para que las pise; el celular tiene su propio bloque abajo) */
 @media (min-width: 621px) {
-  .sitio .hero-in .eyebrow { font-size: 0.86rem; margin-bottom: 20px; }
+  .sitio .hero-in .eyebrow { font-size: 0.85rem; margin-bottom: 20px; }
   .hero h1 { font-size: clamp(4rem, 8.5vw, 7.4rem); margin-bottom: 20px; }
   .hero-sub { max-width: 50ch; font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 1.55; }
   .hero-firma { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-top: 18px; }
@@ -1463,7 +1480,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .fechas-flecha--lado { width: 30px; font-size: 1.9rem; }
   .sitio .fechas-dias { gap: 5px; grid-template-columns: 0.5fr 1fr 1fr 1fr 0.5fr; }
   .sitio .dia-btn .dia-numero { font-size: 1.3rem; }
-  .sitio .dia-btn .dia-nombre, .sitio .dia-btn .dia-mes { font-size: 0.54rem; letter-spacing: 0.06em; }
+  .sitio .dia-btn .dia-nombre, .sitio .dia-btn .dia-mes { font-size: 0.65rem; letter-spacing: 0.06em; }
 }
 
 /* turnos de fútbol */
@@ -1730,7 +1747,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (max-width: 900px) { .mapa-card img { aspect-ratio: 16 / 11; } }
 .mapa-btn { position: absolute; left: 16px; bottom: 16px; pointer-events: none; }
 .llegar-info .eyebrow { margin-bottom: 10px; }
-.llegar-info h2 { font-size: clamp(1.9rem, 3.6vw, 2.6rem); margin-bottom: 10px; }
+.llegar-info h2 { font-size: clamp(2rem, 4.4vw, 3rem); margin-bottom: 10px; } /* = .seccion-cab h2: un solo tamaño de título de sección */
 .llegar-info .sub { color: var(--s-niebla); margin: 0 0 22px; }
 .llegar-datos { margin: 0 0 22px; padding: 16px 0; border-block: 1px solid var(--s-linea-fria); }
 .llegar-datos dt { font-size: 0.7rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--s-oro); }
@@ -1745,7 +1762,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .pie .envoltura { display: flex; flex-wrap: wrap; gap: 26px 56px; align-items: flex-start; justify-content: space-between; }
 .pie-marca { display: flex; align-items: center; gap: 10px; }
 .pie-marca svg { width: 22px; height: 29px; color: var(--s-oro); }
-.pie-marca b { font-family: var(--s-titulo); font-weight: 600; letter-spacing: 0.06em; font-size: 1.05rem; }
+.pie-marca b { font-family: var(--s-titulo); font-weight: 600; letter-spacing: 0.06em; font-size: 1.1rem; }
 .pie-nav { display: flex; flex-wrap: wrap; gap: 8px 22px; }
 .pie-nav button { background: none; border: none; cursor: pointer; font: inherit; color: var(--s-niebla); font-size: 0.9rem; }
 .pie-nav button:hover { color: var(--s-cal); }
@@ -1896,57 +1913,94 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 /* ============================================================
-   COMPU (≥941px): textos más grandes
+   COMPU (≥941px): textos más grandes + ESCALA DE TAMAÑOS
    Auditoría de legibilidad: varios textos del sitio medían 9–13px, que en una
-   pantalla de compu se leen chicos (día/mes del selector 9px, encabezados de
-   cancha 12px, notas 13px, etiquetas 11px). Esta sección va AL FINAL del
-   archivo a propósito, para ganarle a las reglas base con igual especificidad.
-   El celular no se toca: ahí el espacio es más justo.
+   pantalla de compu se leen chicos. Además había ~23 tamaños distintos, muchos
+   con menos de 1px de diferencia. Acá se unifican en 4 tamaños de texto:
+     --t-micro  13.6px  rótulos en MAYÚSCULAS (eyebrow, día/mes, etiquetas)
+     --t-chico  14.4px  notas, horas, encabezados de columna
+     --t-lead   17.6px  párrafos de apoyo y datos destacados
+     (el texto base es 16px = 1rem)
+   Esta sección va AL FINAL del archivo a propósito, para ganarle a las reglas
+   base con igual especificidad. El celular no cambia, salvo el día/mes del
+   selector, que medía 8.6px.
    ============================================================ */
 @media (min-width: 941px) {
+  .sitio { --t-micro: 0.85rem; --t-chico: 0.9rem; --t-lead: 1.1rem; }
+
   /* navegación y rótulos */
   .snav-links button { font-size: 1rem; }
-  .sitio .eyebrow { font-size: 0.85rem; }
-  .sitio .seccion-cab p { font-size: 1.1rem; }
-  .sitio .board-intro p { font-size: 1.05rem; }
+  .sitio .eyebrow { font-size: var(--t-micro); }
+  .sitio .seccion-cab p:not(.eyebrow) { font-size: var(--t-lead); }
+  .sitio .board-intro p:not(.eyebrow) { font-size: var(--t-lead); }
 
-  /* selector de día */
+  /* selector de día y de deporte */
   .sitio .dia-btn .dia-nombre,
-  .sitio .dia-btn .dia-mes { font-size: 0.78rem; }
+  .sitio .dia-btn .dia-mes { font-size: var(--t-micro); }
   .sitio .dia-btn .dia-numero { font-size: 1.6rem; }
+  .sitio .cancha-card { font-size: var(--t-chico); }
 
   /* grilla de turnos (la columna de horas se ensancha: 52 → 62px) */
   .sitio .grilla-pub { grid-template-columns: 62px 1fr 1fr; }
-  .sitio .grilla-pub-cab { font-size: 0.9rem; }
-  .sitio .grilla-pub-hora { font-size: 1.1rem; }
-  .sitio .grilla-pub-hora span { font-size: 0.88rem; }
-  .sitio .grilla-pub-celda { font-size: 1.1rem; }
+  .sitio .grilla-pub-cab { font-size: var(--t-chico); }
+  .sitio .grilla-pub-hora { font-size: var(--t-lead); }
+  .sitio .grilla-pub-hora span { font-size: var(--t-chico); }
+  .sitio .grilla-pub-celda { font-size: var(--t-lead); }
   .sitio .espera-cta { margin-left: 70px; } /* 62px de horas + 8px de separación */
   .sitio .btn-espera { font-size: 1.05rem; }
-  .sitio .espera-nota { font-size: 0.92rem; }
+  .sitio .espera-nota { font-size: var(--t-chico); }
 
   /* tarjeta de la cancha (al lado de la grilla) */
-  .clado-tags span { font-size: 0.82rem; }
+  .clado-tags span { font-size: var(--t-micro); }
+  .clado-body h3 { font-size: 1.4rem; }
 
   /* busco rival */
   .sitio .rivales-cal-rango { font-size: 1.2rem; }
-  .sitio .rivales-grid-dia span { font-size: 0.85rem; }
+  .sitio .rivales-grid-dia span { font-size: var(--t-micro); }
   .sitio .rivales-grid-dia strong { font-size: 1.6rem; }
-  .sitio .rivales-grid-hora { font-size: 0.9rem; }
-  .sitio .rivales-cal-vacio p { font-size: 1.05rem; }
+  .sitio .rivales-grid-hora { font-size: var(--t-chico); }
+  .sitio .rivales-cal-vacio p { font-size: var(--t-lead); }
 
   /* cómo llegar */
-  .llegar-info .sub { font-size: 1.1rem; }
-  .llegar-datos dt { font-size: 0.85rem; }
-  .llegar-datos dd { font-size: 1.1rem; }
+  .llegar-info .sub { font-size: var(--t-lead); }
+  .llegar-datos dt { font-size: var(--t-micro); }
+  .llegar-datos dd { font-size: var(--t-lead); }
   .llegar-datos dd + dt { margin-top: 16px; } /* aire entre un dato y el rótulo siguiente */
 
   /* el complejo */
-  .serv-card h3 { font-size: 1.35rem; }
+  .serv-card h3 { font-size: 1.4rem; }
   .serv-card p { font-size: 1rem; }
 
   /* pie y mascota */
   .pie-nav button { font-size: 1rem; }
-  .pie-nota { font-size: 0.88rem; }
-  .sitio .mascota-globo { font-size: 14px; }
+  .pie-nota { font-size: var(--t-chico); }
+  .sitio .mascota-globo { font-size: var(--t-chico); }
+}
+
+/* ============================================================
+   CELULAR / TABLET (≤940px): misma idea de escala, con tamaños más compactos
+     --t-micro   11.5px  rótulos en MAYÚSCULAS
+     --t-chico   13.6px  notas, horas
+     --t-cuerpo  15.2px  párrafos
+   Antes había ~10 tamaños distintos entre 10 y 15px, casi iguales entre sí.
+   Va al final del archivo para ganarle a las reglas base.
+   ============================================================ */
+@media (max-width: 940px) {
+  .sitio { --t-micro: 0.72rem; --t-chico: 0.85rem; --t-cuerpo: 0.95rem; }
+
+  .sitio .eyebrow,
+  .sitio .dia-btn .dia-nombre,
+  .sitio .dia-btn .dia-mes,
+  .sitio .grilla-pub-cab,
+  .llegar-datos dt,
+  .sitio .mascota-globo { font-size: var(--t-micro); }
+
+  .pie-nota,
+  .sitio .espera-nota,
+  .sitio .rivales-cal-vacio p,
+  .sitio .grilla-pub-hora { font-size: var(--t-chico); }
+
+  .sitio .cancha-card { font-size: 0.9rem; }
+  .sitio .seccion-cab p:not(.eyebrow),
+  .sitio .board-intro p:not(.eyebrow) { font-size: var(--t-cuerpo); }
 }

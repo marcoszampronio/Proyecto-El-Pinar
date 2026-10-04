@@ -189,7 +189,6 @@ export default function PublicPage() {
       <div className="rival-cta reveal">
         <div className="txt">
           <strong>¿Estás buscando rival?</strong>
-          <span>Mirá qué equipos ya reservaron cancha y les falta contra quién jugar.</span>
         </div>
         <button className="btn btn-oro" onClick={() => irA('rival')}>
           Ver equipos <FlechaAbajo />

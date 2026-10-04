@@ -1608,7 +1608,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .rival-cta .txt { display: flex; flex-direction: column; gap: 4px; }
 .rival-cta strong { font-family: var(--s-titulo); font-weight: 600; font-size: clamp(1.3rem, 3vw, 1.9rem); color: var(--s-cal); }
-.rival-cta span { color: var(--s-niebla); font-size: 0.95rem; }
 .rival-cta .btn svg { transition: transform .2s ease; }
 .rival-cta .btn:hover svg { transform: translateY(3px); }
 
@@ -1928,7 +1927,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .clado-tags span { font-size: 0.82rem; }
 
   /* busco rival */
-  .rival-cta span { font-size: 1.05rem; }
   .sitio .rivales-cal-rango { font-size: 1.2rem; }
   .sitio .rivales-grid-dia span { font-size: 0.85rem; }
   .sitio .rivales-grid-dia strong { font-size: 1.6rem; }

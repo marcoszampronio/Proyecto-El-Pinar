@@ -1781,7 +1781,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   stroke-linecap: round; stroke-linejoin: round;
 }
 .sitio .modal-foto-mapa .mapa-tucancha {
-  position: absolute; bottom: auto; transform: translate(-50%, -50%); white-space: nowrap;
+  /* anclada por el borde de abajo (-100%): el mapa se estira con la pantalla pero la
+     etiqueta mide siempre lo mismo, así nunca se corre sobre el nombre de la cancha */
+  position: absolute; bottom: auto; transform: translate(-50%, -100%); white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--s-texto); font-weight: 700; font-size: 0.74rem; line-height: 1;
   padding: 5px 10px 5px 6px; border-radius: 999px;

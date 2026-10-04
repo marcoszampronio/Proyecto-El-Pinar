@@ -9,12 +9,12 @@ const CANCHAS = {
   C1: {
     nombre: 'Cancha 1',
     puntos: [[410, 75], [636, 108], [548, 386], [318, 346]],
-    etiqueta: { left: '45.5%', top: '37%' },
+    etiqueta: { left: '45.5%', top: '47%' }, // top = borde de ABAJO de la etiqueta, justo sobre "CANCHA 1"
   },
   C2: {
     nombre: 'Cancha 2',
     puntos: [[722, 130], [938, 166], [852, 440], [624, 402]],
-    etiqueta: { left: '75%', top: '52%' },
+    etiqueta: { left: '75%', top: '57%' }, // idem, sobre "CANCHA 2"
   },
 };
 

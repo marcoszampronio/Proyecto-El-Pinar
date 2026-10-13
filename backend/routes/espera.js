@@ -12,10 +12,14 @@ router.post('/', async (req, res) => {
   const clientName = String(body.clientName || '').trim();
   const clientPhone = String(body.clientPhone || '').trim();
 
+  // Honeypot: campo oculto que solo un bot completa. Respondemos como si
+  // hubiera salido bien para no delatar el filtro.
+  if (body.website) return res.json({ ok: true });
+
   if (!date || !(await esFechaAbierta(date))) {
     return res.status(400).json({ error: 'Elegí un día habilitado.' });
   }
-  if (!clientName || clientPhone.replace(/\D/g, '').length < 8) {
+  if (!clientName || clientName.length > 100 || clientPhone.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá tu nombre y tu WhatsApp.' });
   }
 

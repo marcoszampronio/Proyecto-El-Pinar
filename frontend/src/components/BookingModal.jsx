@@ -37,6 +37,7 @@ export default function BookingModal({ slotInfo, onClose }) {
     lookingForRival: false,
     teamName: '',
     category: '',
+    website: '', // honeypot: campo oculto, solo un bot lo completa
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -102,6 +103,7 @@ export default function BookingModal({ slotInfo, onClose }) {
         teamName: esCanchaFutbol ? (form.teamName.trim() || null) : null,
         category: esCanchaFutbol ? (form.category || null) : null,
         date: slotInfo.date,
+        website: form.website,
       };
 
       let data;
@@ -262,6 +264,18 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p style={{ fontSize: 13, color: 'var(--s-niebla)', margin: '2px 0 14px' }}>
             Consultá por la parrilla por WhatsApp.
           </p>
+
+          {/* Honeypot anti-bot: oculto para personas, los bots suelen completarlo igual. */}
+          <input
+            type="text"
+            name="website"
+            value={form.website}
+            onChange={(e) => actualizar('website', e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+          />
 
           {error && <p className="error-msg">{error}</p>}
 

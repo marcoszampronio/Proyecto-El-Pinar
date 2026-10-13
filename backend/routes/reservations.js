@@ -17,6 +17,9 @@ const router = Router();
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validarDatosCliente(body) {
+  // Honeypot: campo oculto que solo un bot completa.
+  if (body.website) return 'Solicitud inválida.';
+
   const nombre = String(body.clientName || '').trim();
   const telefono = String(body.clientPhone || '').trim();
   const email = String(body.clientEmail || '').trim();

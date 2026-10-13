@@ -45,6 +45,19 @@ app.use('/api/espera', (req, res, next) =>
   req.method === 'GET' ? next() : limiteReservas(req, res, next)
 );
 
+// Límite general y liviano para el resto de la API (consultas de
+// disponibilidad, panel admin), para que no se pueda scrapear o golpear sin
+// control. Mucho más permisivo que el de arriba, que protege la creación de
+// reservas.
+const limiteGeneral = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas solicitudes. Probá de nuevo en unos minutos.' },
+});
+app.use('/api', limiteGeneral);
+
 app.get('/', (req, res) => {
   res.json({ ok: true, mensaje: 'API de Complejo El Pinar funcionando.' });
 });

@@ -11,6 +11,7 @@ import rivalsRoutes from './routes/rivals.js';
 import adminRoutes from './routes/admin.js';
 import exportRoutes from './routes/export.js';
 import statusRoutes from './routes/status.js';
+import internalRoutes from './routes/internal.js';
 import { expirarPendientesVencidas } from './lib/expirarPendientes.js';
 import { iniciarBackupDiario } from './lib/backupDiario.js';
 import { generarProximasReservas } from './lib/turnosFijos.js';
@@ -69,6 +70,7 @@ app.use('/api/espera', esperaRoutes);
 app.use('/api/rivals', rivalsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/export', exportRoutes);
+app.use('/api/internal', internalRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

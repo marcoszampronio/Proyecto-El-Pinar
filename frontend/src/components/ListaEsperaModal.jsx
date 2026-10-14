@@ -8,7 +8,7 @@ export default function ListaEsperaModal({ fecha, onCerrar }) {
   const [nombre, setNombre] = useState('');
   const [area, setArea] = useState('');
   const [num, setNum] = useState('');
-  const [website, setWebsite] = useState(''); // honeypot: campo oculto, solo un bot lo completa
+  const [contacto_alterno, setContactoAlterno] = useState(''); // honeypot: campo oculto, solo un bot lo completa
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [listo, setListo] = useState(false);
@@ -29,7 +29,7 @@ export default function ListaEsperaModal({ fecha, onCerrar }) {
         date: fecha,
         clientName: nombre.trim(),
         clientPhone: `54 9 ${areaLimpia} ${numLimpio}`,
-        website,
+        contacto_alterno,
       });
       setListo(true);
     } catch (e) {
@@ -96,9 +96,9 @@ export default function ListaEsperaModal({ fecha, onCerrar }) {
             {/* Honeypot anti-bot: oculto para personas, los bots suelen completarlo igual. */}
             <input
               type="text"
-              name="website"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
+              name="contacto_alterno"
+              value={contacto_alterno}
+              onChange={(e) => setContactoAlterno(e.target.value)}
               tabIndex={-1}
               autoComplete="off"
               aria-hidden="true"

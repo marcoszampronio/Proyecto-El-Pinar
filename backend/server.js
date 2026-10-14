@@ -17,6 +17,13 @@ import { generarProximasReservas } from './lib/turnosFijos.js';
 
 const app = express();
 
+// Render pone un intermediario (proxy) entre internet y este servidor. Sin esto,
+// el servidor ve la dirección de ESE intermediario para TODAS las visitas, y los
+// límites de pedidos (rate limit) terminan contando a todo el mundo como una sola
+// persona. Con "1" confía en un solo intermediario y cuenta a cada visitante por
+// su dirección real.
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
 // CORS: en produccion se restringe a los dominios propios via CORS_ORIGINS
@@ -51,7 +58,7 @@ app.use('/api/espera', (req, res, next) =>
 // reservas.
 const limiteGeneral = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 300,
+  max: 600, // por visitante: una visita normal gasta ~5, así que sobra aun con varias personas en la misma red de celular
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Demasiadas solicitudes. Probá de nuevo en unos minutos.' },

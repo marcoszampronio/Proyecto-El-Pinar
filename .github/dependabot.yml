@@ -1,18 +1,23 @@
+# Dependabot: solo avisos de SEGURIDAD. Con "open-pull-requests-limit: 0" no
+# abre propuestas de actualización de versión (que traían saltos grandes como
+# React 19, Express 5 o Vite 8 y pueden romper el sitio si se aceptan sin probar).
+# Las alertas de seguridad de GitHub siguen funcionando igual.
 version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/backend"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
 
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 0

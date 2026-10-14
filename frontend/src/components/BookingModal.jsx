@@ -37,7 +37,7 @@ export default function BookingModal({ slotInfo, onClose }) {
     lookingForRival: false,
     teamName: '',
     category: '',
-    website: '', // honeypot: campo oculto, solo un bot lo completa
+    contacto_alterno: '', // honeypot: campo oculto, solo un bot lo completa
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -103,7 +103,7 @@ export default function BookingModal({ slotInfo, onClose }) {
         teamName: esCanchaFutbol ? (form.teamName.trim() || null) : null,
         category: esCanchaFutbol ? (form.category || null) : null,
         date: slotInfo.date,
-        website: form.website,
+        contacto_alterno: form.contacto_alterno,
       };
 
       let data;
@@ -268,9 +268,9 @@ export default function BookingModal({ slotInfo, onClose }) {
           {/* Honeypot anti-bot: oculto para personas, los bots suelen completarlo igual. */}
           <input
             type="text"
-            name="website"
-            value={form.website}
-            onChange={(e) => actualizar('website', e.target.value)}
+            name="contacto_alterno"
+            value={form.contacto_alterno}
+            onChange={(e) => actualizar('contacto_alterno', e.target.value)}
             tabIndex={-1}
             autoComplete="off"
             aria-hidden="true"

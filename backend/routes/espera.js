@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
 
   // Honeypot: campo oculto que solo un bot completa. Respondemos como si
   // hubiera salido bien para no delatar el filtro.
-  if (body.website) return res.json({ ok: true });
+  if (body.contacto_alterno) return res.json({ ok: true });
 
   if (!date || !(await esFechaAbierta(date))) {
     return res.status(400).json({ error: 'Elegí un día habilitado.' });

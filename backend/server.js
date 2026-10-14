@@ -20,9 +20,10 @@ const app = express();
 // Render pone un intermediario (proxy) entre internet y este servidor. Sin esto,
 // el servidor ve la dirección de ESE intermediario para TODAS las visitas, y los
 // límites de pedidos (rate limit) terminan contando a todo el mundo como una sola
-// persona. Con "1" confía en un solo intermediario y cuenta a cada visitante por
+// persona. Delante de Render hay además Cloudflare, así que son 2 intermediarios
+// (Cloudflare -> Render -> este servidor). Con "2" confía en esos dos y cuenta a cada visitante por
 // su dirección real.
-app.set('trust proxy', 1);
+app.set('trust proxy', 2);
 
 app.use(helmet());
 

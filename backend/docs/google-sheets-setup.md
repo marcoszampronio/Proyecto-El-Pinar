@@ -1,5 +1,10 @@
 # Google Sheets en vivo — guía de armado
 
+> **Estado: ya armado y en uso.** Esta guía queda como referencia por si hay
+> que rearmarlo alguna vez (otro proyecto, se pierde la clave, etc.). Los
+> pasos 1, 2 y 4 ya están hechos; solo falta repasar el paso 3 si cambian las
+> variables de entorno en Render.
+
 Cada vez que una reserva se crea, se confirma o se cancela (sea desde la web,
 el panel de admin, o los procesos automáticos de turnos fijos / vencimiento),
 el backend avisa y la fila correspondiente se crea o actualiza sola en esta
@@ -48,20 +53,46 @@ Reiniciar el backend (o el servicio en Render) después de cargarlas.
 ## 4. Conectar Supabase
 
 Esto es lo que hace que CUALQUIER cambio en la tabla `reservations`
-(sin importar qué parte del código lo hizo) dispare la sincronización.
+(sin importar qué parte del código lo hizo) dispare la sincronización. Se
+puede hacer con el botón de Database → Webhooks del dashboard de Supabase,
+pero es más directo pegar esto en el **SQL Editor** del proyecto y ejecutarlo
+una vez (es exactamente lo mismo que arma ese botón por detrás):
 
-1. Entrá al proyecto en supabase.com → **Database** → **Webhooks**.
-2. **Create a new hook**.
-3. Nombre: `sheets-sync` (o lo que quieras).
-4. Tabla: `reservations`.
-5. Eventos: tildar **Insert** y **Update** (no hace falta Delete).
-6. Tipo: **HTTP Request**.
-7. URL: `https://<tu-backend-en-render>.onrender.com/api/internal/sheets-sync`
-8. Método: `POST`.
-9. HTTP Headers → agregar uno:
-   - Nombre: `X-Webhook-Secret`
-   - Valor: el mismo `SUPABASE_WEBHOOK_SECRET` del paso 3.
-10. Guardar.
+```sql
+create extension if not exists pg_net;
+
+create or replace function public.notificar_cambio_reserva()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform net.http_post(
+    url := 'https://proyecto-el-pinar.onrender.com/api/internal/sheets-sync',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'X-Webhook-Secret', '<el mismo SUPABASE_WEBHOOK_SECRET del paso 3>'
+    ),
+    body := jsonb_build_object(
+      'type', TG_OP,
+      'table', TG_TABLE_NAME,
+      'record', row_to_json(NEW)
+    )
+  );
+  return NEW;
+end;
+$$;
+
+create trigger trg_reservations_sheets_sync
+after insert or update on public.reservations
+for each row
+execute function public.notificar_cambio_reserva();
+```
+
+Si alguna vez hay que cambiar la URL del backend o la clave, se actualiza el
+`create or replace function` de arriba con los valores nuevos (no hace falta
+tocar el trigger).
 
 ## 5. Probar
 

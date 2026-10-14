@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import 'dotenv/config';
 
 import availabilityRoutes from './routes/availability.js';
@@ -25,6 +25,12 @@ const app = express();
 // su dirección real.
 app.set('trust proxy', 2);
 
+// Cómo identificamos a cada visitante para los límites de pedidos. Cloudflare
+// manda la dirección real del visitante en la cabecera CF-Connecting-IP, que es
+// más estable que deducirla de la cadena de intermediarios. Si no viene (por
+// ejemplo en tu compu), se usa la dirección que detecta Express.
+const clienteDe = (req) => ipKeyGenerator(req.headers['cf-connecting-ip'] || req.ip);
+
 app.use(helmet());
 
 // CORS: en produccion se restringe a los dominios propios via CORS_ORIGINS
@@ -40,6 +46,7 @@ app.use(express.json());
 // Limita la CREACION de reservas (POST) para evitar que llenen la agenda con
 // turnos falsos. Las consultas (GET, ej. "buscar mi reserva") no se limitan.
 const limiteReservas = rateLimit({
+  keyGenerator: clienteDe,
   windowMs: 15 * 60 * 1000,
   max: 8,
   standardHeaders: true,
@@ -58,6 +65,7 @@ app.use('/api/espera', (req, res, next) =>
 // control. Mucho más permisivo que el de arriba, que protege la creación de
 // reservas.
 const limiteGeneral = rateLimit({
+  keyGenerator: clienteDe,
   windowMs: 5 * 60 * 1000,
   max: 600, // por visitante: una visita normal gasta ~5, así que sobra aun con varias personas en la misma red de celular
   standardHeaders: true,

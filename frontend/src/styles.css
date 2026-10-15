@@ -1618,6 +1618,15 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .espera-modal-hs { margin: 0 0 8px; font-size: 13.5px; color: var(--s-niebla); }
 .sitio .btn-espera { width: 100%; justify-content: center; }
+@media (max-width: 620px) {
+  /* En celular el título va en una sola línea: ícono más chico y tipografía que se adapta al ancho. */
+  .sitio .espera-card { padding: 14px 12px; }
+  .sitio .espera-cab { gap: 10px; }
+  .sitio .espera-ico { width: 34px; height: 34px; flex: none; }
+  .sitio .espera-ico svg { width: 20px; height: 20px; }
+  .sitio .btn-espera { padding-inline: 10px; font-size: clamp(0.85rem, 4vw, 1rem); }
+  .sitio .espera-txt strong { display: block; white-space: nowrap; font-size: clamp(0.8rem, 4.2vw, 1rem); }
+}
 .rival-cta-nota { flex-basis: 100%; margin: -6px 0 0; font-size: 0.9rem; color: var(--s-niebla); }
 
 /* pádel */

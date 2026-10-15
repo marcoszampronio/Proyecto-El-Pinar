@@ -2182,7 +2182,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background-size: 100% var(--hora);
 }
 .sem-col { position: relative; min-width: 0; }
-.sem-col-padel { cursor: pointer; border-radius: 6px; background: rgba(151, 171, 172, 0.05); }
+.sem-col-padel { cursor: pointer; border-radius: 6px; }
 .sem-col-padel:hover { background: rgba(242, 193, 78, 0.09); }
 .sem-col-padel:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 1px; }
 
@@ -2198,11 +2198,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sem-b.confirmada { background: var(--p-alto); }
 .sem-b.pendiente { background: rgba(242, 193, 78, 0.92); color: var(--p-nav); }
-.sem-b.libre { background: transparent; border: 1px dashed rgba(122, 199, 79, 0.3); }
-.sem-b.libre:hover { border-color: var(--p-oro); background: rgba(242, 193, 78, 0.08); }
+/* Libre = vacío (sin marco). Solo al apuntar o tocar se marca el cuadrado. */
+.sem-b.libre { background: transparent; border: 0; }
+.sem-b.libre:hover, .sem-b.libre:active { background: rgba(242, 193, 78, 0.16); box-shadow: inset 0 0 0 2px var(--p-oro); }
 .sem-b.bloqueado {
   cursor: default;
-  background: repeating-linear-gradient(135deg, rgba(151, 171, 172, 0.16) 0 5px, transparent 5px 10px);
+  background: repeating-linear-gradient(135deg, rgba(151, 171, 172, 0.11) 0 4px, transparent 4px 9px);
 }
 .sem-b.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; z-index: 2; }
 .sem-b:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 1px; }
@@ -2223,3 +2224,4 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   /* columnas muy angostas: el nombre se lee en vertical, como los eventos del calendario del celular */
   .sem-b-txt { display: block; writing-mode: vertical-rl; white-space: nowrap; text-overflow: ellipsis; max-height: 100%; }
 }
+.sem-leyenda .pt.bloq { background: repeating-linear-gradient(135deg, rgba(151, 171, 172, 0.5) 0 2px, transparent 2px 4px); }

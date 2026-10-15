@@ -1259,9 +1259,9 @@ function SemanaPanel() {
           )}
 
           <div className="grilla-leyenda sem-leyenda">
-            <span><i className="pt libre" /> Libre</span>
             <span><i className="pt pendiente" /> A confirmar</span>
             <span><i className="pt confirmada" /> Reservado</span>
+            <span><i className="pt bloq" /> Bloqueado</span>
             <span><span aria-hidden="true">⚽</span> Busca rival</span>
           </div>
 

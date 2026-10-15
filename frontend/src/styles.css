@@ -2073,3 +2073,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* mapa/foto dentro de la tarjeta "Tu reserva" de la pantalla ¡Ya casi! */
 .sitio .resumen-reserva .modal-foto { margin: 8px 0 12px; }
+
+/* "Reservá online" (encabezado de la grilla): 1-2 pt más grande que el resto de los rótulos */
+.sitio .board-intro .eyebrow { font-size: 0.85rem; }
+@media (min-width: 941px) {
+  .sitio .board-intro .eyebrow { font-size: 0.95rem; }
+}

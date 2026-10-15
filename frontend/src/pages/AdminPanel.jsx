@@ -1196,13 +1196,13 @@ function SemanaPanel() {
                                 <button
                                   key={slot.turn}
                                   type="button"
-                                  className={`sem-b ${slot.status} ${sel === r.code ? 'sel' : ''}`}
+                                  className={`sem-b ${slot.status} ${r.looking_for_rival ? 'con-rival' : ''} ${sel === r.code ? 'sel' : ''}`}
                                   style={pos}
                                   onClick={() => toggle(r.code)}
                                   title={`${NOMBRE_CANCHA[court]} · ${hhmm(slot.start)}: ${r.team_name ? nombreEquipo(r.team_name) + ' · ' : ''}${r.client_name}`}
                                 >
                                   <span className="sem-b-txt">{etiqueta(r)}</span>
-                                  {r.looking_for_rival && <i className="sem-rival" title="Busca rival" />}
+                                  {r.looking_for_rival && <span className="sem-pelota" role="img" aria-label="Busca rival" title="Busca rival">⚽</span>}
                                 </button>
                               );
                             }
@@ -1262,7 +1262,7 @@ function SemanaPanel() {
             <span><i className="pt libre" /> Libre</span>
             <span><i className="pt pendiente" /> A confirmar</span>
             <span><i className="pt confirmada" /> Reservado</span>
-            <span><i className="sem-rival" /> Busca rival</span>
+            <span><span aria-hidden="true">⚽</span> Busca rival</span>
           </div>
 
           {seleccion && (

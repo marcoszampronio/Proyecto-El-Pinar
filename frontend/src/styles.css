@@ -2206,12 +2206,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sem-b.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; z-index: 2; }
 .sem-b:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 1px; }
-.sem-rival {
-  position: absolute; bottom: 4px; left: 50%; margin-left: -3.5px; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--p-ok); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
-}
+.sem-pelota { position: absolute; bottom: 3px; left: 0; right: 0; text-align: center; font-size: 0.8rem; line-height: 1; }
+.sem-b.con-rival { padding-bottom: 18px; }
 .sem-leyenda { margin-top: 14px; }
-.sem-leyenda .sem-rival { position: static; display: inline-block; margin-left: 0; box-shadow: none; }
 
 @media (max-width: 640px) {
   .sem { --hora: 86px; }

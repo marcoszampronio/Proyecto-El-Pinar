@@ -2139,7 +2139,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .pnav, .pnav.abierto { transition: none; }
 }
 
-/* ---- Agenda: selector Día | Semana y vista de la semana ---- */
+/* ---- Agenda: selector Día | Semana ---- */
 .vista-toggle {
   display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 14px;
   background: var(--p-fila); border: 1px solid var(--p-linea); border-radius: 12px;
@@ -2151,32 +2151,78 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .vista-toggle button.on { background: var(--p-oro); color: var(--p-nav); }
 .vista-toggle button:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
 
-.sem-cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
-.sem-cifras div { display: flex; flex-direction: column; padding: 10px 12px; background: var(--p-fila); border-radius: 12px; }
-.sem-cifras b { font-size: 1.5rem; line-height: 1.15; color: var(--p-txt); font-variant-numeric: tabular-nums; }
-.sem-cifras span { font-size: 0.78rem; color: var(--p-mut); }
-
-.sem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; transition: opacity .15s; }
-.sem-dia {
-  min-width: 0; padding: 14px; border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--p-linea);
-}
-.sem-dia.hoy { border-color: var(--p-oro); }
-.sem-dia-cab { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 12px; }
-.sem-dia-nombre { font-weight: 700; font-size: 1.08rem; color: var(--p-txt); text-transform: capitalize; }
-.sem-hoy {
-  margin-left: 8px; padding: 2px 8px; border-radius: 999px;
-  background: var(--p-oro); color: var(--p-nav); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-}
-.sem-dia-cuenta { font-size: 0.82rem; color: var(--p-mut); }
-.sem-dia .grilla { grid-template-columns: 44px 1fr 1fr; gap: 6px; }
-.sem-dia .grilla-celda.libre:not(:disabled):hover { border-color: var(--p-oro); }
-.sem-padel { margin-top: 22px; }
-.sem-padel-tit { font-weight: 700; font-size: 0.9rem; color: var(--p-txt); }
-.sem-padel .tl { margin-top: 20px; }
-.sem-padel-btn { width: 100%; margin-top: 12px; padding: 8px; }
-@media (max-width: 480px) {
-  .sem-cifras b { font-size: 1.3rem; }
-  .sem-grid { grid-template-columns: 1fr; }
-}
+/* ---- Semana: una sola hoja, como el calendario del celular ---- */
+.sem { --hora: 104px; }
 .sem .agenda-fecha-dia { text-transform: none; }
+.sem-resumen { margin: 12px 0 14px; font-size: 0.9rem; color: var(--p-mut); }
+.sem-resumen b { color: var(--p-txt); font-variant-numeric: tabular-nums; }
+
+.sem-cal { display: flex; align-items: stretch; transition: opacity .15s; }
+.sem-eje { flex: none; width: 28px; }
+.sem-cab { height: 62px; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; padding-bottom: 6px; }
+.sem-cab-dia { display: flex; align-items: baseline; justify-content: center; gap: 5px; text-transform: capitalize; }
+.sem-cab-dia span { font-size: 0.78rem; font-weight: 600; color: var(--p-mut); }
+.sem-cab-dia b { font-size: 1.15rem; color: var(--p-txt); font-variant-numeric: tabular-nums; }
+.sem-diacol.hoy .sem-cab-dia b { padding: 0 7px; border-radius: 999px; background: var(--p-oro); color: var(--p-nav); }
+.sem-cab-sub { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.sem-cab-sub span { text-align: center; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.02em; color: var(--p-mut); }
+
+.sem-cuerpo { position: relative; height: calc(var(--hora) * 3.5); }
+.sem-eje .sem-cuerpo span {
+  position: absolute; right: 6px; transform: translateY(-50%);
+  font-size: 0.7rem; color: var(--p-mut); font-variant-numeric: tabular-nums;
+}
+.sem-eje .sem-cuerpo span:first-child { transform: none; }
+
+.sem-diacol { flex: 1; min-width: 0; padding: 0 3px; border-left: 1px solid var(--p-linea); }
+.sem-diacol.hoy { background: rgba(242, 193, 78, 0.05); }
+.sem-cuerpo-dia {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+  background-image: linear-gradient(to bottom, var(--p-linea) 1px, transparent 1px);
+  background-size: 100% var(--hora);
+}
+.sem-col { position: relative; min-width: 0; }
+.sem-col-padel { cursor: pointer; border-radius: 6px; background: rgba(151, 171, 172, 0.05); }
+.sem-col-padel:hover { background: rgba(242, 193, 78, 0.09); }
+.sem-col-padel:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 1px; }
+
+.sem-b {
+  position: absolute; left: 0; right: 0; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: 3px 2px; border: 0; border-bottom: 3px solid var(--p-card); border-radius: 6px; overflow: hidden;
+  font: inherit; font-size: 0.72rem; font-weight: 700; line-height: 1.15; color: var(--p-txt); cursor: pointer;
+}
+.sem-b-txt {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  overflow: hidden; word-break: break-word;
+}
+.sem-b.confirmada { background: var(--p-alto); }
+.sem-b.pendiente { background: rgba(242, 193, 78, 0.92); color: var(--p-nav); }
+.sem-b.libre { background: transparent; border: 1px dashed rgba(122, 199, 79, 0.3); }
+.sem-b.libre:hover { border-color: var(--p-oro); background: rgba(242, 193, 78, 0.08); }
+.sem-b.bloqueado {
+  cursor: default;
+  background: repeating-linear-gradient(135deg, rgba(151, 171, 172, 0.16) 0 5px, transparent 5px 10px);
+}
+.sem-b.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; z-index: 2; }
+.sem-b:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 1px; }
+.sem-rival {
+  position: absolute; bottom: 4px; left: 50%; margin-left: -3.5px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--p-ok); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.25);
+}
+.sem-leyenda { margin-top: 14px; }
+.sem-leyenda .sem-rival { position: static; display: inline-block; margin-left: 0; box-shadow: none; }
+
+@media (max-width: 640px) {
+  .sem { --hora: 86px; }
+  .sem-eje { width: 22px; }
+  .sem-eje .sem-cuerpo span { right: 4px; font-size: 0.64rem; }
+  .sem-diacol { padding: 0 1px; }
+  .sem-cuerpo-dia { gap: 1px; }
+  .sem-cab-dia span { font-size: 0.7rem; }
+  .sem-cab-dia b { font-size: 1rem; }
+  .sem-cab-sub span { font-size: 0.55rem; }
+  .sem-b { padding: 4px 0; font-size: 0.66rem; }
+  /* columnas muy angostas: el nombre se lee en vertical, como los eventos del calendario del celular */
+  .sem-b-txt { display: block; writing-mode: vertical-rl; white-space: nowrap; text-overflow: ellipsis; max-height: 100%; }
+}

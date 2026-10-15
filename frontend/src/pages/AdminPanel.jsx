@@ -103,8 +103,8 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
   const areaLimpia = area.replace(/\D/g, '');
   const numLimpio = num.replace(/\D/g, '');
   const quien = contacto || { nombre: nombreIn.trim(), telefono: `54 9 ${areaLimpia} ${numLimpio}` };
-  const [padelStart, setPadelStart] = useState('20:00');
-  const [padelEnd, setPadelEnd] = useState('21:00');
+  const [padelStart, setPadelStart] = useState(inicial?.padelStart || '20:00');
+  const [padelEnd, setPadelEnd] = useState(inicial?.padelEnd || '21:00');
   const [lookingForRival, setLookingForRival] = useState(false);
   const [teamName, setTeamName] = useState(contacto?.equipo || '');
   const [category, setCategory] = useState('');
@@ -1029,6 +1029,24 @@ function AgendaDia() {
   );
 }
 
+// Vista de toda la semana en UNA hoja, como el calendario del celular: un eje de horas
+// (20:00 a 23:30) y los días como columnas; dentro de cada día, Cancha 1, Cancha 2 y Pádel.
+// Las reservas son bloques de color ubicados en su horario. Es una vista para mirar:
+// tocar un bloque abre su detalle y tocar un hueco libre abre "Agendar turno manual".
+// Muestra martes a jueves; lunes y viernes solo si Mateo los abrió como día especial.
+const SEM_INI = 20 * 60;
+const SEM_FIN = 23 * 60 + 30;
+const SEM_TOTAL = SEM_FIN - SEM_INI;
+const semMin = (hora) => {
+  const [h, m] = String(hora).slice(0, 5).split(':').map(Number);
+  return h * 60 + m;
+};
+const semHora = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+const semPos = (iniMin, finMin) => ({
+  top: `${((iniMin - SEM_INI) / SEM_TOTAL) * 100}%`,
+  height: `${((finMin - iniMin) / SEM_TOTAL) * 100}%`,
+});
+
 // Primera semana a mostrar: la actual; si ya es viernes o fin de semana, la que viene.
 function semanaInicial() {
   const lunes = lunesDeLaSemana(hoyISO());
@@ -1036,16 +1054,13 @@ function semanaInicial() {
   return dow === 0 || dow >= 5 ? sumarDias(lunes, 7) : lunes;
 }
 
-// Vista de toda la semana: una tarjeta por día con la grilla de fútbol (2 canchas × 3 turnos)
-// y las barras de horario de pádel. Muestra martes a jueves; lunes y viernes solo si Mateo
-// los abrió como día especial.
 function SemanaPanel() {
   const [lunes, setLunes] = useState(semanaInicial);
   const [dias, setDias] = useState(null); // [{ fecha, agenda }]
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [sel, setSel] = useState(null);
-  const [agendando, setAgendando] = useState(null); // { court, date, turn? } desde una celda libre
+  const [agendando, setAgendando] = useState(null); // { court, date, turn? | padelStart?, padelEnd? }
 
   async function cargar() {
     setCargando(true);
@@ -1070,6 +1085,7 @@ function SemanaPanel() {
   useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [lunes]);
 
   const toggle = (code) => setSel((s) => (s === code ? null : code));
+  const etiqueta = (r) => (r.team_name ? nombreEquipo(r.team_name) : (r.client_name || '').split(' ')[0]);
 
   // Cifras de toda la semana.
   let reservas = 0;
@@ -1101,6 +1117,26 @@ function SemanaPanel() {
     ? `${primero.diaNum} al ${ultimo.diaNum} de ${ultimo.mes}`
     : `${primero.diaNum} de ${primero.mes} al ${ultimo.diaNum} de ${ultimo.mes}`;
 
+  // Reserva seleccionada (en cualquier día) para mostrar su detalle debajo de la hoja.
+  let seleccion = null;
+  for (const d of dias || []) {
+    const r = [
+      ...d.agenda.futbol.C1.map((s) => s.reserva),
+      ...d.agenda.futbol.C2.map((s) => s.reserva),
+      ...d.agenda.padel,
+    ].find((x) => x && x.code === sel);
+    if (r) { seleccion = { reserva: r, fecha: d.fecha, espera: d.agenda.espera || [] }; break; }
+  }
+
+  // Tocar un hueco del pádel: el horario sale de dónde se tocó (de a 30 min, 1 hora de juego).
+  function tocarPadel(e, fecha) {
+    if (e.target !== e.currentTarget) return; // un bloque ya existente maneja su propio toque
+    const caja = e.currentTarget.getBoundingClientRect();
+    const min = SEM_INI + ((e.clientY - caja.top) / caja.height) * SEM_TOTAL;
+    const ini = Math.min(Math.max(Math.floor(min / 30) * 30, SEM_INI), SEM_FIN - 60);
+    setAgendando({ court: 'PAD', date: fecha, padelStart: semHora(ini), padelEnd: semHora(ini + 60) });
+  }
+
   return (
     <div className="stat-card sem">
       <div className="agenda-nav-row">
@@ -1117,71 +1153,126 @@ function SemanaPanel() {
 
       {dias && (
         <>
-          <div className="sem-cifras">
-            <div><b>{reservas}</b><span>{reservas === 1 ? 'reserva' : 'reservas'}</span></div>
-            <div><b>{aConfirmar}</b><span>a confirmar</span></div>
-            <div><b>{ocupacion}%</b><span>ocupación fútbol</span></div>
-          </div>
+          <p className="sem-resumen">
+            <b>{reservas}</b> {reservas === 1 ? 'reserva' : 'reservas'} · <b>{aConfirmar}</b> a confirmar · <b>{ocupacion}%</b> ocupación fútbol
+          </p>
 
-          <div className="grilla-leyenda" style={{ marginBottom: 12 }}>
+          {dias.length === 0 ? (
+            <p className="agenda-vacio">No hay días abiertos esta semana.</p>
+          ) : (
+            <div className="sem-cal" style={cargando ? { opacity: 0.55 } : undefined}>
+              <div className="sem-eje">
+                <div className="sem-cab" />
+                <div className="sem-cuerpo">
+                  {[0, 1, 2, 3].map((n) => (
+                    <span key={n} style={{ top: `${((n * 60) / SEM_TOTAL) * 100}%` }}>{20 + n}</span>
+                  ))}
+                </div>
+              </div>
+
+              {dias.map(({ fecha, agenda }) => {
+                const p = partesFecha(fecha);
+                const esHoy = fecha === hoyISO();
+                return (
+                  <div key={fecha} className={`sem-diacol ${esHoy ? 'hoy' : ''}`}>
+                    <div className="sem-cab">
+                      <div className="sem-cab-dia">
+                        <span>{p.diaSemana.slice(0, 3)}</span>
+                        <b>{p.diaNum}</b>
+                      </div>
+                      <div className="sem-cab-sub" aria-hidden="true">
+                        <span>C1</span><span>C2</span><span>Pád</span>
+                      </div>
+                    </div>
+
+                    <div className="sem-cuerpo sem-cuerpo-dia">
+                      {['C1', 'C2'].map((court) => (
+                        <div key={court} className="sem-col" aria-label={`${NOMBRE_CANCHA[court]} ${fechaLinda(fecha)}`}>
+                          {agenda.futbol[court].map((slot) => {
+                            const pos = semPos(semMin(slot.start), semMin(slot.end));
+                            if (slot.reserva) {
+                              const r = slot.reserva;
+                              return (
+                                <button
+                                  key={slot.turn}
+                                  type="button"
+                                  className={`sem-b ${slot.status} ${sel === r.code ? 'sel' : ''}`}
+                                  style={pos}
+                                  onClick={() => toggle(r.code)}
+                                  title={`${NOMBRE_CANCHA[court]} · ${hhmm(slot.start)}: ${r.team_name ? nombreEquipo(r.team_name) + ' · ' : ''}${r.client_name}`}
+                                >
+                                  <span className="sem-b-txt">{etiqueta(r)}</span>
+                                  {r.looking_for_rival && <i className="sem-rival" title="Busca rival" />}
+                                </button>
+                              );
+                            }
+                            if (slot.status === 'bloqueado') {
+                              return <div key={slot.turn} className="sem-b bloqueado" style={pos} title="Bloqueado" />;
+                            }
+                            return (
+                              <button
+                                key={slot.turn}
+                                type="button"
+                                className="sem-b libre"
+                                style={pos}
+                                aria-label={`Agendar ${NOMBRE_CANCHA[court]} ${fechaLinda(fecha)} ${hhmm(slot.start)}`}
+                                title="Libre · tocá para agendar"
+                                onClick={() => setAgendando({ court, date: fecha, turn: slot.turn })}
+                              />
+                            );
+                          })}
+                        </div>
+                      ))}
+
+                      <div
+                        className="sem-col sem-col-padel"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Agendar pádel ${fechaLinda(fecha)}`}
+                        title="Pádel · tocá un horario libre para agendar"
+                        onClick={(e) => tocarPadel(e, fecha)}
+                        onKeyDown={(e) => {
+                          if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            setAgendando({ court: 'PAD', date: fecha });
+                          }
+                        }}
+                      >
+                        {agenda.padel.map((r) => (
+                          <button
+                            key={r.code}
+                            type="button"
+                            className={`sem-b ${r.status} ${sel === r.code ? 'sel' : ''}`}
+                            style={semPos(Math.max(semMin(r.start_time), SEM_INI), Math.min(semMin(r.end_time), SEM_FIN))}
+                            onClick={() => toggle(r.code)}
+                            title={`Pádel · ${hhmm(r.start_time)} a ${hhmm(r.end_time)}: ${r.client_name}`}
+                          >
+                            <span className="sem-b-txt">{etiqueta(r)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="grilla-leyenda sem-leyenda">
             <span><i className="pt libre" /> Libre</span>
             <span><i className="pt pendiente" /> A confirmar</span>
             <span><i className="pt confirmada" /> Reservado</span>
+            <span><i className="sem-rival" /> Busca rival</span>
           </div>
 
-          {dias.length === 0 && <p className="agenda-vacio">No hay días abiertos esta semana.</p>}
-
-          <div className="sem-grid" style={cargando ? { opacity: 0.55 } : undefined}>
-            {dias.map(({ fecha, agenda }) => {
-              const p = partesFecha(fecha);
-              const esHoy = fecha === hoyISO();
-              const reservasDia = [
-                ...agenda.futbol.C1.map((s) => s.reserva),
-                ...agenda.futbol.C2.map((s) => s.reserva),
-                ...agenda.padel,
-              ].filter(Boolean);
-              const pendientesDia = reservasDia.filter((r) => r.status === 'pendiente').length;
-              const reservaSel = sel ? reservasDia.find((r) => r.code === sel) : null;
-              return (
-                <section key={fecha} className={`sem-dia ${esHoy ? 'hoy' : ''}`}>
-                  <header className="sem-dia-cab">
-                    <div>
-                      <span className="sem-dia-nombre">{p.diaSemana} {p.diaNum}</span>
-                      {esHoy && <span className="sem-hoy">Hoy</span>}
-                    </div>
-                    <span className="sem-dia-cuenta">
-                      {reservasDia.length === 0 ? 'Sin reservas' : `${reservasDia.length} reserva${reservasDia.length > 1 ? 's' : ''}`}
-                      {pendientesDia > 0 ? ` · ${pendientesDia} a confirmar` : ''}
-                    </span>
-                  </header>
-
-                  <GrillaFutbol
-                    agenda={agenda}
-                    sel={sel}
-                    onCelda={toggle}
-                    onLibre={(court, turn) => setAgendando({ court, date: fecha, turn })}
-                  />
-
-                  <div className="sem-padel">
-                    <div className="sem-padel-tit">Pádel</div>
-                    <TimelinePadel reservas={agenda.padel} sel={sel} onTramo={toggle} />
-                    <button className="btn btn-ghost sem-padel-btn" onClick={() => setAgendando({ court: 'PAD', date: fecha })}>
-                      + Agendar pádel
-                    </button>
-                  </div>
-
-                  {reservaSel && (
-                    <DetalleReserva
-                      reserva={reservaSel}
-                      espera={agenda.espera || []}
-                      fecha={fecha}
-                      onCancelado={cargar}
-                    />
-                  )}
-                </section>
-              );
-            })}
-          </div>
+          {seleccion && (
+            <DetalleReserva
+              reserva={seleccion.reserva}
+              espera={seleccion.espera}
+              fecha={seleccion.fecha}
+              onCancelado={cargar}
+            />
+          )}
         </>
       )}
 

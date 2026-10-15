@@ -100,7 +100,6 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
   const [lookingForRival, setLookingForRival] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [category, setCategory] = useState('');
-  const [parrilla, setParrilla] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
   const [hecho, setHecho] = useState(null);
@@ -174,7 +173,6 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
         lookingForRival: esFutbol && lookingForRival,
         teamName: esFutbol && lookingForRival ? teamName.trim() : null,
         category: esFutbol && lookingForRival ? category : null,
-        parrilla,
         ...(esFutbol ? { turn } : { startTime: `${padelStart}:00`, endTime: `${padelEnd}:00` }),
       };
       const data = await api.adminAgendarManual(payload);
@@ -315,13 +313,6 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
           </>
         )}
 
-        <div className="field-check">
-          <label>
-            <input type="checkbox" checked={parrilla} onChange={(e) => setParrilla(e.target.checked)} />
-            {' Con parrilla 🔥'}
-          </label>
-        </div>
-
         {bloqueoMsg && <p className="error-msg">{bloqueoMsg}</p>}
         {error && <p className="error-msg">{error}</p>}
 
@@ -397,20 +388,9 @@ function ExportPanel() {
       <button className="btn btn-primary" onClick={descargarExcel} disabled={descargando} style={{ width: '100%' }}>
         {descargando ? 'Generando...' : '⬇ Descargar reporte (.xlsx)'}
       </button>
-      <p style={{ fontSize: 12, color: 'var(--p-mut)' }}>
-        Trae una hoja "Resumen" con los números del negocio (por cancha, por mes, por día,
-        clientes frecuentes) y una hoja "Detalle" con todas las reservas como tabla para filtrar
-        y armar gráficos.
-      </p>
-
       <hr style={{ border: 'none', borderTop: '1px solid var(--p-linea)', margin: '14px 0' }} />
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        <strong>Backup automático:</strong> el sistema manda el CSV completo por email a los
-        administradores (el día y la hora figuran en "Estado del sistema", arriba).
-        También lo podés disparar ahora:
-      </p>
       <button className="btn btn-ghost" onClick={backupAhora} disabled={backup === '...'} style={{ width: '100%' }}>
-        {backup === '...' ? 'Enviando...' : 'Enviar backup ahora'}
+        {backup === '...' ? 'Enviando...' : 'Enviar backup por email ahora'}
       </button>
       {backup && backup !== '...' && (
         <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
@@ -420,6 +400,23 @@ function ExportPanel() {
 }
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel', PAR: 'Parrilla' };
+
+// 'Martes 27 de octubre' (en vez de la fecha cruda 2026-10-27).
+const fechaLinda = (iso) => {
+  const f = fechaLargaCompleta(iso);
+  return f.charAt(0).toUpperCase() + f.slice(1);
+};
+
+// Una cifra de las Estadísticas.
+function Cifra({ titulo, valor, sub }) {
+  return (
+    <div className="stat-card">
+      <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>{titulo}</div>
+      <div className="big-num">{valor}</div>
+      {sub && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{sub}</div>}
+    </div>
+  );
+}
 
 function Semaforo({ ok, label, detalle }) {
   return (
@@ -453,13 +450,14 @@ function EstadoSistema() {
   useEffect(() => { cargar(); }, []);
 
   return (
-    <div className="stat-card" style={{ margin: '12px 20px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ margin: 0 }}>Estado del sistema</h3>
-        <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12 }} onClick={cargar} disabled={cargando}>
-          {cargando ? '...' : 'Actualizar'}
-        </button>
-      </div>
+    <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>
+      <summary>
+        <span>Estado del sistema</span>
+        {d && <span aria-hidden="true">{d.baseDatos.ok && d.email.ok ? '🟢' : '🔴'}</span>}
+      </summary>
+      <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12, marginTop: 10 }} onClick={cargar} disabled={cargando}>
+        {cargando ? '...' : 'Actualizar'}
+      </button>
       {error && <p className="error-msg">{error}</p>}
       {d && (
         <div style={{ marginTop: 8 }}>
@@ -489,14 +487,9 @@ function EstadoSistema() {
             label="CORS (seguridad)"
             detalle={d.corsOrigenes.length ? d.corsOrigenes.join(', ') : 'Abierto a cualquier origen — conviene restringirlo'}
           />
-          <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0, marginTop: 6 }}>
-            {d.ventanaPendientesMin > 0
-              ? `Un turno reservado se libera solo a los ${d.ventanaPendientesMin} min si no lo confirmás.`
-              : 'Un turno reservado queda así hasta que lo confirmes o lo canceles vos.'}
-          </p>
         </div>
       )}
-    </div>
+    </details>
   );
 }
 
@@ -660,12 +653,10 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       <div className="agenda-detalle-cliente">
         {reserva.client_name}
         {reserva.looking_for_rival && reserva.team_name ? ` · ${nombreEquipo(reserva.team_name)} (${reserva.category || 's/cat'})` : ''}
-        {reserva.parrilla ? ' · 🔥 consultó parrilla' : ''}
       </div>
       <div className="agenda-detalle-meta">
         Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}
       </div>
-      <div className="agenda-detalle-meta">{reserva.code}</div>
 
       {error && <p className="error-msg">{error}</p>}
 
@@ -691,9 +682,6 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
           <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
         )}
       </div>
-      <p style={{ fontSize: 11, color: 'var(--p-mut)', marginTop: 6, marginBottom: 0 }}>
-        Tip: primero avisá por WhatsApp, después cancelá el turno.
-      </p>
 
       {reserva.status === 'confirmada' && ['C1', 'C2'].includes(reserva.court) && (
         <RivalToggle reserva={reserva} fecha={fecha} onCambio={onCancelado} />
@@ -735,7 +723,6 @@ function GrillaFutbol({ agenda, sel, onCelda }) {
               >
                 <span className="grilla-celda-nombre">{r ? r.client_name.split(' ')[0] : ''}</span>
                 <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
-                {r && r.parrilla && <span className="grilla-celda-tag">🔥</span>}
                 {r && r.looking_for_rival && <span className="grilla-celda-rival">Busco rival</span>}
               </button>
             );
@@ -870,7 +857,6 @@ function AgendaPanel() {
           ...agenda.futbol.C1.map((s) => s.reserva),
           ...agenda.futbol.C2.map((s) => s.reserva),
           ...agenda.padel,
-          ...agenda.parrilla.reservas,
         ].find((r) => r && r.code === sel)
       : null;
 
@@ -892,7 +878,7 @@ function AgendaPanel() {
           <p className="agenda-resumen">
             {totalDia === 0
               ? 'Sin reservas este día.'
-              : `${totalDia} reserva${totalDia > 1 ? 's' : ''}${agenda.parrilla.pidieron ? ` · ${agenda.parrilla.pidieron} consultó parrilla` : ''}`}
+              : `${totalDia} reserva${totalDia > 1 ? 's' : ''}`}
           </p>
 
           <div className="agenda-card">
@@ -902,7 +888,6 @@ function AgendaPanel() {
               <span><i className="pt libre" /> Libre</span>
               <span><i className="pt pendiente" /> A confirmar</span>
               <span><i className="pt confirmada" /> Reservado</span>
-              <span>🔥 parrilla · "Busco rival" = busca rival</span>
             </div>
           </div>
 
@@ -933,35 +918,11 @@ function AgendaPanel() {
             />
           )}
 
-          <div className="agenda-card">
-            <div className="agenda-card-titulo">
-              Consultas por parrilla 🔥 <span className="agenda-contador">{agenda.parrilla.pidieron}</span>
-            </div>
-            {agenda.parrilla.reservas.length === 0 ? (
-              <p className="agenda-vacio">Nadie consultó por la parrilla</p>
-            ) : (
-              <div className="agenda-slots">
-                {agenda.parrilla.reservas.map((r) => (
-                  <FilaFlexible
-                    key={r.code}
-                    r={r}
-                    seleccionado={sel === r.code}
-                    onClick={() => toggle(r.code)}
-                    detalle={`${NOMBRE_CANCHA[r.court]} ${r.turn || hhmm(r.start_time)}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
           {agenda.espera && agenda.espera.length > 0 && (
             <div className="agenda-card">
               <div className="agenda-card-titulo">
                 Lista de espera <span className="agenda-contador">{agenda.espera.length}</span>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--p-mut)', margin: '0 0 8px' }}>
-                Pidieron que les avises si se libera un turno de fútbol este día.
-              </p>
               {agenda.espera.map((e) => (
                 <EsperaItem key={e.id} e={e} onAccion={cargar} />
               ))}
@@ -1043,9 +1004,6 @@ function ContactosPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Base de contactos</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Todos los clientes que alguna vez reservaron. Tocá "WhatsApp" para escribirles.
-      </p>
 
       {agregar ? (
         <ContactoForm
@@ -1070,7 +1028,7 @@ function ContactosPanel() {
       {error && <p className="error-msg">{error}</p>}
       {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
-        <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length} de {contactos.length} contactos</p>
+        <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length === contactos.length ? `${contactos.length} contactos` : `${lista.length} de ${contactos.length} contactos`}</p>
       )}
 
       {lista.map((c) => {
@@ -1106,7 +1064,7 @@ function ContactosPanel() {
               {c.telefono}{c.email ? ` · ${c.email}` : ''}
             </div>
             <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
-              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${c.ultimaReserva}`}
+              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${String(c.ultimaReserva).split('-').reverse().join('/')}`}
             </div>
             {c.comentario && (
               <div style={{ fontSize: 12, color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
@@ -1159,7 +1117,7 @@ function ContactosPanel() {
           onCerrar={() => setAgendando(null)}
           onCreado={(r) => {
             setAgendando(null);
-            setAviso(`Turno agendado para ${r.client_name} (${r.code}).`);
+            setAviso(`Turno agendado para ${r.client_name}.`);
             cargar();
           }}
         />
@@ -1309,10 +1267,6 @@ function BloqueosPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Bloquear turnos o días</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Para sacar de circulación un turno, una cancha o el día entero sin que haya
-        una reserva (mantenimiento, evento privado, etc). No cancela nada existente.
-      </p>
 
       <NavegadorFecha fecha={fecha} onCambiar={setFecha} />
 
@@ -1436,11 +1390,6 @@ function AperturasEspecialesPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Abrir un día especial</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Para abrir puntualmente un lunes o un viernes (fuera de los días de
-        siempre) y que el público lo vea en la web y pueda reservar online,
-        igual que un martes/miércoles/jueves normal.
-      </p>
 
       <div className="field">
         <label>Qué día abrir</label>
@@ -1550,12 +1499,9 @@ function RecordatoriosFijos() {
   return (
     <div className="stat-card" style={{ marginBottom: 14 }}>
       <h3 style={{ marginTop: 0 }}>
-        Recordatorios de turnos fijos
+        Recordatorios · próximos 7 días
         {lista && pendientes > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes}</span>}
       </h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Próximos 7 días. Tocá “Recordar” y se abre WhatsApp con el mensaje listo; solo falta enviarlo.
-      </p>
       {error && <p className="error-msg">{error}</p>}
       {!lista && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
       {lista && lista.length === 0 && <p className="agenda-vacio">No hay turnos fijos en los próximos 7 días.</p>}
@@ -1707,11 +1653,6 @@ function TurnosFijosPanel() {
     <RecordatoriosFijos />
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Turnos fijos</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Un cliente que juega siempre el mismo día y horario. Se generan solas las
-        reservas confirmadas de las próximas ~6 semanas; si cancelás una semana puntual
-        desde la Agenda, esa fecha no se vuelve a generar.
-      </p>
 
       <div className="field">
         <label>Cancha</label>
@@ -1822,7 +1763,7 @@ function TurnosFijosPanel() {
                 {f.client_name}{f.team_name ? ` · ${nombreEquipo(f.team_name)}` : ''}
               </div>
               <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
-              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone} · desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
+              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
             </div>
             <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
               Dar de baja
@@ -1878,7 +1819,7 @@ function SuspensionPanel() {
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia</h3>
       <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Cancela todas las reservas del día y te arma un WhatsApp por cliente para avisarles.
+        Cancela las reservas del día y arma el aviso por WhatsApp para cada cliente.
       </p>
 
       <NavegadorFecha fecha={fecha} onCambiar={(f) => { setFecha(f); setReservas(null); setClientes(null); }} />
@@ -1928,7 +1869,7 @@ function SuspensionPanel() {
                 {c.nombre} — {NOMBRE_CANCHA[c.court]} {hhmm(c.start_time)}
               </div>
               <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>
-                Tel: {c.telefonoOriginal} {c.telefono ? `→ +${c.telefono}` : '(no se pudo armar el número, revisalo)'}
+                {c.telefono ? `+${c.telefono}` : `${c.telefonoOriginal} (no se pudo armar el número, revisalo)`}
               </div>
               {c.linkWhatsapp ? (
                 <a
@@ -1973,6 +1914,26 @@ export default function AdminPanel() {
   const [procesando, setProcesando] = useState(false);
   const [aviso, setAviso] = useState(null);
   const [confirmadaWa, setConfirmadaWa] = useState(null); // { link, nombre } tras confirmar
+  const [menu, setMenu] = useState(false); // menú lateral (solo se usa en celular)
+
+  // Con el menú abierto: Esc lo cierra y el fondo no se desplaza.
+  useEffect(() => {
+    if (!menu) return undefined;
+    const cerrarConEsc = (e) => { if (e.key === 'Escape') setMenu(false); };
+    window.addEventListener('keydown', cerrarConEsc);
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', cerrarConEsc);
+      document.body.style.overflow = previo;
+    };
+  }, [menu]);
+
+  function irA(id) {
+    setTab(id);
+    setMenu(false);
+    window.scrollTo({ top: 0 });
+  }
 
   useEffect(() => {
     cargarPendientes();
@@ -2065,13 +2026,21 @@ export default function AdminPanel() {
 
   return (
     <div className="panel">
-      <aside className="pnav">
+      <header className="ptop">
+        <button type="button" className="ptop-btn" aria-label="Abrir el menú" aria-expanded={menu} onClick={() => setMenu(true)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          {pendientes.length > 0 && <span className="ptop-punto" aria-label={`${pendientes.length} pendientes`}>{pendientes.length}</span>}
+        </button>
+        <span className="ptop-titulo">{(NAV.find((n) => n.id === tab) || {}).label}</span>
+      </header>
+      {menu && <div className="pnav-fondo" onClick={() => setMenu(false)} aria-hidden="true" />}
+      <aside className={`pnav ${menu ? 'abierto' : ''}`}>
         <div className="pnav-marca">
           <svg viewBox="0 0 40 52" aria-hidden="true"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor" /><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor" /></svg>
           <div><b>El Pinar</b><span>Panel</span></div>
         </div>
         {NAV.map((n) => (
-          <button key={n.id} className={`pnav-item ${tab === n.id ? 'on' : ''}`} onClick={() => setTab(n.id)}>
+          <button key={n.id} className={`pnav-item ${tab === n.id ? 'on' : ''}`} onClick={() => irA(n.id)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{n.ico}</svg>
             {n.label}
             {n.tag ? <span className="pnav-tag">{n.tag}</span> : null}
@@ -2099,70 +2068,52 @@ export default function AdminPanel() {
 
       {tab === 'buscar' && (
         <>
-          <div className="stat-card">
-            <h3 style={{ marginTop: 0 }}>Pegá el código de la reserva</h3>
-            <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-              El cliente te lo manda por WhatsApp con el comprobante. Al confirmar, el turno
-              queda ocupado en la web, se le manda el email, y si pidió rival aparece solo en "Busco rival".
-            </p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                style={{ flex: 1, padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', fontFamily: 'monospace' }}
-                value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && buscar()}
-                placeholder="Ej: RES-C1-22SEP-T1"
-              />
-              <button className="btn btn-primary" onClick={() => buscar()}>Buscar</button>
+          {(error || aviso || confirmadaWa) && (
+            <div className="stat-card">
+              {error && <p className="error-msg" style={{ margin: 0 }}>{error}</p>}
+              {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600, margin: 0 }}>{aviso}</p>}
+              {confirmadaWa && (
+                <a
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center', display: 'block', marginTop: 10 }}
+                  href={confirmadaWa.link}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Enviar confirmación por WhatsApp a {confirmadaWa.nombre}
+                </a>
+              )}
             </div>
-            {error && <p className="error-msg">{error}</p>}
-            {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 8 }}>{aviso}</p>}
-            {confirmadaWa && (
-              <a
-                className="btn btn-primary"
-                style={{ textDecoration: 'none', textAlign: 'center', display: 'block', marginTop: 8 }}
-                href={confirmadaWa.link}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Enviar confirmación por WhatsApp a {confirmadaWa.nombre}
-              </a>
-            )}
-          </div>
+          )}
 
           {resultado && (
             <div className="stat-card">
-              <div style={{ fontFamily: 'monospace', fontWeight: 700, marginBottom: 4 }}>{resultado.reserva.code}</div>
-              <p style={{ margin: '4px 0' }}>
-                {resultado.reserva.client_name} {resultado.reserva.category ? `· ${resultado.reserva.category}` : ''}
-                {resultado.reserva.looking_for_rival && (
-                  <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>
-                    {' · '}Busca rival{resultado.reserva.team_name ? ` (${nombreEquipo(resultado.reserva.team_name)})` : ''}
-                  </span>
+              <p style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700 }}>
+                {resultado.reserva.client_name}
+                {resultado.reserva.looking_for_rival && resultado.reserva.team_name && (
+                  <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (${resultado.reserva.category})` : ''}</span>
                 )}
-                {resultado.reserva.parrilla && <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>{' · '}🔥 consultó parrilla</span>}
               </p>
               <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>
-                {NOMBRE_CANCHA[resultado.reserva.court]} · {resultado.reserva.reservation_date} · {resultado.reserva.start_time.slice(0, 5)} a {resultado.reserva.end_time.slice(0, 5)}
+                {NOMBRE_CANCHA[resultado.reserva.court]} · {fechaLinda(resultado.reserva.reservation_date)} · {hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs
               </p>
-              <p style={{ fontSize: 13 }}>Tel: {resultado.reserva.client_phone}</p>
+              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>{resultado.reserva.client_phone}</p>
 
               {resultado.vencioPorSistema && (
                 <p style={{ fontSize: 12, color: 'var(--p-oro)', marginTop: 4 }}>
-                  Este turno se había liberado por falta de comprobante. Si el turno sigue libre,
-                  al confirmar se reactiva.
+                  Este turno se liberó solo. Si sigue libre, al confirmar se reactiva.
                 </p>
               )}
               {resultado.accionSugerida === 'confirmar' && (
                 <>
                   <div className="modal-actions">
-                    <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Sí, confirmar</button>
+                    <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Confirmar turno</button>
                     <button className="btn btn-ghost" onClick={() => setResultado(null)}>Atrás</button>
                   </div>
                   <div style={{ marginTop: 8 }}>
                     <BotonConfirmar
-                      label="Dar de baja este turno"
-                      confirmLabel="Confirmar: cancelar el turno"
+                      label="Cancelar este turno"
+                      confirmLabel="Tocá de nuevo para cancelar"
                       onConfirm={cancelar}
                       disabled={procesando}
                       style={{ width: '100%' }}
@@ -2172,93 +2123,63 @@ export default function AdminPanel() {
               )}
               {resultado.accionSugerida === 'cancelar' && (
                 <div className="modal-actions">
-                  <button className="btn btn-danger" disabled={procesando} onClick={cancelar}>Sí, cancelar</button>
+                  <button className="btn btn-danger" disabled={procesando} onClick={cancelar}>Cancelar turno</button>
                   <button className="btn btn-ghost" onClick={() => setResultado(null)}>Atrás</button>
                 </div>
               )}
               {resultado.accionSugerida === 'ninguna' && (
-                <p style={{ fontStyle: 'italic', color: 'var(--p-mut)' }}>Este turno ya fue cancelado. No hay acciones disponibles.</p>
+                <p style={{ fontStyle: 'italic', color: 'var(--p-mut)' }}>Este turno ya fue cancelado.</p>
               )}
             </div>
           )}
 
           <div className="stat-card">
-            <h3 style={{ marginTop: 0 }}>Pendientes de confirmación</h3>
-            {pendientes.length === 0 && <p style={{ color: 'var(--p-mut)' }}>No hay reservas pendientes.</p>}
+            <h3 style={{ marginTop: 0 }}>
+              Pendientes de confirmación
+              {pendientes.length > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes.length}</span>}
+            </h3>
+            {pendientes.length === 0 && <p className="agenda-vacio">No hay reservas pendientes.</p>}
             {pendientes.map((p) => (
               <button
                 key={p.id}
                 className="pendiente-item"
                 onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               >
-                <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13 }}>{p.code}</div>
-                <div style={{ fontSize: 12, color: 'var(--p-oro)' }}>
-                  {p.client_name} · {NOMBRE_CANCHA[p.court] || p.court} · {p.reservation_date}
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{p.client_name}</div>
+                <div style={{ fontSize: 13, color: 'var(--p-oro)' }}>
+                  {NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)} hs
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--p-oro)', marginTop: 2, fontWeight: 600 }}>Tocá para confirmar / cancelar →</div>
               </button>
             ))}
           </div>
         </>
       )}
 
-      {tab === 'stats' && <EstadoSistema />}
-
       {tab === 'stats' && stats && (
         <>
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
             <h3 style={{ marginTop: 0 }}>Próximos {stats.rangoDias} días</h3>
             <div className="stat-grid">
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Confirmadas</div>
-                <div className="big-num">{stats.ventana.confirmadas}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Pendientes</div>
-                <div className="big-num">{stats.ventana.pendientes}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Ocupación fútbol</div>
-                <div className="big-num">{stats.ventana.ocupacionFutbolPct}%</div>
-                <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>
-                  {stats.ventana.turnosFutbolOcupados}/{stats.ventana.turnosFutbolPosibles} turnos
-                </div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Consultas parrilla</div>
-                <div className="big-num">{stats.ventana.parrillasReservadas}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Cancha 1 · Cancha 2</div>
-                <div className="big-num">{stats.ventana.reservasPorCancha.C1} · {stats.ventana.reservasPorCancha.C2}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Pádel · Buscan rival</div>
-                <div className="big-num">{stats.ventana.reservasPorCancha.PAD} · {stats.ventana.equiposBuscandoRival}</div>
-              </div>
+              <Cifra titulo="Confirmadas" valor={stats.ventana.confirmadas} />
+              <Cifra titulo="Pendientes" valor={stats.ventana.pendientes} />
+              <Cifra
+                titulo="Ocupación fútbol"
+                valor={`${stats.ventana.ocupacionFutbolPct}%`}
+                sub={`${stats.ventana.turnosFutbolOcupados} de ${stats.ventana.turnosFutbolPosibles} turnos`}
+              />
+              <Cifra titulo="Buscan rival" valor={stats.ventana.equiposBuscandoRival} />
+              <Cifra titulo="Cancha 1" valor={stats.ventana.reservasPorCancha.C1} />
+              <Cifra titulo="Cancha 2" valor={stats.ventana.reservasPorCancha.C2} />
+              <Cifra titulo="Pádel" valor={stats.ventana.reservasPorCancha.PAD} />
             </div>
           </div>
 
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>
             <div className="stat-grid">
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Reservas</div>
-                <div className="big-num">{stats.historico30.totalActivas}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Clientes distintos</div>
-                <div className="big-num">{stats.historico30.clientesUnicos}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Cancelaciones</div>
-                <div className="big-num">{stats.historico30.canceladas}</div>
-                <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{stats.historico30.tasaCancelacionPct}% del total</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Consultas parrilla</div>
-                <div className="big-num">{stats.historico30.parrillas}</div>
-              </div>
+              <Cifra titulo="Reservas" valor={stats.historico30.totalActivas} />
+              <Cifra titulo="Clientes distintos" valor={stats.historico30.clientesUnicos} />
+              <Cifra titulo="Cancelaciones" valor={stats.historico30.canceladas} sub={`${stats.historico30.tasaCancelacionPct}% del total`} />
             </div>
             <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Reservas por día</div>
@@ -2282,6 +2203,7 @@ export default function AdminPanel() {
       )}
 
       {tab === 'stats' && !stats && <ExportPanel />}
+      {tab === 'stats' && <EstadoSistema />}
       </main>
     </div>
   );

@@ -1852,22 +1852,26 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
 .sitio .resumen-turno{
   background:var(--s-pino-900); border:1px solid var(--s-linea);
-  border-radius: var(--radio); padding:16px 18px 14px; margin:4px 0 18px;
-  display:grid; grid-template-columns:1.3fr 1fr; gap:14px 16px;
+  border-radius: var(--radio); padding:4px 14px; margin:4px 0 16px;
+  display:grid; grid-template-columns:1fr; gap:0;
 }
-.sitio .resumen-item{ min-width:0; }
+/* formato ticket: rótulo a la izquierda, dato a la derecha, un renglón cada uno */
+.sitio .resumen-item{ min-width:0; display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:9px 0; }
+.sitio .resumen-item + .resumen-item{ border-top:1px solid var(--s-linea-fria); }
+.sitio .resumen-item .resumen-label{ margin:0; flex:none; }
+.sitio .resumen-item .resumen-valor{ text-align:right; }
 .sitio .resumen-label{
   display:flex; align-items:center; gap:6px;
   font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;
-  color:var(--s-oro); margin:0 0 5px;
+  color:var(--s-oro); margin:0 0 3px;
 }
 .sitio .resumen-label svg{ width:14px; height:14px; flex:none; }
 .sitio .resumen-valor{
-  font-family:var(--s-texto); font-weight:700; font-size:1.25rem; line-height:1.2;
+  font-family:var(--s-texto); font-weight:700; font-size:1.02rem; line-height:1.25;
   color:var(--s-cal); font-variant-numeric:tabular-nums;
 }
-.sitio .resumen-full{ grid-column:1 / -1; border-top:1px solid var(--s-linea-fria); margin-top:2px; padding-top:12px; }
-.sitio .resumen-full .resumen-valor{ font-size:1.12rem; }
+.sitio .resumen-full{ grid-column:1 / -1; }
+.sitio .resumen-full .resumen-valor{ font-size:1.02rem; }
 .sitio .modal p { color: var(--s-cal); }
 .sitio .field label { color: var(--s-niebla); }
 .sitio .field input {

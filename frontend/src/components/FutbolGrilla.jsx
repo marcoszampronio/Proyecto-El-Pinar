@@ -14,11 +14,6 @@ import { hhmm } from '../lib/fechas';
 export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVerRival, onListaEspera }) {
   const turnos = c1 || [];
 
-  // Horarios en los que no queda ninguna cancha libre: son los que pueden liberarse.
-  const completos = turnos
-    .filter((t, i) => c1[i]?.status !== 'libre' && c2?.[i]?.status !== 'libre')
-    .map((t) => hhmm(t.start));
-
   // index de "busca rival" para este día: "C1|20:30" -> rival
   const idxRival = {};
   for (const r of rivales || []) {
@@ -89,11 +84,6 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
           </span>
           <div className="espera-txt">
             <strong>¿Tu horario está ocupado?</strong>
-            <span>
-              {completos.length > 0
-                ? <>Sin lugar: {completos.map((h) => <b key={h} className="espera-hora">{h}</b>)}</>
-                : 'Dejanos tu WhatsApp y te avisamos si se libera algo.'}
-            </span>
           </div>
           <button className="btn btn-oro btn-espera" onClick={onListaEspera}>
             Avisame si se libera un turno

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../api';
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 import MapaCanchaElegida from './MapaCanchaElegida';
+import { IconRival } from './site/iconos';
 
 const CATEGORIAS = ['M30', 'M40', 'Libre'];
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
@@ -222,20 +223,26 @@ export default function BookingModal({ slotInfo, onClose }) {
           </div>
 
           {esCanchaFutbol && (
-            <div>
-              <div className="field-check">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={form.lookingForRival}
-                    onChange={(e) => actualizar('lookingForRival', e.target.checked)}
-                  />
-                  {' Estoy buscando rival'}
-                </label>
-              </div>
+            <div className={'rival-opcion' + (form.lookingForRival ? ' on' : '')}>
+              {/* Interruptor: toda la tarjeta es tocable. El checkbox real queda
+                  oculto pero sigue siendo accesible por teclado y lector de pantalla. */}
+              <label className="rival-opcion-cab">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={form.lookingForRival}
+                  onChange={(e) => actualizar('lookingForRival', e.target.checked)}
+                />
+                <span className="rival-opcion-ico"><IconRival s={22} /></span>
+                <span className="rival-opcion-txt">
+                  <strong>Estoy buscando rival</strong>
+                  <span>Tu equipo aparece en “Busco rival” para que otros te escriban.</span>
+                </span>
+                <span className="rival-switch" aria-hidden="true" />
+              </label>
 
               {form.lookingForRival && (
-                <div>
+                <div className="rival-campos">
                   <div className={'field' + (errs.teamName ? ' field--error' : '')}>
                     <label>Nombre del equipo</label>
                     <input

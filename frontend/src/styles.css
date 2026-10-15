@@ -2004,3 +2004,46 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .seccion-cab p:not(.eyebrow),
   .sitio .board-intro p:not(.eyebrow) { font-size: var(--t-cuerpo); }
 }
+
+/* ---------- reserva: "Estoy buscando rival" como tarjeta con interruptor ---------- */
+.sitio .rival-opcion {
+  border: 1.5px solid var(--s-linea-fria); border-radius: 14px;
+  background: var(--s-pino-900); padding: 12px 14px; margin: 4px 0 14px;
+  transition: border-color .18s ease, background-color .18s ease;
+}
+.sitio .rival-opcion:hover { border-color: color-mix(in srgb, var(--s-oro) 55%, transparent); }
+.sitio .rival-opcion.on {
+  border-color: var(--s-oro);
+  background: color-mix(in srgb, var(--s-oro) 8%, var(--s-pino-900));
+}
+.sitio .rival-opcion-cab {
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  text-transform: none; letter-spacing: 0; margin: 0; position: relative;
+}
+/* el checkbox real: oculto a la vista, pero accesible */
+.sitio .rival-opcion-cab input {
+  position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none;
+}
+.sitio .rival-opcion-ico {
+  flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--s-oro) 14%, transparent); color: var(--s-oro);
+}
+.sitio .rival-opcion-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sitio .rival-opcion-txt strong { font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal); }
+.sitio .rival-opcion-txt span { font-size: 0.85rem; line-height: 1.35; color: var(--s-niebla); }
+.sitio .rival-switch {
+  flex: none; position: relative; width: 46px; height: 28px; border-radius: 999px;
+  background: rgba(148, 167, 186, 0.28); transition: background-color .18s ease;
+}
+.sitio .rival-switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--s-cal); box-shadow: 0 1px 4px rgba(0,0,0,.4); transition: transform .18s ease, background-color .18s ease;
+}
+.sitio .rival-opcion-cab input:checked ~ .rival-switch { background: var(--s-oro); }
+.sitio .rival-opcion-cab input:checked ~ .rival-switch::after { transform: translateX(18px); background: var(--s-pino-900); }
+.sitio .rival-opcion-cab input:focus-visible ~ .rival-switch { outline: 2px solid var(--s-oro); outline-offset: 3px; }
+.sitio .rival-campos { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--s-linea); }
+.sitio .rival-campos .field:last-child { margin-bottom: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .sitio .rival-opcion, .sitio .rival-switch, .sitio .rival-switch::after { transition: none; }
+}

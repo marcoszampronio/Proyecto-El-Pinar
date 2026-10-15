@@ -2183,3 +2183,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 /* ---------- Cómo llegar: aire entre un dato y el rótulo siguiente (también en celular) ---------- */
 .llegar-datos dd + dt { margin-top: 14px; }
 .llegar-datos dt { margin-bottom: 2px; }
+
+/* mascota: se va cuando la sección de abajo ya tiene su propio botón de WhatsApp / Busco rival */
+.sitio .mascota-slot { transition: opacity var(--entrar) var(--curva-entrar), transform var(--entrar) var(--curva-entrar); }
+.sitio .mascota-slot--fuera { opacity: 0; transform: translateY(16px); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .sitio .mascota-slot { transition: none; } }

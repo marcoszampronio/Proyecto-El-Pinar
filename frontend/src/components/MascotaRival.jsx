@@ -6,8 +6,26 @@ import { WA_URL } from './site/config';
 // Aparece a los 5 s y después cicla: 15 s visible / 15 s oculto, siempre
 // (hasta que lo tocan). Mientras está oculto, en su lugar aparece un botón
 // de WhatsApp — así el rincón nunca queda vacío, siempre invitando a algo.
+// Se esconde (mascota y WhatsApp) cuando en la parte de abajo de la pantalla hay una
+// sección que ya ofrece esos botones: así no tapa ni repite lo que ya está ahí.
+const SECCIONES_CON_BOTON = ['.rival-cta', '#rival', '#llegar', '.pie'];
+
 export default function MascotaRival({ onIr }) {
   const [visible, setVisible] = useState(false);
+  const [fuera, setFuera] = useState(false);
+
+  useEffect(() => {
+    const els = SECCIONES_CON_BOTON.map((sel) => document.querySelector(sel)).filter(Boolean);
+    if (!('IntersectionObserver' in window) || els.length === 0) return;
+    const enVista = new Set();
+    // solo cuenta la franja donde vive la mascota (entre el 75% y el 90% de la altura)
+    const obs = new IntersectionObserver((entradas) => {
+      entradas.forEach((e) => (e.isIntersecting ? enVista.add(e.target) : enVista.delete(e.target)));
+      setFuera(enVista.size > 0);
+    }, { rootMargin: '-75% 0px -10% 0px' });
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
 
   useEffect(() => {
     let t;
@@ -24,13 +42,13 @@ export default function MascotaRival({ onIr }) {
   }, []);
 
   return (
-    <div className="mascota-slot">
+    <div className={`mascota-slot${fuera ? ' mascota-slot--fuera' : ''}`} aria-hidden={fuera || undefined}>
       <button
         className={`mascota ${visible ? 'mascota--on' : ''}`}
         onClick={onIr}
         aria-label="¿Buscás rival? Ver equipos que buscan partido"
         aria-hidden={!visible}
-        tabIndex={visible ? 0 : -1}
+        tabIndex={visible && !fuera ? 0 : -1}
       >
         <span className="mascota-globo">¿Buscás rival?</span>
         <Jugador />
@@ -43,7 +61,7 @@ export default function MascotaRival({ onIr }) {
         rel="noreferrer"
         aria-label="Escribinos por WhatsApp"
         aria-hidden={visible}
-        tabIndex={visible ? -1 : 0}
+        tabIndex={visible || fuera ? -1 : 0}
       >
         <WaIcon s={28} />
       </a>

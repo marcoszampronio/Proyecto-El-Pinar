@@ -1148,6 +1148,22 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
    Todo scopeado bajo .sitio para no tocar el panel de Mateo.
    ===================================================================== */
 .sitio {
+  /* ---- sistema: pocas decisiones, siempre las mismas ---- */
+  --borde:        rgba(148, 167, 186, 0.20);  /* línea finita fría (= --s-linea-fria) */
+  --borde-fuerte: rgba(148, 167, 186, 0.32);  /* bordes de controles */
+  --borde-oro:    rgba(242, 193, 78, 0.42);   /* acento suave */
+  --oro-velo:     rgba(242, 193, 78, 0.10);   /* fondo con un toque de dorado */
+  --s-error:      #F2705C;
+  --s-wa:         #1A7F45;                    /* WhatsApp con contraste ≥4.5:1 */
+  --radio-s: 8px;   /* chips, etiquetas chicas */
+  --radio:   12px;  /* celdas, botones de día, campos */
+  --radio-l: 16px;  /* tarjetas, modales, mapa */
+  --sombra-objeto: 0 24px 56px -24px rgba(0, 0, 0, 0.65);  /* la única sombra grande */
+  --rapido: 150ms;  --entrar: 450ms;  --pop: 420ms;
+  --curva: cubic-bezier(.4, 0, .2, 1);          /* hover y cambios de estado */
+  --curva-entrar: cubic-bezier(.2, .8, .2, 1);  /* lo que aparece: arranca rápido, frena suave */
+  --curva-pop: cubic-bezier(.3, 1.4, .5, 1);    /* lo nuevo/elegido: rebote leve */
+
   background: var(--s-pino-900);
   color: var(--s-cal);
   font-family: var(--s-texto);
@@ -1159,7 +1175,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio *, .sitio *::before, .sitio *::after { box-sizing: border-box; }
 .sitio h1, .sitio h2, .sitio h3 {
   font-family: var(--s-titulo);
-  font-weight: 600; line-height: 1.08; letter-spacing: -0.012em;
+  font-weight: 600; line-height: 1.04; letter-spacing: -0.022em;
   text-wrap: balance; margin: 0;
 }
 .sitio p { margin: 0; }
@@ -1170,10 +1186,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   text-transform: uppercase; color: var(--s-oro); margin: 0;
 }
 .sitio :where(a, button, input, select):focus-visible {
-  outline: 2px solid var(--s-oro); outline-offset: 3px; border-radius: 6px;
+  outline: 2px solid var(--s-oro); outline-offset: 3px; border-radius: var(--radio-s);
 }
 .sitio .envoltura { max-width: var(--s-envoltura); margin: 0 auto; padding: 0 24px; }
-.sitio .seccion { padding-block: clamp(36px, 4.5vw, 60px); position: relative; }
+.sitio .seccion { padding-block: 96px; position: relative; }
 .sitio [id] { scroll-margin-top: 90px; }
 .sitio .field-check {
   display: flex; align-items: flex-start; gap: 9px;
@@ -1182,7 +1198,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .field-check input { width: auto; margin-top: 3px; flex: none; }
 .sitio .field-check label { display: flex; align-items: flex-start; gap: 9px; text-transform: none; color: var(--s-cal); font-size: 0.92rem; letter-spacing: 0; }
 .sitio .field-check label input { width: auto; }
-.sitio .seccion-cab { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; max-width: 48ch; }
+.sitio .seccion-cab { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; max-width: 48ch; }
 .sitio .seccion-cab h2 { font-size: clamp(2rem, 4.4vw, 3rem); }
 .sitio .seccion-cab p { color: var(--s-niebla); }
 
@@ -1190,19 +1206,19 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .btn {
   display: inline-flex; align-items: center; gap: 9px;
   font-family: var(--s-texto); font-weight: 600; font-size: 0.95rem;
-  letter-spacing: 0.02em; padding: 13px 22px; border-radius: 999px;
+  letter-spacing: 0.02em; padding: 13px 22px; border-radius: var(--radio-l);
   border: 1.5px solid transparent; cursor: pointer; text-decoration: none;
   white-space: nowrap; background: transparent; color: var(--s-cal);
   text-transform: none;
-  transition: transform .16s ease, background-color .16s ease, border-color .16s ease, color .16s ease;
+  transition: transform var(--rapido) var(--curva), background-color var(--rapido) var(--curva), border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
 }
 .sitio .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.sitio .btn:active { transform: translateY(1px); }
+.sitio .btn:active { transform: scale(.97); }
 .sitio .btn-oro { background: var(--s-oro); color: var(--s-pino-900); }
 .sitio .btn-oro:hover:not(:disabled) { background: var(--s-oro-300); }
 .sitio .btn-linea { border-color: var(--s-linea); color: var(--s-cal); }
 .sitio .btn-linea:hover:not(:disabled) { border-color: var(--s-oro); color: var(--s-oro); }
-.sitio .btn-wa { background: #1A7F45; color: #fff; } /* contraste blanco ≥4.5:1 */
+.sitio .btn-wa { background: var(--s-wa); color: #fff; } /* contraste blanco ≥4.5:1 */
 .sitio .btn-wa:hover:not(:disabled) { background: #1C8B4B; }
 .sitio .btn-sm { padding: 9px 16px; font-size: 0.85rem; }
 
@@ -1211,7 +1227,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   position: fixed; inset: 0 0 auto 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
   padding: 15px 24px; border-bottom: 1px solid transparent;
-  transition: background-color .25s ease, border-color .25s ease, padding .25s ease;
+  transition: background-color var(--rapido) var(--curva), border-color var(--rapido) var(--curva), padding var(--rapido) var(--curva);
 }
 .snav--scroll {
   background: color-mix(in srgb, var(--s-pino-900) 92%, transparent);
@@ -1228,15 +1244,15 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .snav-links button {
   background: none; border: none; cursor: pointer; font: inherit;
   color: color-mix(in srgb, var(--s-cal) 62%, var(--s-niebla)); font-size: 0.9rem; font-weight: 500;
-  transition: color .15s ease;
+  transition: color var(--rapido) var(--curva);
 }
 .snav-links button:hover { color: var(--s-cal); }
 .snav-acc { display: flex; align-items: center; gap: 12px; }
 .snav-ico {
   display: grid; place-items: center; width: 38px; height: 38px;
-  border-radius: 999px; border: 1.5px solid var(--s-linea);
+  border-radius: var(--radio-l); border: 1.5px solid var(--s-linea);
   color: var(--s-cal); background: transparent; cursor: pointer;
-  transition: border-color .15s, color .15s;
+  transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
 }
 .snav-ico:hover { border-color: var(--s-oro); color: var(--s-oro); }
 .snav-ico svg { width: 17px; height: 17px; }
@@ -1259,8 +1275,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
     display: flex; flex-direction: column; align-items: center; gap: 5px;
     background: none; border: none; cursor: pointer;
     font-family: var(--s-texto); font-size: 0.72rem; font-weight: 700;
-    color: var(--s-cal); padding: 8px 2px 6px; border-radius: 12px;
-    transition: color .15s ease, background .15s ease;
+    color: var(--s-cal); padding: 8px 2px 6px; border-radius: var(--radio);
+    transition: color var(--rapido) var(--curva), background var(--rapido) var(--curva);
   }
   .mtab button svg { width: 24px; height: 24px; }
   .mtab button.on { color: var(--s-oro); background: color-mix(in srgb, var(--s-oro) 14%, transparent); }
@@ -1312,7 +1328,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .hero-in { position: relative; width: 100%; padding-top: 0; padding-bottom: 84px; }
 .hero-in .eyebrow { margin-bottom: 16px; }
-.hero h1 { font-size: clamp(3.4rem, 9vw, 6.2rem); letter-spacing: 0.01em; margin-bottom: 16px; }
+.hero h1 { font-size: clamp(3.4rem, 9vw, 6.2rem); letter-spacing: -0.015em; margin-bottom: 16px; }
 .hero-sub { max-width: 48ch; color: var(--s-cal); opacity: 0.92; font-size: 1.08rem; }
 .hero-firma {
   font-family: var(--s-titulo); font-style: italic; font-weight: 500;
@@ -1357,8 +1373,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .reveal { overflow-anchor: none; }
 @media (prefers-reduced-motion: no-preference) {
   .sitio .reveal {
-    opacity: 0; transform: translateY(28px);
-    transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+    opacity: 0; transform: translateY(16px);
+    transition: opacity var(--entrar) var(--curva-entrar), transform var(--entrar) var(--curva-entrar);
   }
   .sitio .reveal.vista { opacity: 1; transform: none; }
 }
@@ -1376,14 +1392,14 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* tarjeta de la cancha seleccionada (al lado del panel) */
 .clado-card {
-  background: #18344C; border: 1px solid rgba(148, 167, 186, 0.22);
-  border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;
-  box-shadow: 0 20px 44px -22px rgba(0, 0, 0, 0.6);
+  background: var(--s-marino); border: 1px solid var(--borde);
+  border-radius: var(--radio-l); overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: var(--sombra-objeto);
 }
 .clado-foto {
   position: relative; aspect-ratio: 5 / 4; overflow: hidden;
   background: var(--s-pino-900);
-  border-bottom: 1px solid rgba(148, 167, 186, 0.16);
+  border-bottom: 1px solid var(--borde);
 }
 .clado-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .clado-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -1391,11 +1407,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .clado-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .clado-tags span {
   font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 4px 11px; border-radius: 999px; border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
+  padding: 4px 11px; border-radius: var(--radio-l); border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .clado-card { animation: cladoIn .35s ease; }
-  @keyframes cladoIn { from { opacity: 0; transform: translateY(10px); } }
+  .clado-card { animation: cladoIn var(--pop) var(--curva-pop); }
+  @keyframes cladoIn { from { opacity: 0; transform: translateY(8px) scale(.98); } }
 }
 
 /* foto de la cancha 2 bajo "Reservá online", solo celular */
@@ -1410,7 +1426,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .board-intro { margin-bottom: 0; }
   .clado-wrap { display: none; }     /* la tarjeta de escritorio se oculta */
   .foto-cancha-movil {
-    display: block; margin: 14px 0 0; border-radius: 14px; overflow: hidden;
+    display: block; margin: 14px 0 0; border-radius: var(--radio); overflow: hidden;
     border: 1px solid var(--s-linea-fria);
   }
 }
@@ -1420,10 +1436,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin-bottom: 18px;
 }
 .sitio .cancha-card {
-  border: 1.5px solid var(--s-linea-fria); border-radius: 999px;
+  border: 1.5px solid var(--s-linea-fria); border-radius: var(--radio-l);
   padding: 10px 18px; background: transparent; color: var(--s-niebla);
   font-family: var(--s-texto); font-weight: 600; font-size: 0.92rem;
-  transition: background-color .15s, border-color .15s, color .15s, transform .12s;
+  transition: background-color var(--rapido) var(--curva), border-color var(--rapido) var(--curva), color var(--rapido) var(--curva), transform var(--rapido) var(--curva);
 }
 .sitio .cancha-card:hover { transform: none; border-color: var(--s-oro); color: var(--s-cal); }
 .sitio .cancha-card svg { display: none; }
@@ -1444,7 +1460,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   display: grid; place-items: center; flex: none;
   width: 36px; height: 52px; font-size: 2.1rem; line-height: 1;
   border: none; background: transparent; color: var(--s-oro); cursor: pointer;
-  transition: color .15s ease;
+  transition: color var(--rapido) var(--curva);
 }
 .sitio .fechas-flecha--lado:hover:not(:disabled) { color: var(--s-oro-300); }
 .sitio .fechas-flecha--lado:disabled { opacity: 0.28; cursor: default; }
@@ -1454,9 +1470,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .dia-btn {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 9px 2px 8px; border-radius: 13px; cursor: pointer;
-  background: var(--s-pino-800); border: 1px solid rgba(148, 167, 186, 0.32);
-  transition: border-color .15s ease, background-color .15s ease;
+  padding: 9px 2px 8px; border-radius: var(--radio); cursor: pointer;
+  background: var(--s-pino-800); border: 1px solid var(--borde-fuerte);
+  transition: border-color var(--rapido) var(--curva), background-color var(--rapido) var(--curva);
 }
 .sitio .dia-btn:hover:not(.no-habilitado):not(.activo) { border-color: var(--s-oro); }
 .sitio .dia-btn .dia-nombre,
@@ -1505,37 +1521,37 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sitio .grilla-pub-hora span { font-size: 0.76rem; font-weight: 400; color: var(--s-niebla); }
 .sitio .grilla-pub-celda {
-  min-height: 104px; border-radius: 12px; border: 1.5px solid transparent;
+  min-height: 84px; border-radius: var(--radio); border: 1px solid transparent;
   font-family: var(--s-texto); font-weight: 700; font-size: 0.98rem; letter-spacing: 0.02em;
   display: flex; align-items: center; justify-content: center;
-  transition: transform .12s ease, border-color .15s ease, background-color .15s ease;
+  transition: transform var(--rapido) var(--curva), border-color var(--rapido) var(--curva), background-color var(--rapido) var(--curva);
 }
 .sitio .grilla-pub-celda.libre {
-  background: rgba(91, 174, 107, 0.16);
-  border-color: rgba(91, 174, 107, 0.7);
+  background: rgba(91, 174, 107, 0.11);
+  border-color: rgba(91, 174, 107, 0.5);
   color: #7ED498; cursor: pointer;
 }
 .sitio .grilla-pub-celda.libre:hover {
-  background: rgba(91, 174, 107, 0.3); border-color: var(--s-cesped); transform: translateY(-1px);
+  background: rgba(91, 174, 107, 0.2); border-color: var(--s-cesped);
 }
 .sitio .grilla-pub-celda.libre:active { transform: translateY(0); }
 .sitio .grilla-pub-celda.ocupado {
-  background: var(--s-pino-900); border-color: var(--s-linea-fria);
-  color: var(--s-niebla); cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.025); border-color: transparent;
+  color: color-mix(in srgb, var(--s-niebla) 70%, transparent); font-weight: 500; cursor: not-allowed;
 }
 /* "Reservado" pero todavía pendiente de confirmar: se ve IGUAL en reposo
    (de cara al público no hay estado intermedio), pero es clickeable —
    lleva a anotarse a la lista de espera por si no se confirma y se libera. */
 .sitio .grilla-pub-celda.ocupado-espera { cursor: pointer; }
 .sitio .grilla-pub-celda.ocupado-espera:hover {
-  border-color: rgba(242, 193, 78, 0.35);
-  background: color-mix(in srgb, var(--s-oro) 5%, var(--s-pino-900));
+  border-color: var(--borde);
+  background: rgba(255, 255, 255, 0.05);
 }
 /* reservado + busca rival: oscuro, con borde dorado y el nombre del equipo */
 .sitio .grilla-pub-celda.rival {
   background: var(--s-pino-900);
-  border-color: rgba(242, 193, 78, 0.42);
-  color: var(--s-cal); cursor: pointer; min-height: 104px;
+  border-color: var(--borde-oro);
+  color: var(--s-cal); cursor: pointer; min-height: 84px;
   flex-direction: column; justify-content: space-between; align-items: center;
   gap: 4px; padding: 11px 8px; line-height: 1.15;
 }
@@ -1560,11 +1576,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .gp-pelota { font-size: 1.25em; line-height: 1; }
 @media (max-width: 620px) {
   .sitio .grilla-pub { grid-template-columns: 40px 1fr 1fr; gap: 6px; }
-  .sitio .grilla-pub-celda { min-height: 102px; font-size: 0.92rem; }
+  .sitio .grilla-pub-celda { min-height: 80px; font-size: 0.92rem; }
   .sitio .grilla-pub-hora { font-size: 0.86rem; }
   .sitio .grilla-pub-hora span { font-size: 0.68rem; }
   .sitio .grilla-pub-cab { font-size: 0.68rem; letter-spacing: 0.04em; }
-  .sitio .grilla-pub-celda.rival { min-height: 102px; }
+  .sitio .grilla-pub-celda.rival { min-height: 80px; }
   .sitio .gp-rival-eq { font-size: 1.1rem; }
   .sitio .gp-rival-sub { font-size: 0.76rem; }
   .sitio .gp-rival-top { font-size: 0.68rem; }
@@ -1572,11 +1588,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .chips { padding: 0; gap: 12px; flex-direction: column; }
 .sitio .chip {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
-  gap: 12px; padding: 16px 20px; border-radius: 14px;
-  border: 1px solid rgba(148, 167, 186, 0.32); background: var(--s-marino-600);
+  gap: 12px; padding: 16px 20px; border-radius: var(--radio);
+  border: 1px solid var(--borde-fuerte); background: var(--s-marino-600);
   color: #fff; font-family: var(--s-texto);
   font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums;
-  transition: border-color .15s, background-color .15s;
+  transition: border-color var(--rapido) var(--curva), background-color var(--rapido) var(--curva);
 }
 .sitio .chip:hover:not(.ocupado):not(.pendiente):not(.activo) { border-color: var(--s-oro); }
 .sitio .chip::after { content: "Libre"; font-size: 0.82rem; font-weight: 700; color: var(--s-cesped); text-transform: none; }
@@ -1585,7 +1601,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   border-color: var(--s-oro);
 }
 .sitio .chip.ocupado, .sitio .chip.pendiente {
-  background: var(--s-pino-800); border-color: rgba(148, 167, 186, 0.16); color: var(--s-niebla);
+  background: var(--s-pino-800); border-color: var(--borde); color: var(--s-niebla);
   opacity: 1; cursor: not-allowed; text-decoration: none;
 }
 .sitio .chip.ocupado::after, .sitio .chip.pendiente::after { content: "Reservado"; color: var(--s-niebla); opacity: 1; }
@@ -1602,7 +1618,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .espera-card {
   display: flex; flex-direction: column; gap: 14px;
   padding: 16px 18px;
-  background: rgba(242, 193, 78, 0.08); border: 1px solid rgba(242, 193, 78, 0.45); border-radius: 14px;
+  background: var(--oro-velo); border: 1px solid var(--borde-oro); border-radius: var(--radio);
 }
 .sitio .espera-cab { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .sitio .espera-ico {
@@ -1644,7 +1660,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .rival-cta .txt { display: flex; flex-direction: column; gap: 4px; }
 .rival-cta strong { font-family: var(--s-titulo); font-weight: 600; font-size: clamp(1.3rem, 3vw, 1.9rem); color: var(--s-cal); }
-.rival-cta .btn svg { transition: transform .2s ease; }
+.rival-cta .btn svg { transition: transform var(--rapido) var(--curva); }
 .rival-cta .btn:hover svg { transform: translateY(3px); }
 
 /* --- BUSCO RIVAL grilla --- */
@@ -1653,7 +1669,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: transparent; padding: 0; margin-bottom: 22px; gap: 14px; justify-content: flex-start;
 }
 .sitio .rivales-cal-flecha {
-  width: 40px; height: 40px; border-radius: 11px; font-size: 1.1rem;
+  width: 40px; height: 40px; border-radius: var(--radio); font-size: 1.1rem;
   background: transparent; border: 1.5px solid var(--s-linea-fria); color: var(--s-cal);
 }
 .sitio .rivales-cal-flecha:hover:not(:disabled) { border-color: var(--s-oro); color: var(--s-oro); }
@@ -1661,7 +1677,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .rivales-cal-vacio {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
   text-align: center; color: var(--s-niebla);
-  padding: 40px 20px; border-radius: 14px;
+  padding: 40px 20px; border-radius: var(--radio);
 }
 .sitio .rivales-cal-vacio p { margin: 0; }
 .sitio .rivales-grid { gap: 10px; }
@@ -1671,18 +1687,18 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .rivales-grid-hora { color: var(--s-niebla); font-variant-numeric: tabular-nums; }
 .sitio .rivales-grid-celda {
   min-height: 116px; background: transparent;
-  border: 1px dashed var(--s-linea-fria); border-radius: 12px; padding: 0;
+  border: 1px dashed var(--s-linea-fria); border-radius: var(--radio); padding: 0;
 }
 .sitio .rival-cel {
   flex: 1; background: var(--s-marino); border: 1px solid var(--s-linea);
-  border-radius: 12px; padding: 14px; gap: 8px; color: var(--s-cal);
+  border-radius: var(--radio); padding: 14px; gap: 8px; color: var(--s-cal);
   justify-content: space-between;
 }
 .sitio .rival-cel-nom { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); overflow-wrap: anywhere; }
 .sitio .rival-cel-cat { color: var(--s-niebla); font-size: 0.8rem; font-weight: 400; }
 .sitio .rival-cel-meta { color: var(--s-niebla); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
-.sitio .rival-cel-btn { background: #1A7F45; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
+.sitio .rival-cel-btn { background: var(--s-wa); margin-top: auto; padding: 9px 12px; white-space: nowrap; }
 .sitio .rival-cel-btn--off { background: var(--s-marino-600); color: var(--s-niebla); }
 .sitio .rival-cel-hora {
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
@@ -1700,7 +1716,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .rivales-lista-items { display: flex; flex-direction: column; gap: 12px; }
 .sitio .rivales-lista .rival-cel {
   flex: none; background: var(--s-marino); border: 1px solid var(--s-linea);
-  border-radius: 12px; padding: 14px; gap: 6px; color: var(--s-cal);
+  border-radius: var(--radio); padding: 14px; gap: 6px; color: var(--s-cal);
 }
 .sitio .rivales-lista .rival-cel-btn { align-self: flex-start; margin-top: 6px; padding: 9px 16px; }
 
@@ -1729,13 +1745,13 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .serv-card {
   background: var(--s-marino); border: 1px solid var(--s-linea-fria);
-  border-radius: 16px; padding: 20px 20px;
+  border-radius: var(--radio-l); padding: 20px 20px;
   display: flex; flex-direction: column; gap: 10px;
-  transition: transform .18s ease, border-color .18s ease;
+  transition: transform var(--rapido) var(--curva), border-color var(--rapido) var(--curva);
 }
-.serv-card:hover { transform: translateY(-4px); border-color: var(--s-linea); }
+.serv-card:hover { transform: translateY(-2px); border-color: var(--borde-oro); }
 .serv-ico {
-  width: 50px; height: 50px; border-radius: 13px; display: grid; place-items: center;
+  width: 50px; height: 50px; border-radius: var(--radio); display: grid; place-items: center;
   background: color-mix(in srgb, var(--s-oro) 20%, transparent); color: var(--s-oro-300);
 }
 .serv-ico svg { width: 26px; height: 26px; }
@@ -1759,8 +1775,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .llegar .envoltura { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: start; }
 @media (max-width: 900px) { .llegar .envoltura { grid-template-columns: 1fr; gap: 28px; } }
 .mapa-card {
-  position: relative; display: block; border-radius: 20px; overflow: hidden;
-  border: 1px solid var(--s-linea-fria); box-shadow: var(--s-sombra); background: #dfe6e0;
+  position: relative; display: block; border-radius: var(--radio-l); overflow: hidden;
+  border: 1px solid var(--borde); box-shadow: var(--sombra-objeto); background: #dfe6e0;
 }
 .mapa-card svg, .mapa-card img { display: block; width: 100%; }
 .mapa-card svg { height: auto; }
@@ -1794,20 +1810,20 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .overlay { background: rgba(7,17,28,0.72); backdrop-filter: blur(2px); }
 .sitio .modal {
   background: var(--s-marino); color: var(--s-cal);
-  border-top: 4px solid var(--s-oro); border-radius: 18px;
+  border-top: 4px solid var(--s-oro); border-radius: var(--radio-l);
 }
 .sitio .modal h3, .sitio .modal-titulo {
   color: var(--s-cal); font-family: var(--s-titulo); text-transform: none; font-size: 1.5rem; font-weight: 600;
 }
 .sitio .modal-foto {
-  position: relative; margin: -6px 0 16px; border-radius: 12px; overflow: hidden;
+  position: relative; margin: -6px 0 16px; border-radius: var(--radio); overflow: hidden;
   aspect-ratio: 5 / 2; border: 1px solid var(--s-linea-fria);
 }
 .sitio .modal-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .sitio .modal-foto span {
   position: absolute; left: 12px; bottom: 10px;
   font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal);
-  padding: 3px 10px; border-radius: 999px; background: rgba(7, 17, 28, 0.62);
+  padding: 3px 10px; border-radius: var(--radio-l); background: rgba(7, 17, 28, 0.62);
 }
 /* en la reserva de fútbol: mapa del complejo con la cancha elegida marcada
    (cuatro esquinas doradas, la otra cancha apagada y la etiqueta "Tu cancha") */
@@ -1824,7 +1840,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   position: absolute; bottom: auto; transform: translate(-50%, -100%); white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--s-texto); font-weight: 700; font-size: 0.74rem; line-height: 1;
-  padding: 5px 10px 5px 6px; border-radius: 999px;
+  padding: 5px 10px 5px 6px; border-radius: var(--radio-l);
   background: var(--s-oro); color: var(--s-pino-900); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
 }
 .sitio .modal-foto-mapa .mapa-tucancha i {
@@ -1834,7 +1850,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .modal-sub, .sitio .modal .subtitulo { color: var(--s-niebla); font-size: 0.9rem; margin: 4px 0 14px; }
 .sitio .resumen-turno{
   background:var(--s-pino-900); border:1px solid var(--s-linea);
-  border-radius:14px; padding:16px 18px 14px; margin:4px 0 18px;
+  border-radius: var(--radio); padding:16px 18px 14px; margin:4px 0 18px;
   display:grid; grid-template-columns:1.3fr 1fr; gap:14px 16px;
 }
 .sitio .resumen-item{ min-width:0; }
@@ -1861,11 +1877,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .field .check { color: var(--s-cal); }
 .sitio .tel-fijo { color: var(--s-niebla); }
 /* campo con dato faltante */
-.sitio .field--error > label { color: #F2705C; }
+.sitio .field--error > label { color: var(--s-error); }
 .sitio .field--error input,
-.sitio .field--error select { border-color: #F2705C; background: rgba(224, 90, 74, 0.08); }
+.sitio .field--error select { border-color: var(--s-error); background: rgba(224, 90, 74, 0.08); }
 .sitio .field--error input:focus,
-.sitio .field--error select:focus { border-color: #F2705C; box-shadow: 0 0 0 3px rgba(224, 90, 74, 0.25); }
+.sitio .field--error select:focus { border-color: var(--s-error); box-shadow: 0 0 0 3px rgba(224, 90, 74, 0.25); }
 .sitio select {
   background-color: var(--s-pino-900); border-color: var(--s-linea-fria); color: var(--s-cal);
   background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='14'%20height='14'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23F2C14E'%20stroke-width='3'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%209l6%206%206-6'/%3E%3C/svg%3E");
@@ -1886,8 +1902,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .dato-copiable strong { color: var(--s-cal); }
 .sitio .btn-copiar { background: transparent; border-color: var(--s-linea); color: var(--s-cal); }
 .sitio .error-msg, .sitio .modal p.error-msg {
-  color: #FF7C6B; font-size: 0.86rem; font-weight: 700; margin: 10px 0 0;
-  padding: 10px 12px; border-radius: 9px;
+  color: var(--s-error); font-size: 0.86rem; font-weight: 700; margin: 10px 0 0;
+  padding: 10px 12px; border-radius: var(--radio-s);
   background: rgba(230, 76, 60, 0.16); border: 1px solid rgba(230, 76, 60, 0.6);
 }
 .sitio .cargando { color: var(--s-niebla); }
@@ -1898,7 +1914,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .consulta-top strong { color: var(--s-cal); }
 .sitio .consulta-x { color: var(--s-niebla); }
 .sitio .consulta-form input { background: var(--s-pino-900); border-color: var(--s-linea-fria); color: var(--s-cal); }
-.sitio .consulta-error { color: #F0A58C; }
+.sitio .consulta-error { color: var(--s-error); }
 .sitio .consulta-result { background: var(--s-pino-900); color: var(--s-cal); border: 1px solid var(--s-linea); }
 .sitio .consulta-estado { color: var(--s-oro); }
 .sitio .consulta-nota { color: var(--s-niebla); }
@@ -1920,7 +1936,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (max-width: 620px) {
   .sitio { font-size: 15.5px; }
   .snav { padding: 12px 18px; }
-  .sitio .seccion { padding-block: clamp(44px, 11vw, 72px); }
+  .snav-acc .btn { padding: 9px 16px; font-size: 0.88rem; }
+  .sitio .seccion { padding-block: 64px; }
   .sitio .envoltura { padding: 0 18px; }
   /* Reservar: menos aire arriba y entre el texto/mapa y los botones de deporte,
      para que con un solo deslizamiento ya se vea el panel de reservas */
@@ -2027,9 +2044,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* ---------- reserva: "Estoy buscando rival" como tarjeta con interruptor ---------- */
 .sitio .rival-opcion {
-  border: 1.5px solid var(--s-linea-fria); border-radius: 14px;
+  border: 1.5px solid var(--s-linea-fria); border-radius: var(--radio);
   background: var(--s-pino-900); padding: 12px 14px; margin: 4px 0 14px;
-  transition: border-color .18s ease, background-color .18s ease;
+  transition: border-color var(--rapido) var(--curva), background-color var(--rapido) var(--curva);
 }
 .sitio .rival-opcion:hover { border-color: color-mix(in srgb, var(--s-oro) 55%, transparent); }
 .sitio .rival-opcion.on {
@@ -2045,19 +2062,19 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none;
 }
 .sitio .rival-opcion-ico {
-  flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
+  flex: none; width: 40px; height: 40px; border-radius: var(--radio); display: grid; place-items: center;
   background: color-mix(in srgb, var(--s-oro) 14%, transparent); color: var(--s-oro);
 }
 .sitio .rival-opcion-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .sitio .rival-opcion-txt strong { font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal); }
 .sitio .rival-opcion-txt span { font-size: 0.85rem; line-height: 1.35; color: var(--s-niebla); }
 .sitio .rival-switch {
-  flex: none; position: relative; width: 46px; height: 28px; border-radius: 999px;
-  background: rgba(148, 167, 186, 0.28); transition: background-color .18s ease;
+  flex: none; position: relative; width: 46px; height: 28px; border-radius: var(--radio-l);
+  background: rgba(148, 167, 186, 0.28); transition: background-color var(--rapido) var(--curva);
 }
 .sitio .rival-switch::after {
   content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
-  background: var(--s-cal); box-shadow: 0 1px 4px rgba(0,0,0,.4); transition: transform .18s ease, background-color .18s ease;
+  background: var(--s-cal); box-shadow: 0 1px 4px rgba(0,0,0,.4); transition: transform var(--rapido) var(--curva), background-color var(--rapido) var(--curva);
 }
 .sitio .rival-opcion-cab input:checked ~ .rival-switch { background: var(--s-oro); }
 .sitio .rival-opcion-cab input:checked ~ .rival-switch::after { transform: translateX(18px); background: var(--s-pino-900); }
@@ -2075,4 +2092,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .board-intro .eyebrow { font-size: 0.85rem; }
 @media (min-width: 941px) {
   .sitio .board-intro .eyebrow { font-size: 0.95rem; }
+}
+
+/* ---------- sistema de movimiento: lo elegido "responde" ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .sitio .dia-btn.activo,
+  .sitio .cancha-card.activa { animation: sitioPop var(--pop) var(--curva-pop); }
+  .sitio .grilla-pub-celda.libre:active { transform: scale(.97); }
+  @keyframes sitioPop { from { transform: scale(.94); } }
 }

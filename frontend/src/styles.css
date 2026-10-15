@@ -2115,3 +2115,23 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (max-width: 620px) {
   .sitio .canchas-selector { display: grid; width: 100%; }
 }
+
+/* control segmentado (opciones cortas a la vista): mismo lenguaje que el selector de deporte */
+.sitio .segmentado {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px;
+  padding: 4px; border-radius: var(--pill);
+  background: var(--s-pino-900); border: 1px solid var(--s-linea-fria);
+  transition: border-color var(--rapido) var(--curva);
+}
+.sitio .segmentado-op {
+  border: 0; border-radius: var(--pill); padding: 9px 6px; cursor: pointer;
+  background: transparent; color: var(--s-niebla);
+  font-family: var(--s-texto); font-weight: 700; font-size: 0.95rem;
+  transition: background-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
+}
+.sitio .segmentado-op:hover { color: var(--s-cal); }
+.sitio .segmentado-op.on { background: var(--s-oro); color: var(--s-pino-900); }
+.sitio .field--error .segmentado { border-color: var(--s-error); background: rgba(224, 90, 74, 0.08); }
+@media (prefers-reduced-motion: no-preference) {
+  .sitio .segmentado-op.on { animation: sitioPop var(--pop) var(--curva-pop); }
+}

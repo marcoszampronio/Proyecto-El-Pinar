@@ -220,17 +220,23 @@ export default function BookingModal({ slotInfo, onClose }) {
                       placeholder="Ej: Los Pibes FC"
                     />
                   </div>
+                  {/* solo 3 opciones: botones a la vista en vez de un desplegable (un toque, sin abrir nada) */}
                   <div className={'field' + (errs.category ? ' field--error' : '')}>
-                    <label>Categoría</label>
-                    <select
-                      value={form.category}
-                      onChange={(e) => actualizar('category', e.target.value)}
-                    >
-                      <option value="">Seleccioná una categoría</option>
+                    <label id="cat-label">Categoría</label>
+                    <div className="segmentado" role="radiogroup" aria-labelledby="cat-label">
                       {CATEGORIAS.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <button
+                          key={c}
+                          type="button"
+                          role="radio"
+                          aria-checked={form.category === c}
+                          className={'segmentado-op' + (form.category === c ? ' on' : '')}
+                          onClick={() => actualizar('category', c)}
+                        >
+                          {c}
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   </div>
                 </div>
               )}

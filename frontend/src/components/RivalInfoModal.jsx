@@ -21,10 +21,6 @@ export default function RivalInfoModal({ rival, onCerrar }) {
           <p>{hhmm(rival.start_time)} a {hhmm(rival.end_time)} hs</p>
         </div>
 
-        <p style={{ fontSize: 13.5 }}>
-          Ya tienen la cancha reservada y les falta contra quién jugar. Escribiles y coordinen el partido.
-        </p>
-
         <div className="modal-actions modal-actions--col">
           {rival.linkWhatsapp ? (
             <a

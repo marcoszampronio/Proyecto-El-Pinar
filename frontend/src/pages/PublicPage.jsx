@@ -183,7 +183,7 @@ export default function PublicPage() {
             <div className="board-intro">
               <p className="eyebrow">Reservá online</p>
               <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
-              <FotoCanchaMovil />
+              <FotoCanchaMovil deporte={deporte} />
             </div>
             <CanchaLado deporte={deporte} />
           </aside>

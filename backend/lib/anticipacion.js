@@ -32,3 +32,8 @@ export function inicioMinimoPadel(fecha) {
   const mm = String(enART.getUTCMinutes()).padStart(2, '0');
   return `${hh}:${mm}`;
 }
+
+// Fecha de hoy según el reloj de Argentina (YYYY-MM-DD), sin importar la zona del servidor.
+export function hoyART() {
+  return new Date(Date.now() - 3 * 3600000).toISOString().slice(0, 10);
+}

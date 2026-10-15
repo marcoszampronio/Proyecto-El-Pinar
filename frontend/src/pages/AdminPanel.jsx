@@ -1495,6 +1495,118 @@ function descripcionTurnoFijo(f) {
 
 // Turnos fijos: un cliente que juega siempre el mismo día/horario. El
 // backend genera solo las reservas confirmadas de las próximas semanas.
+// Recordatorios de turnos fijos: lista de los próximos turnos fijos con un botón que abre
+// WhatsApp con el mensaje armado. Se manda a mano (no hay envío automático): al tocar el
+// botón queda marcado como enviado para no repetirlo.
+function mensajeRecordatorioFijo(r) {
+  const f = fechaLargaCompleta(r.reservation_date);
+  const fecha = f.charAt(0).toUpperCase() + f.slice(1);
+  const primerNombre = (r.client_name || '').trim().split(/\s+/)[0] || '';
+  return (
+    `¡Hola ${primerNombre}! Te recordamos tu turno fijo en El Pinar:\n\n` +
+    `${NOMBRE_CANCHA[r.court] || r.court} · ${fecha} · ${hhmm(r.start_time)} a ${hhmm(r.end_time)} hs\n\n` +
+    `¿Nos confirmás que vienen? ¡Gracias!`
+  );
+}
+
+function RecordatoriosFijos() {
+  const [lista, setLista] = useState(null);
+  const [hoy, setHoy] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function cargar() {
+    try {
+      const data = await api.adminRecordatoriosFijos(7);
+      setLista(data.recordatorios);
+      setHoy(data.hoy);
+      setError(null);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+  useEffect(() => { cargar(); }, []);
+
+  async function marcar(id, enviado) {
+    // Se marca al instante en pantalla; si el servidor falla, se vuelve a cargar la lista real.
+    setLista((l) => l.map((r) => (r.id === id ? { ...r, recordatorio_enviado_at: enviado ? new Date().toISOString() : null } : r)));
+    try {
+      await api.adminMarcarRecordatorio(id, enviado);
+    } catch {
+      cargar();
+    }
+  }
+
+  const porDia = {};
+  for (const r of lista || []) (porDia[r.reservation_date] ||= []).push(r);
+  const etiquetaDia = (iso) => {
+    const f = fechaLargaCompleta(iso);
+    const txt = f.charAt(0).toUpperCase() + f.slice(1);
+    if (iso === hoy) return `Hoy · ${txt}`;
+    if (hoy && iso === sumarDias(hoy, 1)) return `Mañana · ${txt}`;
+    return txt;
+  };
+  const pendientes = (lista || []).filter((r) => !r.recordatorio_enviado_at).length;
+
+  return (
+    <div className="stat-card" style={{ marginBottom: 14 }}>
+      <h3 style={{ marginTop: 0 }}>
+        Recordatorios de turnos fijos
+        {lista && pendientes > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes}</span>}
+      </h3>
+      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+        Próximos 7 días. Tocá “Recordar” y se abre WhatsApp con el mensaje listo; solo falta enviarlo.
+      </p>
+      {error && <p className="error-msg">{error}</p>}
+      {!lista && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
+      {lista && lista.length === 0 && <p className="agenda-vacio">No hay turnos fijos en los próximos 7 días.</p>}
+      {Object.entries(porDia).map(([dia, filas]) => (
+        <div key={dia} style={{ marginBottom: 10 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0' }}>{etiquetaDia(dia)}</p>
+          {filas.map((r) => {
+            const enviado = !!r.recordatorio_enviado_at;
+            const link = r.telefonoWa
+              ? `https://wa.me/${r.telefonoWa}?text=${encodeURIComponent(mensajeRecordatorioFijo(r))}`
+              : null;
+            return (
+              <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                    {r.client_name}{r.team_name ? ` · ${nombreEquipo(r.team_name)}` : ''}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
+                    {NOMBRE_CANCHA[r.court] || r.court} · {hhmm(r.start_time)} a {hhmm(r.end_time)} hs
+                  </div>
+                </div>
+                {link ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
+                    {enviado && (
+                      <button type="button" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => marcar(r.id, false)} title="Marcar como no enviado">
+                        Deshacer
+                      </button>
+                    )}
+                    <a
+                      className={enviado ? 'btn btn-ghost' : 'btn btn-primary'}
+                      style={{ padding: '6px 12px', fontSize: 13, textDecoration: 'none' }}
+                      href={link}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => { if (!enviado) marcar(r.id, true); }}
+                    >
+                      {enviado ? '✓ Enviado · reenviar' : 'Recordar'}
+                    </a>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>Sin teléfono</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TurnosFijosPanel() {
   const [fijos, setFijos] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -1591,6 +1703,8 @@ function TurnosFijosPanel() {
   }
 
   return (
+    <>
+    <RecordatoriosFijos />
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Turnos fijos</h3>
       <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
@@ -1717,6 +1831,7 @@ function TurnosFijosPanel() {
         ))}
       </div>
     </div>
+    </>
   );
 }
 

@@ -138,6 +138,9 @@ export const api = {
     requestAdmin('/admin/turnos-fijos', { method: 'POST', body: JSON.stringify(payload) }),
   adminBajaTurnoFijo: (id) =>
     requestAdmin(`/admin/turnos-fijos/${id}`, { method: 'DELETE' }),
+  adminRecordatoriosFijos: (dias = 7) => requestAdmin(`/admin/recordatorios-fijos?dias=${dias}`),
+  adminMarcarRecordatorio: (id, enviado = true) =>
+    requestAdmin(`/admin/recordatorios-fijos/${id}/enviado`, { method: 'POST', body: JSON.stringify({ enviado }) }),
   adminAperturas: (desde, hasta) =>
     requestAdmin(`/admin/aperturas-especiales?desde=${desde}&hasta=${hasta}`),
   adminCrearApertura: (payload) =>

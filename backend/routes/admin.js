@@ -13,6 +13,7 @@ import {
 } from '../lib/codeGenerator.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
+import { hoyART } from '../lib/anticipacion.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 import {
   listarAperturasEspeciales,
@@ -672,6 +673,47 @@ router.delete('/turnos-fijos/:id', async (req, res) => {
     .neq('status', 'cancelada');
 
   res.json({ ok: true });
+});
+
+// GET /api/admin/recordatorios-fijos?dias=7 - próximos turnos que vienen de un turno fijo, para
+// mandarle a cada cliente el recordatorio por WhatsApp (se arma y se manda a mano desde el panel).
+router.get('/recordatorios-fijos', async (req, res) => {
+  const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 7, 1), 14);
+  const desde = hoyART();
+  const hasta = new Date(new Date(desde + 'T00:00:00Z').getTime() + dias * 86400000).toISOString().slice(0, 10);
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .select('id, court, reservation_date, start_time, end_time, client_name, client_phone, team_name, recordatorio_enviado_at')
+    .not('origen_fijo_id', 'is', null)
+    .eq('status', 'confirmada')
+    .gte('reservation_date', desde)
+    .lte('reservation_date', hasta)
+    .order('reservation_date', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({
+    hoy: desde,
+    recordatorios: data.map((r) => ({ ...r, telefonoWa: normalizarTelefonoAR(r.client_phone) })),
+  });
+});
+
+// POST /api/admin/recordatorios-fijos/:id/enviado - marca que ya se le mandó el recordatorio.
+// { enviado: false } lo desmarca (por si se marcó sin querer).
+router.post('/recordatorios-fijos/:id/enviado', async (req, res) => {
+  const marcar = req.body?.enviado !== false;
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .update({ recordatorio_enviado_at: marcar ? new Date().toISOString() : null })
+    .eq('id', req.params.id)
+    .not('origen_fijo_id', 'is', null)
+    .select('id, recordatorio_enviado_at')
+    .maybeSingle();
+
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: 'No se encontró ese turno fijo.' });
+  res.json({ ok: true, recordatorio_enviado_at: data.recordatorio_enviado_at });
 });
 
 // GET /api/admin/pending - lista de reservas pendientes (para el listado rapido del panel).

@@ -397,6 +397,12 @@ router.post('/manual', async (req, res) => {
   if (body.lookingForRival && body.court === 'PAD') {
     return res.status(400).json({ error: 'Busco rival es solo para fútbol.' });
   }
+  if (body.lookingForRival && !normalizarEquipo(body.teamName)) {
+    return res.status(400).json({ error: 'Completá el nombre del equipo.' });
+  }
+  if (body.lookingForRival && !body.category) {
+    return res.status(400).json({ error: 'Elegí la categoría del equipo.' });
+  }
 
   let start_time, end_time, turn = null, code;
 
@@ -496,6 +502,8 @@ router.post('/rival/:code', async (req, res) => {
   if (activar) {
     patch.team_name = normalizarEquipo(req.body.teamName) || reserva.team_name || null;
     patch.category = req.body.category || reserva.category || null;
+    if (!patch.team_name) return res.status(400).json({ error: 'Completá el nombre del equipo.' });
+    if (!patch.category) return res.status(400).json({ error: 'Elegí la categoría del equipo.' });
   }
 
   const { data, error } = await supabaseAdmin

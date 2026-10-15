@@ -9,6 +9,7 @@ import {
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
 import { normalizarEquipo } from '../lib/equipo.js';
+import { demasiadoTarde, MENSAJE_ANTICIPACION } from '../lib/anticipacion.js';
 import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
@@ -164,6 +165,7 @@ router.post('/futbol', async (req, res) => {
   if (!['C1', 'C2'].includes(body.court)) return res.status(400).json({ error: 'Cancha inválida.' });
   const turnoInfo = TURNOS_FUTBOL[body.turn];
   if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
+  if (demasiadoTarde(body.date, turnoInfo.start)) return res.status(409).json({ error: MENSAJE_ANTICIPACION });
 
   const { bloqueos } = await obtenerBloqueosDelDia(body.date);
   if (estaBloqueado(bloqueos, body.court, body.turn)) {
@@ -212,6 +214,7 @@ router.post('/padel', async (req, res) => {
   if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
     return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
   }
+  if (demasiadoTarde(body.date, body.startTime)) return res.status(409).json({ error: MENSAJE_ANTICIPACION });
 
   const { bloqueos } = await obtenerBloqueosDelDia(body.date);
   if (estaBloqueado(bloqueos, 'PAD')) {

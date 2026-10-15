@@ -76,11 +76,12 @@ async function requestAdmin(path, options = {}) {
 }
 
 export const api = {
-  disponibilidadFutbol: (court, date) =>
-    requestPublico(`/availability/futbol?court=${court}&date=${date}`),
+  // sinAnticipacion: solo para el panel (agendar a mano): muestra también los turnos que faltan menos de 1 hora.
+  disponibilidadFutbol: (court, date, { sinAnticipacion = false } = {}) =>
+    requestPublico(`/availability/futbol?court=${court}&date=${date}${sinAnticipacion ? '&sinAnticipacion=1' : ''}`),
 
-  disponibilidadPadel: (date) =>
-    requestPublico(`/availability/padel?date=${date}`),
+  disponibilidadPadel: (date, { sinAnticipacion = false } = {}) =>
+    requestPublico(`/availability/padel?date=${date}${sinAnticipacion ? '&sinAnticipacion=1' : ''}`),
 
   diasEspeciales: (desde, hasta) =>
     requestPublico(`/availability/dias-especiales?desde=${desde}&hasta=${hasta}`),

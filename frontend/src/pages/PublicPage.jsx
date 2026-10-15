@@ -169,6 +169,7 @@ export default function PublicPage() {
                 apertura={padel.apertura}
                 cierre={padel.cierre}
                 ocupados={padel.ocupados}
+                inicioMinimo={padel.inicioMinimo}
                 onReservar={(rango) => setSlotSeleccionado({ court: 'PAD', date: fecha, ...rango })}
               />
             )}

@@ -31,6 +31,7 @@ export default function PadelPicker({
   cierre,
   ocupados,
   onReservar,
+  inicioMinimo = null, // 'HH:MM': antes de esa hora ya no se reserva por la web (anticipación)
   titulo = 'Pádel',
   duraciones = DURACIONES_DEFAULT,
 }) {
@@ -46,11 +47,13 @@ export default function PadelPicker({
   const inicios = useMemo(() => {
     if (duracion == null) return [];
     const lista = [];
+    const minInicio = inicioMinimo ? aMinutos(inicioMinimo) : 0;
     for (let m = desdeMin; m + duracion <= cierreMin; m += PASO_MINUTOS) {
+      if (m < minInicio) continue; // ya no se puede reservar: no lo ofrecemos
       lista.push({ inicio: m, libre: !seSolapa(m, m + duracion, ocupados) });
     }
     return lista;
-  }, [duracion, desdeMin, cierreMin, ocupados]);
+  }, [duracion, desdeMin, cierreMin, ocupados, inicioMinimo]);
 
   function elegirDuracion(d) {
     setDuracion(d);
@@ -91,7 +94,10 @@ export default function PadelPicker({
               </button>
             ))}
           </div>
-          {inicios.every((b) => !b.libre) && (
+          {inicios.length === 0 && (
+            <p className="vacio">Ya no se pueden reservar horarios para este día: las reservas se cierran 1 hora antes del turno.</p>
+          )}
+          {inicios.length > 0 && inicios.every((b) => !b.libre) && (
             <p className="vacio">No hay lugar para {etiquetaDuracion(duracion)} este día. Probá con menos tiempo.</p>
           )}
           <div className="chip-leyenda">

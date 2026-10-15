@@ -118,7 +118,9 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
   useEffect(() => {
     let cancelado = false;
     setDisponibilidad(null);
-    const pedido = cancha === 'PAD' ? api.disponibilidadPadel(fecha) : api.disponibilidadFutbol(cancha, fecha);
+    const pedido = cancha === 'PAD'
+      ? api.disponibilidadPadel(fecha, { sinAnticipacion: true })
+      : api.disponibilidadFutbol(cancha, fecha, { sinAnticipacion: true });
     pedido.then((d) => { if (!cancelado) setDisponibilidad(d); }).catch(() => {});
     return () => { cancelado = true; };
   }, [cancha, fecha]);

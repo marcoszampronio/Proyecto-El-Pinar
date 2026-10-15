@@ -2138,3 +2138,45 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (prefers-reduced-motion: reduce) {
   .pnav, .pnav.abierto { transition: none; }
 }
+
+/* ---- Agenda: selector Día | Semana y vista de la semana ---- */
+.vista-toggle {
+  display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 14px;
+  background: var(--p-fila); border: 1px solid var(--p-linea); border-radius: 12px;
+}
+.vista-toggle button {
+  min-height: 40px; padding: 0 20px; border: none; border-radius: 9px;
+  background: transparent; color: var(--p-mut); font: inherit; font-weight: 600; cursor: pointer;
+}
+.vista-toggle button.on { background: var(--p-oro); color: var(--p-nav); }
+.vista-toggle button:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
+
+.sem-cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+.sem-cifras div { display: flex; flex-direction: column; padding: 10px 12px; background: var(--p-fila); border-radius: 12px; }
+.sem-cifras b { font-size: 1.5rem; line-height: 1.15; color: var(--p-txt); font-variant-numeric: tabular-nums; }
+.sem-cifras span { font-size: 0.78rem; color: var(--p-mut); }
+
+.sem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; transition: opacity .15s; }
+.sem-dia {
+  min-width: 0; padding: 14px; border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--p-linea);
+}
+.sem-dia.hoy { border-color: var(--p-oro); }
+.sem-dia-cab { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 12px; }
+.sem-dia-nombre { font-weight: 700; font-size: 1.08rem; color: var(--p-txt); text-transform: capitalize; }
+.sem-hoy {
+  margin-left: 8px; padding: 2px 8px; border-radius: 999px;
+  background: var(--p-oro); color: var(--p-nav); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.sem-dia-cuenta { font-size: 0.82rem; color: var(--p-mut); }
+.sem-dia .grilla { grid-template-columns: 44px 1fr 1fr; gap: 6px; }
+.sem-dia .grilla-celda.libre:not(:disabled):hover { border-color: var(--p-oro); }
+.sem-padel { margin-top: 22px; }
+.sem-padel-tit { font-weight: 700; font-size: 0.9rem; color: var(--p-txt); }
+.sem-padel .tl { margin-top: 20px; }
+.sem-padel-btn { width: 100%; margin-top: 12px; padding: 8px; }
+@media (max-width: 480px) {
+  .sem-cifras b { font-size: 1.3rem; }
+  .sem-grid { grid-template-columns: 1fr; }
+}
+.sem .agenda-fecha-dia { text-transform: none; }

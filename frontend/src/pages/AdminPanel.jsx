@@ -5,7 +5,7 @@ import { nombreEquipo } from '../lib/equipo';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
-  hhmm, sumarDias, esDiaHabilitado,
+  hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
 } from '../lib/fechas';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -91,10 +91,18 @@ const TURNOS_FUTBOL_LABEL = {
 
 // Modal para que Mateo agende un turno el mismo (cliente que le escribe
 // directo por WhatsApp), ya confirmado. Puede marcarlo "busca rival".
-function ManualBookingModal({ contacto, onCerrar, onCreado }) {
-  const [cancha, setCancha] = useState('C1');
-  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
-  const [turn, setTurn] = useState('T1');
+function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
+  const [cancha, setCancha] = useState(inicial?.court || 'C1');
+  const [fecha, setFecha] = useState(() => inicial?.date || proximoDiaHabilitado(hoyISO()));
+  const [turn, setTurn] = useState(inicial?.turn || 'T1');
+
+  // Si no viene de un contacto (se tocó una celda libre), se piden el nombre y el WhatsApp acá.
+  const [nombreIn, setNombreIn] = useState('');
+  const [area, setArea] = useState('');
+  const [num, setNum] = useState('');
+  const areaLimpia = area.replace(/\D/g, '');
+  const numLimpio = num.replace(/\D/g, '');
+  const quien = contacto || { nombre: nombreIn.trim(), telefono: `54 9 ${areaLimpia} ${numLimpio}` };
   const [padelStart, setPadelStart] = useState('20:00');
   const [padelEnd, setPadelEnd] = useState('21:00');
   const [lookingForRival, setLookingForRival] = useState(false);
@@ -155,6 +163,14 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
 
   async function agendar() {
     setError(null);
+    if (!contacto && !nombreIn.trim()) {
+      setError('Completá el nombre del cliente.');
+      return;
+    }
+    if (!contacto && (areaLimpia.length < 2 || numLimpio.length < 6)) {
+      setError('Completá el WhatsApp: característica y número.');
+      return;
+    }
     if (esFutbol && lookingForRival && !teamName.trim()) {
       setError('Completá el nombre del equipo.');
       return;
@@ -168,8 +184,8 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
       const payload = {
         court: cancha,
         date: fecha,
-        clientName: contacto.nombre,
-        clientPhone: contacto.telefono,
+        clientName: quien.nombre,
+        clientPhone: quien.telefono,
         lookingForRival: esFutbol && lookingForRival,
         teamName: esFutbol && lookingForRival ? teamName.trim() : null,
         category: esFutbol && lookingForRival ? category : null,
@@ -240,7 +256,25 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
         <h3 className="modal-titulo">Agendar turno manual</h3>
-        <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
+        {contacto ? (
+          <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
+        ) : (
+          <>
+            <div className="field">
+              <label>Nombre del cliente</label>
+              <input value={nombreIn} onChange={(e) => setNombreIn(e.target.value)} placeholder="Nombre y apellido" />
+            </div>
+            <div className="field">
+              <label>WhatsApp</label>
+              <div className="tel-split">
+                <span className="tel-fijo">+54&nbsp;9</span>
+                <input className="tel-area" value={area} onChange={(e) => setArea(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="343" inputMode="numeric" aria-label="Característica" />
+                <span className="tel-fijo">15</span>
+                <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134747" inputMode="numeric" aria-label="Número" />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="field">
           <label>Cancha</label>
@@ -699,7 +733,7 @@ const ESTADO_BADGE = {
 const TXT_ESTADO = { libre: 'Libre', pendiente: 'A confirmar', confirmada: 'Reservado', bloqueado: 'Bloqueado' };
 
 // Grilla visual de fútbol: Cancha 1 y Cancha 2 en columnas, turnos en filas.
-function GrillaFutbol({ agenda, sel, onCelda }) {
+function GrillaFutbol({ agenda, sel, onCelda, onLibre }) {
   const turnos = agenda.futbol.C1.map((s) => ({ turn: s.turn, start: s.start, end: s.end }));
   return (
     <div className="grilla">
@@ -718,8 +752,9 @@ function GrillaFutbol({ agenda, sel, onCelda }) {
               <button
                 key={court}
                 className={`grilla-celda ${slot.status} ${activo ? 'sel' : ''}`}
-                disabled={!r}
-                onClick={() => r && onCelda(r.code)}
+                disabled={!r && !(onLibre && slot.status === 'libre')}
+                title={!r && onLibre && slot.status === 'libre' ? 'Agendar un turno acá' : undefined}
+                onClick={() => (r ? onCelda(r.code) : onLibre && slot.status === 'libre' && onLibre(court, t.turn))}
               >
                 <span className="grilla-celda-nombre">{r ? r.client_name.split(' ')[0] : ''}</span>
                 <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
@@ -826,12 +861,13 @@ function FilaFlexible({ r, seleccionado, onClick, detalle }) {
   );
 }
 
-function AgendaPanel() {
+function AgendaDia() {
   const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
   const [agenda, setAgenda] = useState(null);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [sel, setSel] = useState(null);
+  const [agendando, setAgendando] = useState(null); // { court, date, turn? } desde una celda libre
 
   async function cargar() {
     setCargando(true);
@@ -883,7 +919,12 @@ function AgendaPanel() {
 
           <div className="agenda-card">
             <div className="agenda-card-titulo">Fútbol</div>
-            <GrillaFutbol agenda={agenda} sel={sel} onCelda={toggle} />
+            <GrillaFutbol
+              agenda={agenda}
+              sel={sel}
+              onCelda={toggle}
+              onLibre={(court, turn) => setAgendando({ court, date: fecha, turn })}
+            />
             <div className="grilla-leyenda">
               <span><i className="pt libre" /> Libre</span>
               <span><i className="pt pendiente" /> A confirmar</span>
@@ -930,7 +971,204 @@ function AgendaPanel() {
           )}
         </>
       )}
+
+      {agendando && (
+        <ManualBookingModal
+          contacto={null}
+          inicial={agendando}
+          onCerrar={() => setAgendando(null)}
+          onCreado={() => { setAgendando(null); cargar(); }}
+        />
+      )}
     </div>
+  );
+}
+
+// Primera semana a mostrar: la actual; si ya es viernes o fin de semana, la que viene.
+function semanaInicial() {
+  const lunes = lunesDeLaSemana(hoyISO());
+  const dow = new Date().getDay(); // 0=Dom ... 5=Vie, 6=Sáb
+  return dow === 0 || dow >= 5 ? sumarDias(lunes, 7) : lunes;
+}
+
+// Vista de toda la semana: una tarjeta por día con la grilla de fútbol (2 canchas × 3 turnos)
+// y las barras de horario de pádel. Muestra martes a jueves; lunes y viernes solo si Mateo
+// los abrió como día especial.
+function SemanaPanel() {
+  const [lunes, setLunes] = useState(semanaInicial);
+  const [dias, setDias] = useState(null); // [{ fecha, agenda }]
+  const [error, setError] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [sel, setSel] = useState(null);
+  const [agendando, setAgendando] = useState(null); // { court, date, turn? } desde una celda libre
+
+  async function cargar() {
+    setCargando(true);
+    setError(null);
+    setSel(null);
+    try {
+      const aperturas = await api.adminAperturas(lunes, sumarDias(lunes, 4)).catch(() => ({ aperturas: [] }));
+      const abiertos = new Set((aperturas.aperturas || []).map((a) => a.reservation_date));
+      const fechas = [0, 1, 2, 3, 4]
+        .map((n) => sumarDias(lunes, n))
+        .filter((f) => esDiaHabilitado(f) || abiertos.has(f));
+      const agendas = await Promise.all(fechas.map((f) => api.adminAgenda(f)));
+      setDias(fechas.map((fecha, i) => ({ fecha, agenda: agendas[i] })));
+    } catch (e) {
+      setError(e.message);
+      setDias(null);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [lunes]);
+
+  const toggle = (code) => setSel((s) => (s === code ? null : code));
+
+  // Cifras de toda la semana.
+  let reservas = 0;
+  let aConfirmar = 0;
+  let ocupados = 0;
+  let posibles = 0;
+  for (const { agenda } of dias || []) {
+    for (const court of ['C1', 'C2']) {
+      for (const s of agenda.futbol[court]) {
+        if (s.status === 'bloqueado') continue;
+        posibles += 1;
+        if (s.status !== 'libre') {
+          ocupados += 1;
+          reservas += 1;
+          if (s.status === 'pendiente') aConfirmar += 1;
+        }
+      }
+    }
+    for (const r of agenda.padel) {
+      reservas += 1;
+      if (r.status === 'pendiente') aConfirmar += 1;
+    }
+  }
+  const ocupacion = posibles ? Math.round((ocupados / posibles) * 100) : 0;
+
+  const primero = partesFecha(dias && dias.length ? dias[0].fecha : sumarDias(lunes, 1));
+  const ultimo = partesFecha(dias && dias.length ? dias[dias.length - 1].fecha : sumarDias(lunes, 3));
+  const rango = primero.mes === ultimo.mes
+    ? `${primero.diaNum} al ${ultimo.diaNum} de ${ultimo.mes}`
+    : `${primero.diaNum} de ${primero.mes} al ${ultimo.diaNum} de ${ultimo.mes}`;
+
+  return (
+    <div className="stat-card sem">
+      <div className="agenda-nav-row">
+        <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, -7))} aria-label="Semana anterior">‹</button>
+        <div className="agenda-fecha" style={{ cursor: 'default' }}>
+          <span className="agenda-fecha-dia">Semana del {rango}</span>
+          <span className="agenda-fecha-mes">{primero.anio}</span>
+        </div>
+        <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, 7))} aria-label="Semana siguiente">›</button>
+      </div>
+
+      {error && <p className="error-msg">{error}</p>}
+      {cargando && !dias && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
+
+      {dias && (
+        <>
+          <div className="sem-cifras">
+            <div><b>{reservas}</b><span>{reservas === 1 ? 'reserva' : 'reservas'}</span></div>
+            <div><b>{aConfirmar}</b><span>a confirmar</span></div>
+            <div><b>{ocupacion}%</b><span>ocupación fútbol</span></div>
+          </div>
+
+          <div className="grilla-leyenda" style={{ marginBottom: 12 }}>
+            <span><i className="pt libre" /> Libre</span>
+            <span><i className="pt pendiente" /> A confirmar</span>
+            <span><i className="pt confirmada" /> Reservado</span>
+          </div>
+
+          {dias.length === 0 && <p className="agenda-vacio">No hay días abiertos esta semana.</p>}
+
+          <div className="sem-grid" style={cargando ? { opacity: 0.55 } : undefined}>
+            {dias.map(({ fecha, agenda }) => {
+              const p = partesFecha(fecha);
+              const esHoy = fecha === hoyISO();
+              const reservasDia = [
+                ...agenda.futbol.C1.map((s) => s.reserva),
+                ...agenda.futbol.C2.map((s) => s.reserva),
+                ...agenda.padel,
+              ].filter(Boolean);
+              const pendientesDia = reservasDia.filter((r) => r.status === 'pendiente').length;
+              const reservaSel = sel ? reservasDia.find((r) => r.code === sel) : null;
+              return (
+                <section key={fecha} className={`sem-dia ${esHoy ? 'hoy' : ''}`}>
+                  <header className="sem-dia-cab">
+                    <div>
+                      <span className="sem-dia-nombre">{p.diaSemana} {p.diaNum}</span>
+                      {esHoy && <span className="sem-hoy">Hoy</span>}
+                    </div>
+                    <span className="sem-dia-cuenta">
+                      {reservasDia.length === 0 ? 'Sin reservas' : `${reservasDia.length} reserva${reservasDia.length > 1 ? 's' : ''}`}
+                      {pendientesDia > 0 ? ` · ${pendientesDia} a confirmar` : ''}
+                    </span>
+                  </header>
+
+                  <GrillaFutbol
+                    agenda={agenda}
+                    sel={sel}
+                    onCelda={toggle}
+                    onLibre={(court, turn) => setAgendando({ court, date: fecha, turn })}
+                  />
+
+                  <div className="sem-padel">
+                    <div className="sem-padel-tit">Pádel</div>
+                    <TimelinePadel reservas={agenda.padel} sel={sel} onTramo={toggle} />
+                    <button className="btn btn-ghost sem-padel-btn" onClick={() => setAgendando({ court: 'PAD', date: fecha })}>
+                      + Agendar pádel
+                    </button>
+                  </div>
+
+                  {reservaSel && (
+                    <DetalleReserva
+                      reserva={reservaSel}
+                      espera={agenda.espera || []}
+                      fecha={fecha}
+                      onCancelado={cargar}
+                    />
+                  )}
+                </section>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {agendando && (
+        <ManualBookingModal
+          contacto={null}
+          inicial={agendando}
+          onCerrar={() => setAgendando(null)}
+          onCreado={() => { setAgendando(null); cargar(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// La Agenda tiene dos vistas: la semana completa (la de siempre al abrir) y un día en detalle.
+function AgendaPanel() {
+  const [vista, setVista] = useState(() => {
+    try { return localStorage.getItem('panel-agenda-vista') === 'dia' ? 'dia' : 'semana'; } catch { return 'semana'; }
+  });
+  function elegir(v) {
+    setVista(v);
+    try { localStorage.setItem('panel-agenda-vista', v); } catch { /* sin almacenamiento: no pasa nada */ }
+  }
+  return (
+    <>
+      <div className="vista-toggle" role="tablist" aria-label="Vista de la agenda">
+        <button type="button" role="tab" aria-selected={vista === 'dia'} className={vista === 'dia' ? 'on' : ''} onClick={() => elegir('dia')}>Día</button>
+        <button type="button" role="tab" aria-selected={vista === 'semana'} className={vista === 'semana' ? 'on' : ''} onClick={() => elegir('semana')}>Semana</button>
+      </div>
+      {vista === 'semana' ? <SemanaPanel /> : <AgendaDia />}
+    </>
   );
 }
 

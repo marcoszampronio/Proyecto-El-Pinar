@@ -261,10 +261,6 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           )}
 
-          <p style={{ fontSize: 13, color: 'var(--s-niebla)', margin: '2px 0 14px' }}>
-            Consultá por la parrilla por WhatsApp.
-          </p>
-
           {/* Honeypot anti-bot: oculto para personas, los bots suelen completarlo igual. */}
           <input
             type="text"

@@ -206,7 +206,7 @@ export default function PublicPage() {
           <div className="seccion-cab">
             <p className="eyebrow">Busco rival</p>
             <h2>Equipos que buscan partido</h2>
-            <p>Ya reservaron su cancha. Escribiles por WhatsApp y coordinen. Para aparecer acá, marcá “Estoy buscando rival” cuando reservás.</p>
+            <p>Ya reservaron su cancha. Escribiles por WhatsApp.</p>
           </div>
           <RivalsCalendar rivales={rivales} onIr={irA} />
         </div>

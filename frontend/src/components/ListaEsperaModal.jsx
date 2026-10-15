@@ -86,7 +86,7 @@ export default function ListaEsperaModal({ fecha, onCerrar }) {
                   className="tel-num"
                   value={num}
                   onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                  placeholder="5134744"
+                  placeholder="5134747"
                   inputMode="numeric"
                   aria-label="Número"
                 />

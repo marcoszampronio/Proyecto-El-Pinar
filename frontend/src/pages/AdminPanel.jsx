@@ -1203,7 +1203,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
           <span className="tel-fijo">+54&nbsp;9</span>
           <input className="tel-area" value={area} onChange={(e) => setArea(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="343" inputMode="numeric" aria-label="Característica" />
           <span className="tel-fijo">15</span>
-          <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134744" inputMode="numeric" aria-label="Número" />
+          <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134747" inputMode="numeric" aria-label="Número" />
         </div>
       </div>
       <div className="field">
@@ -1663,7 +1663,7 @@ function TurnosFijosPanel() {
           <span className="tel-fijo">+54&nbsp;9</span>
           <input className="tel-area" value={area} onChange={(e) => setArea(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="343" inputMode="numeric" aria-label="Característica" />
           <span className="tel-fijo">15</span>
-          <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134744" inputMode="numeric" aria-label="Número" />
+          <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134747" inputMode="numeric" aria-label="Número" />
         </div>
       </div>
 

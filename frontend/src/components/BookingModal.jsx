@@ -201,7 +201,7 @@ export default function BookingModal({ slotInfo, onClose }) {
                 className="tel-num"
                 value={form.phoneNum}
                 onChange={(e) => actualizar('phoneNum', e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder="5134744"
+                placeholder="5134747"
                 inputMode="numeric"
                 aria-label="Número"
               />

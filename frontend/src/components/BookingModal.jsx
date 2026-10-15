@@ -311,6 +311,19 @@ export default function BookingModal({ slotInfo, onClose }) {
 
         <div className="resumen-reserva">
           <div className="resumen-titulo">Tu reserva</div>
+          {/* Mismo mapa del primer paso: confirma de un vistazo qué cancha reservó. */}
+          {resultado.reserva.court === 'C1' || resultado.reserva.court === 'C2' ? (
+            <MapaCanchaElegida court={resultado.reserva.court} />
+          ) : FOTO_CANCHA[resultado.reserva.court] ? (
+            <div className="modal-foto">
+              <img
+                src={FOTO_CANCHA[resultado.reserva.court].src}
+                alt={`${NOMBRE_CANCHA[resultado.reserva.court]} de Complejo El Pinar, Paraná`}
+                style={{ objectPosition: FOTO_CANCHA[resultado.reserva.court].pos }}
+              />
+              <span>{NOMBRE_CANCHA[resultado.reserva.court]}</span>
+            </div>
+          ) : null}
           <p><strong>{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</strong></p>
           <p>{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</p>
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>

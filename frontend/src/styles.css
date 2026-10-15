@@ -2047,3 +2047,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (prefers-reduced-motion: reduce) {
   .sitio .rival-opcion, .sitio .rival-switch, .sitio .rival-switch::after { transition: none; }
 }
+
+/* mapa/foto dentro de la tarjeta "Tu reserva" de la pantalla ¡Ya casi! */
+.sitio .resumen-reserva .modal-foto { margin: 8px 0 12px; }

@@ -2164,3 +2164,22 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (prefers-reduced-motion: no-preference) {
   .sitio .ya-casi-ico { animation: sitioPop var(--pop) var(--curva-pop); }
 }
+
+/* ---------- Busco rival: flechas iguales y estado vacío contenido ---------- */
+.sitio .rivales-cal-flecha { background: transparent; border: 1px solid var(--borde-fuerte); border-radius: var(--pill); }
+.sitio .rivales-cal-flecha:disabled { background: transparent; border-color: var(--borde); opacity: 0.35; }
+.sitio .rivales-cal-vacio {
+  max-width: 520px; padding: 32px 20px; gap: 14px;
+  border: 1px dashed var(--borde-fuerte); border-radius: var(--radio-l);
+  background: rgba(255, 255, 255, 0.02);
+}
+.sitio .rivales-cal-vacio::before {
+  content: '⚽'; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+  background: var(--oro-velo); font-size: 1.4rem;
+}
+.sitio .rivales-cal-vacio p { color: var(--s-cal); }
+.sitio .rivales-cal-vacio .btn { width: 100%; justify-content: center; padding-inline: 14px; font-size: clamp(0.82rem, 3.6vw, 0.95rem); }
+
+/* ---------- Cómo llegar: aire entre un dato y el rótulo siguiente (también en celular) ---------- */
+.llegar-datos dd + dt { margin-top: 14px; }
+.llegar-datos dt { margin-bottom: 2px; }

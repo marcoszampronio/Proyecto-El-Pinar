@@ -1600,10 +1600,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 /* Tarjeta de lista de espera: el aviso más visible de la grilla (dorado), pero sin competir con 'Libre'. */
 .sitio .espera-card {
-  display: grid; grid-template-columns: auto 1fr; gap: 10px 14px; align-items: center;
-  text-align: left; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 16px 18px;
   background: rgba(242, 193, 78, 0.08); border: 1px solid rgba(242, 193, 78, 0.45); border-radius: 14px;
 }
+.sitio .espera-cab { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .sitio .espera-ico {
   display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
   background: rgba(242, 193, 78, 0.16); color: var(--s-oro);
@@ -1616,7 +1617,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: var(--s-pino-800); color: var(--s-cal); font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .sitio .espera-modal-hs { margin: 0 0 8px; font-size: 13.5px; color: var(--s-niebla); }
-.sitio .btn-espera { grid-column: 1 / -1; width: 100%; justify-content: center; }
+.sitio .btn-espera { width: 100%; justify-content: center; }
 .rival-cta-nota { flex-basis: 100%; margin: -6px 0 0; font-size: 0.9rem; color: var(--s-niebla); }
 
 /* pádel */

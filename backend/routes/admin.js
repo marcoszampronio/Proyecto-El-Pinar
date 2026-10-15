@@ -447,7 +447,7 @@ router.post('/manual', async (req, res) => {
       client_phone: body.clientPhone,
       client_email: body.clientEmail || null,
       category: body.lookingForRival ? (body.category || null) : null,
-      team_name: body.lookingForRival ? normalizarEquipo(body.teamName) : null,
+      team_name: normalizarEquipo(body.teamName), // Mateo conoce a los equipos: se guarda aunque no busque rival
       looking_for_rival: !!body.lookingForRival,
       parrilla: !!body.parrilla,
       status: 'confirmada',
@@ -738,7 +738,7 @@ router.get('/contactos', async (req, res) => {
   const [{ data, error }, manuales] = await Promise.all([
     supabaseAdmin
       .from('reservations')
-      .select('client_name, client_phone, client_email, reservation_date, status, court, created_at')
+      .select('client_name, client_phone, client_email, team_name, reservation_date, status, court, created_at')
       .order('created_at', { ascending: false }),
     supabaseAdmin
       .from('contactos_manuales')
@@ -762,6 +762,7 @@ router.get('/contactos', async (req, res) => {
         telefono: r.client_phone,
         telefonoWa: normalizarTelefonoAR(r.client_phone),
         email: r.client_email || null,
+        equipo: normalizarEquipo(r.team_name),
         comentario: null,
         manualId: null,
         totalReservas: 0,
@@ -776,6 +777,7 @@ router.get('/contactos', async (req, res) => {
     if (r.status === 'confirmada') c.confirmadas++;
     if (r.status === 'cancelada') c.canceladas++;
     if (!c.email && r.client_email) c.email = r.client_email;
+    if (!c.equipo && r.team_name) c.equipo = normalizarEquipo(r.team_name); // las reservas vienen de la más nueva a la más vieja
     if (r.reservation_date > c.ultimaReserva) c.ultimaReserva = r.reservation_date;
     c.canchasUsadas.add(r.court);
   }
@@ -789,6 +791,7 @@ router.get('/contactos', async (req, res) => {
     const existente = mapa.get(clave);
     if (existente) {
       existente.nombre = m.nombre || existente.nombre;
+      existente.equipo = normalizarEquipo(m.equipo) || existente.equipo || null; // el que cargó Mateo gana
       existente.comentario = m.comentario || null;
       existente.manualId = m.id;
     } else {
@@ -797,6 +800,7 @@ router.get('/contactos', async (req, res) => {
         telefono: m.telefono,
         telefonoWa: normalizarTelefonoAR(m.telefono),
         email: null,
+        equipo: normalizarEquipo(m.equipo),
         comentario: m.comentario || null,
         manualId: m.id,
         totalReservas: 0,
@@ -854,6 +858,7 @@ router.post('/contactos', async (req, res) => {
   const nombre = String(req.body.nombre || '').trim();
   const telefono = String(req.body.telefono || '').trim();
   const comentario = String(req.body.comentario || '').trim() || null;
+  const equipo = normalizarEquipo(req.body.equipo);
   if (!nombre || telefono.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá nombre y teléfono.' });
   }
@@ -866,7 +871,7 @@ router.post('/contactos', async (req, res) => {
   if (yaExiste) {
     const { error } = await supabaseAdmin
       .from('contactos_manuales')
-      .update({ nombre, telefono, comentario })
+      .update({ nombre, telefono, equipo, comentario })
       .eq('id', yaExiste.id);
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ ok: true, actualizado: true });
@@ -874,7 +879,7 @@ router.post('/contactos', async (req, res) => {
 
   const { error } = await supabaseAdmin
     .from('contactos_manuales')
-    .insert({ nombre, telefono, comentario, created_by: req.adminEmail });
+    .insert({ nombre, telefono, equipo, comentario, created_by: req.adminEmail });
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
@@ -885,13 +890,14 @@ router.put('/contactos/:id', async (req, res) => {
   const nombre = String(req.body.nombre || '').trim();
   const telefono = String(req.body.telefono || '').trim();
   const comentario = String(req.body.comentario || '').trim() || null;
+  const equipo = normalizarEquipo(req.body.equipo);
   if (!nombre || telefono.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá nombre y teléfono.' });
   }
 
   const { error } = await supabaseAdmin
     .from('contactos_manuales')
-    .update({ nombre, telefono, comentario })
+    .update({ nombre, telefono, equipo, comentario })
     .eq('id', req.params.id);
 
   if (error) return res.status(500).json({ error: error.message });

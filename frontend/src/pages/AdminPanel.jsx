@@ -106,8 +106,30 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
   const [padelStart, setPadelStart] = useState('20:00');
   const [padelEnd, setPadelEnd] = useState('21:00');
   const [lookingForRival, setLookingForRival] = useState(false);
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState(contacto?.equipo || '');
   const [category, setCategory] = useState('');
+
+  // Buscador de contactos (cuando no viene de un contacto): se busca por equipo, nombre o teléfono.
+  const [contactos, setContactos] = useState([]);
+  const [foco, setFoco] = useState(false);
+  useEffect(() => {
+    if (!contacto) api.adminContactos().then((d) => setContactos(d.contactos || [])).catch(() => {});
+    // eslint-disable-next-line
+  }, []);
+  const sugerencias = nombreIn.trim().length >= 1
+    ? contactos
+        .filter((c) => `${c.equipo || ''} ${c.nombre} ${c.telefono}`.toLowerCase().includes(nombreIn.trim().toLowerCase()))
+        .slice(0, 6)
+    : [];
+  function elegirContacto(c) {
+    setNombreIn(c.nombre);
+    const p = partirTelefono(c.telefono);
+    setArea(p.area);
+    setNum(p.num);
+    if (c.equipo) setTeamName(c.equipo);
+    setFoco(false);
+  }
+
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
   const [hecho, setHecho] = useState(null);
@@ -187,7 +209,7 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
         clientName: quien.nombre,
         clientPhone: quien.telefono,
         lookingForRival: esFutbol && lookingForRival,
-        teamName: esFutbol && lookingForRival ? teamName.trim() : null,
+        teamName: esFutbol ? (teamName.trim() || null) : null,
         category: esFutbol && lookingForRival ? category : null,
         ...(esFutbol ? { turn } : { startTime: `${padelStart}:00`, endTime: `${padelEnd}:00` }),
       };
@@ -260,9 +282,32 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
           <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
         ) : (
           <>
-            <div className="field">
-              <label>Nombre del cliente</label>
-              <input value={nombreIn} onChange={(e) => setNombreIn(e.target.value)} placeholder="Nombre y apellido" />
+            <div className="field" style={{ position: 'relative' }}>
+              <label>Cliente o equipo</label>
+              <input
+                value={nombreIn}
+                onChange={(e) => { setNombreIn(e.target.value); setFoco(true); }}
+                onFocus={() => setFoco(true)}
+                onBlur={() => setTimeout(() => setFoco(false), 150)}
+                placeholder="Buscá un contacto o escribí un nombre"
+                autoComplete="off"
+              />
+              {foco && sugerencias.length > 0 && (
+                <div className="ac-lista">
+                  {sugerencias.map((c) => (
+                    <button
+                      key={c.manualId || c.telefonoWa || c.telefono}
+                      type="button"
+                      className="ac-item"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => elegirContacto(c)}
+                    >
+                      <strong>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</strong>
+                      <span>{c.equipo ? `${c.nombre} · ` : ''}{c.telefono}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="field">
               <label>WhatsApp</label>
@@ -323,6 +368,10 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
 
         {esFutbol && (
           <>
+            <div className="field">
+              <label>Equipo (opcional)</label>
+              <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
+            </div>
             <div className="field-check">
               <label>
                 <input type="checkbox" checked={lookingForRival} onChange={(e) => setLookingForRival(e.target.checked)} />
@@ -331,10 +380,6 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
             </div>
             {lookingForRival && (
               <>
-                <div className="field">
-                  <label>Nombre del equipo</label>
-                  <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
-                </div>
                 <div className="field">
                   <label>Categoría</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -685,8 +730,8 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
         {reserva.status === 'pendiente' ? 'Pendiente de confirmar' : 'Confirmada'}
       </div>
       <div className="agenda-detalle-cliente">
-        {reserva.client_name}
-        {reserva.looking_for_rival && reserva.team_name ? ` · ${nombreEquipo(reserva.team_name)} (${reserva.category || 's/cat'})` : ''}
+        {reserva.team_name ? `${nombreEquipo(reserva.team_name)} · ${reserva.client_name}` : reserva.client_name}
+        {reserva.looking_for_rival && reserva.category ? ` (${reserva.category})` : ''}
       </div>
       <div className="agenda-detalle-meta">
         Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}
@@ -756,7 +801,7 @@ function GrillaFutbol({ agenda, sel, onCelda, onLibre }) {
                 title={!r && onLibre && slot.status === 'libre' ? 'Agendar un turno acá' : undefined}
                 onClick={() => (r ? onCelda(r.code) : onLibre && slot.status === 'libre' && onLibre(court, t.turn))}
               >
-                <span className="grilla-celda-nombre">{r ? r.client_name.split(' ')[0] : ''}</span>
+                <span className="grilla-celda-nombre">{r ? (r.team_name ? nombreEquipo(r.team_name) : r.client_name.split(' ')[0]) : ''}</span>
                 <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
                 {r && r.looking_for_rival && <span className="grilla-celda-rival">Busco rival</span>}
               </button>
@@ -1183,15 +1228,15 @@ function ContactosPanel() {
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
 
-  async function guardarContacto({ nombre, telefono, comentario }, c) {
+  async function guardarContacto({ nombre, telefono, equipo, comentario }, c) {
     setGuardando(true);
     setError(null);
     try {
       if (c && c.manualId) {
-        await api.adminEditarContacto(c.manualId, { nombre, telefono, comentario });
+        await api.adminEditarContacto(c.manualId, { nombre, telefono, equipo, comentario });
       } else {
         // alta nueva, o primera anotación sobre un contacto que salió de reservas
-        await api.adminAgregarContacto({ nombre, telefono, comentario });
+        await api.adminAgregarContacto({ nombre, telefono, equipo, comentario });
       }
       setAgregar(false);
       setEditando(null);
@@ -1236,7 +1281,7 @@ function ContactosPanel() {
 
   const filtro = texto.trim().toLowerCase();
   const lista = (contactos || []).filter(
-    (c) => !filtro || `${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
+    (c) => !filtro || `${c.equipo || ''} ${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
   );
 
   return (
@@ -1257,7 +1302,7 @@ function ContactosPanel() {
 
       <input
         style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
-        placeholder="Buscar por nombre, teléfono o email"
+        placeholder="Buscar por equipo, nombre o teléfono"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
       />
@@ -1276,7 +1321,7 @@ function ContactosPanel() {
           return (
             <ContactoForm
               key={clave}
-              inicial={{ nombre: c.nombre, area: p.area, num: p.num, comentario: c.comentario || '' }}
+              inicial={{ nombre: c.nombre, equipo: c.equipo || '', area: p.area, num: p.num, comentario: c.comentario || '' }}
               onGuardar={(datos) => guardarContacto(datos, c)}
               onCancelar={() => setEditando(null)}
               onEliminar={() => eliminarContacto(c)}
@@ -1293,13 +1338,13 @@ function ContactosPanel() {
         return (
           <div key={clave} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</span>
+              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
               <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
               <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
               {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--p-mut)' }}>(agregado a mano)</span>}
             </div>
             <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
-              {c.telefono}{c.email ? ` · ${c.email}` : ''}
+              {c.equipo ? `${c.nombre} · ` : ''}{c.telefono}{c.email ? ` · ${c.email}` : ''}
             </div>
             <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
               {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${String(c.ultimaReserva).split('-').reverse().join('/')}`}
@@ -1333,7 +1378,7 @@ function ContactosPanel() {
               <button
                 className="btn btn-primary"
                 style={{ padding: '6px 14px' }}
-                onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono }); }}
+                onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono, equipo: c.equipo || '' }); }}
               >
                 Agendar turno manual
               </button>
@@ -1378,6 +1423,7 @@ function partirTelefono(tel) {
 // Formulario de contacto (alta o edición): nombre + WhatsApp + comentario.
 function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, eliminarConfirm, guardando }) {
   const [nombre, setNombre] = useState(inicial?.nombre || '');
+  const [equipo, setEquipo] = useState(inicial?.equipo || '');
   const [area, setArea] = useState(inicial?.area || '');
   const [num, setNum] = useState(inicial?.num || '');
   const [comentario, setComentario] = useState(inicial?.comentario || '');
@@ -1392,6 +1438,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
     if (areaLimpia.length < 2 || numLimpio.length < 6) { setError('Completá característica y número.'); return; }
     onGuardar({
       nombre: nombre.trim(),
+      equipo: equipo.trim() || null,
       telefono: `54 9 ${areaLimpia} ${numLimpio}`,
       comentario: comentario.trim() || null,
     });
@@ -1400,8 +1447,12 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
   return (
     <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 10 }}>
       <div className="field">
-        <label>Nombre</label>
-        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Como lo quieras guardar" />
+        <label>Equipo (opcional)</label>
+        <input value={equipo} onChange={(e) => setEquipo(e.target.value)} placeholder="Ej: Los Pibes FC" />
+      </div>
+      <div className="field">
+        <label>Nombre de la persona</label>
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Quién escribe o paga" />
       </div>
       <div className="field">
         <label>WhatsApp</label>
@@ -2328,7 +2379,7 @@ export default function AdminPanel() {
             <div className="stat-card">
               <p style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700 }}>
                 {resultado.reserva.client_name}
-                {resultado.reserva.looking_for_rival && resultado.reserva.team_name && (
+                {resultado.reserva.team_name && (
                   <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (${resultado.reserva.category})` : ''}</span>
                 )}
               </p>
@@ -2383,7 +2434,7 @@ export default function AdminPanel() {
                 className="pendiente-item"
                 onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               >
-                <div style={{ fontWeight: 700, fontSize: 15 }}>{p.client_name}</div>
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{p.team_name ? `${nombreEquipo(p.team_name)} · ${p.client_name}` : p.client_name}</div>
                 <div style={{ fontSize: 13, color: 'var(--p-oro)' }}>
                   {NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)} hs
                 </div>

@@ -3,6 +3,7 @@ import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { verificarEmail } from '../lib/mailer.js';
 import { estadoBackup } from '../lib/backupDiario.js';
+import { MINUTOS_VENCIMIENTO_FIRME } from '../lib/expirarPendientes.js';
 
 const router = Router();
 const ARRANQUE = Date.now();
@@ -32,7 +33,7 @@ router.get('/diagnostico', requireAdmin, async (req, res) => {
     baseDatos: db,
     email: smtp,
     backup: estadoBackup(),
-    ventanaPendientesMin: Number(process.env.PENDING_EXPIRE_MIN || 180),
+    ventanaPendientesMin: MINUTOS_VENCIMIENTO_FIRME, // 0 = no se libera solo
     corsOrigenes: (process.env.CORS_ORIGINS || '')
       .split(',')
       .map((s) => s.trim())

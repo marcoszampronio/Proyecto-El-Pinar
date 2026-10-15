@@ -1,4 +1,5 @@
 import { hhmm } from '../lib/fechas';
+import { nombreEquipo } from '../lib/equipo';
 
 // Grilla pública de fútbol: Cancha 1 y Cancha 2 en columnas, turnos en filas.
 // - Celda "Libre": tocás y abre la reserva de esa cancha + turno.
@@ -52,7 +53,7 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
                     libre
                       ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)} a ${hhmm(t.end)}: libre, tocá para reservar`
                       : rival
-                      ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado por ${rival.team_name}, busca rival`
+                      ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado por ${nombreEquipo(rival.team_name)}, busca rival`
                       : pendienteSinRival
                       ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado. Todavía no se confirmó — tocá para anotarte a la lista de espera por si se libera.`
                       : `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado`
@@ -64,7 +65,7 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
                     <>
                       <span className="gp-rival-top">Reservado</span>
                       <span className="gp-rival-mid">
-                        <span className="gp-rival-eq">{rival.team_name}</span>
+                        <span className="gp-rival-eq">{nombreEquipo(rival.team_name)}</span>
                         {rival.category && <span className="gp-rival-cat">{rival.category}</span>}
                       </span>
                       <span className="gp-rival-sub"><span className="gp-pelota" aria-hidden="true">⚽</span> Busca rival</span>
@@ -78,11 +79,18 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
       </div>
 
       {onListaEspera && (
-        <div className="espera-cta">
-          <button className="btn btn-espera" onClick={onListaEspera}>
-            Lista de espera
+        <div className="espera-cta espera-card">
+          <div className="espera-cab">
+          <span className="espera-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z" /><path d="M10.3 20a1.9 1.9 0 0 0 3.4 0" /></svg>
+          </span>
+          <div className="espera-txt">
+            <strong>¿Tu horario está ocupado?</strong>
+          </div>
+          </div>
+          <button className="btn btn-oro btn-espera" onClick={onListaEspera}>
+            Avisame si se libera un turno
           </button>
-          <p className="espera-nota">Te avisamos si se libera un turno para este día.</p>
         </div>
       )}
     </>

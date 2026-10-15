@@ -8,6 +8,7 @@ import {
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
+import { normalizarEquipo } from '../lib/equipo.js';
 import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
@@ -28,8 +29,8 @@ function validarDatosCliente(body) {
   if (!nombre || !telefono) return 'Completá tu nombre y teléfono.';
   if (nombre.length > 80) return 'El nombre es demasiado largo.';
   if (telefono.replace(/\D/g, '').length < 8) return 'Revisá tu número de WhatsApp.';
-  if (!email) return 'Completá tu email para recibir la confirmación.';
-  if (email.length > 120 || !EMAIL_RE.test(email)) return 'Revisá tu email, no parece válido.';
+  // El mail es opcional (ya no se pide en el formulario); si llega, tiene que ser válido.
+  if (email && (email.length > 120 || !EMAIL_RE.test(email))) return 'Revisá tu email, no parece válido.';
   if (body.lookingForRival) {
     const equipo = String(body.teamName || '').trim();
     if (!equipo) return 'Completá el nombre de tu equipo.';
@@ -41,10 +42,6 @@ function validarDatosCliente(body) {
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 
-// Monto de la reserva. Configurable con MONTO_RESERVA en el .env (default 10000).
-const MONTO = Number(process.env.MONTO_RESERVA || 10000);
-const montoTexto = () => (MONTO > 0 ? '$' + MONTO.toLocaleString('es-AR') : null);
-
 const DIAS_SEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 const MESES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 function fechaLinda(iso) {
@@ -55,20 +52,11 @@ function fechaLinda(iso) {
 
 function armarMensajeWhatsapp(reserva) {
   const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
-  const alias = process.env.ALIAS_TRANSFERENCIA;
-  const monto = montoTexto();
   const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
   return (
     `¡Hola! Quiero reservar en El Pinar.\n\n` +
     `${cancha} · ${fechaLinda(reserva.reservation_date)} · ${horario}\n` +
-    `A nombre de ${reserva.client_name}\n` +
-    // `Reserva ${reserva.code}\n\n` +
-    `\n` +
-    (monto && alias
-      ? `Te transfiero ${monto} al alias \`\`\`${alias}\`\`\` y te paso el comprobante. ¡Gracias!`
-      : monto
-      ? `Te transfiero ${monto} y te paso el comprobante. ¿Me pasás el alias? ¡Gracias!`
-      : `Coordinamos el pago por acá. ¡Gracias!`)
+    `A nombre de ${reserva.client_name}`
   );
 }
 
@@ -81,8 +69,6 @@ function respuestaReserva(res, data) {
     holdMinutos: MINUTOS_HOLD_SIN_WHATSAPP,
     mensajeWhatsapp: armarMensajeWhatsapp(data),
     numeroWhatsapp: process.env.WHATSAPP_NUMERO,
-    aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
-    montoReserva: montoTexto(),
   });
 }
 
@@ -130,7 +116,7 @@ router.get('/estado/:code', async (req, res) => {
 // código, que es fácil de adivinar) para que nadie pueda firmar turnos ajenos.
 router.post('/whatsapp-enviado', async (req, res) => {
   const code = String(req.body?.code || '').trim();
-  const digitos = String(req.body?.clientPhone || '').replace(/D/g, '');
+  const digitos = String(req.body?.clientPhone || '').replace(/\D/g, '');
   if (!code || digitos.length < 8) return res.status(400).json({ error: 'Faltan datos.' });
 
   // Un mismo código puede repetirse en distintos años: tomamos el más reciente.
@@ -143,7 +129,7 @@ router.post('/whatsapp-enviado', async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
 
   const r = filas?.[0];
-  if (!r || String(r.client_phone || '').replace(/D/g, '') !== digitos) {
+  if (!r || String(r.client_phone || '').replace(/\D/g, '') !== digitos) {
     return res.status(404).json({ error: 'No encontramos esa reserva.' });
   }
 
@@ -197,9 +183,9 @@ router.post('/futbol', async (req, res) => {
       turn: body.turn,
       client_name: String(body.clientName).trim(),
       client_phone: String(body.clientPhone).trim(),
-      client_email: String(body.clientEmail).trim(),
+      client_email: String(body.clientEmail || '').trim() || null,
       category: body.category || null,
-      team_name: body.teamName ? String(body.teamName).trim() : null,
+      team_name: normalizarEquipo(body.teamName),
       looking_for_rival: !!body.lookingForRival,
       ...(body.parrilla ? { parrilla: true } : {}),
       status: 'pendiente',
@@ -257,7 +243,7 @@ router.post('/padel', async (req, res) => {
       turn: null,
       client_name: String(body.clientName).trim(),
       client_phone: String(body.clientPhone).trim(),
-      client_email: String(body.clientEmail).trim(),
+      client_email: String(body.clientEmail || '').trim() || null,
       category: null,
       team_name: null,
       looking_for_rival: false,

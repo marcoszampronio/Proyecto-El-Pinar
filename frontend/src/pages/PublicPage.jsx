@@ -178,7 +178,7 @@ export default function PublicPage() {
             <div className="board-intro">
               <p className="eyebrow">Reservá online</p>
               <p>Abrimos martes, miércoles y jueves — a partir de las 20 hs.</p>
-              <FotoCanchaMovil />
+              <FotoCanchaMovil deporte={deporte} />
             </div>
             <CanchaLado deporte={deporte} />
           </aside>
@@ -201,7 +201,7 @@ export default function PublicPage() {
           <div className="seccion-cab">
             <p className="eyebrow">Busco rival</p>
             <h2>Equipos que buscan partido</h2>
-            <p>Ya reservaron su cancha. Escribiles por WhatsApp y coordinen. Para aparecer acá, marcá “Estoy buscando rival” cuando reservás.</p>
+            <p>Ya reservaron su cancha. Escribiles por WhatsApp.</p>
           </div>
           <RivalsCalendar rivales={rivales} onIr={irA} />
         </div>
@@ -216,7 +216,9 @@ export default function PublicPage() {
 
       {slotSeleccionado && <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />}
       {rivalVisto && <RivalInfoModal rival={rivalVisto} onCerrar={() => setRivalVisto(null)} />}
-      {esperaAbierta && <ListaEsperaModal fecha={fecha} onCerrar={() => setEsperaAbierta(false)} />}
+      {esperaAbierta && (
+        <ListaEsperaModal fecha={fecha} onCerrar={() => setEsperaAbierta(false)} />
+      )}
       {!mascotaOff && !slotSeleccionado && (
         <MascotaRival onIr={() => { irA('rival'); setMascotaOff(true); }} />
       )}

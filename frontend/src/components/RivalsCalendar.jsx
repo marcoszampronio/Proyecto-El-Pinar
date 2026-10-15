@@ -4,6 +4,7 @@ import {
   proximoDiaHabilitado,
 } from '../lib/fechas';
 import { IconoWhatsapp } from './Iconos';
+import { nombreEquipo } from '../lib/equipo';
 
 const DIAS_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MESES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -130,10 +131,11 @@ function RivalCard({ r, hora }) {
       title={r.linkWhatsapp ? 'Escribir por WhatsApp' : 'Sin número de contacto'}
     >
       {hora && <span className="rival-cel-hora">{hora} hs</span>}
-      <span className="rival-cel-eq">{r.team_name || 'Equipo'}</span>
-      <span className="rival-cel-meta">
-        {(r.canchaNombre || r.court)}{r.category ? ` · ${r.category}` : ''}
+      <span className="rival-cel-nom">
+        <span className="rival-cel-eq">{nombreEquipo(r.team_name) || 'EQUIPO'}</span>
+        {r.category && <span className="rival-cel-cat">{r.category}</span>}
       </span>
+      <span className="rival-cel-meta">{r.canchaNombre || r.court}</span>
       {r.linkWhatsapp ? (
         <span className="rival-cel-btn">
           <IconoWhatsapp size={13} /> Me interesa

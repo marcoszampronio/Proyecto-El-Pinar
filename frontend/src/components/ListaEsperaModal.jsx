@@ -58,10 +58,10 @@ export default function ListaEsperaModal({ fecha, onCerrar }) {
           </>
         ) : (
           <>
-            <h3 className="modal-titulo">Lista de espera</h3>
+            <h3 className="modal-titulo">Avisame si se libera un turno</h3>
             <p className="modal-sub">Fútbol · {fechaTxt}</p>
-            <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
-              Te avisamos por WhatsApp si se libera un turno para este día.
+            <p style={{ fontSize: 14, color: 'var(--s-niebla)', marginTop: 0, marginBottom: 16 }}>
+              Si alguien cancela, te escribimos por WhatsApp.
             </p>
 
             <div className="field">

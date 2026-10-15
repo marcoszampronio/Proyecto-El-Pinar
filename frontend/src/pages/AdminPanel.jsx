@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
+import { nombreEquipo } from '../lib/equipo';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
@@ -155,6 +156,10 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
     setError(null);
     if (esFutbol && lookingForRival && !teamName.trim()) {
       setError('Completá el nombre del equipo.');
+      return;
+    }
+    if (esFutbol && lookingForRival && !category) {
+      setError('Elegí la categoría del equipo.');
       return;
     }
     setEnviando(true);
@@ -483,7 +488,9 @@ function EstadoSistema() {
             detalle={d.corsOrigenes.length ? d.corsOrigenes.join(', ') : 'Abierto a cualquier origen — conviene restringirlo'}
           />
           <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0, marginTop: 6 }}>
-            Un turno queda reservado {d.ventanaPendientesMin} min esperando el comprobante.
+            {d.ventanaPendientesMin > 0
+              ? `Un turno reservado se libera solo a los ${d.ventanaPendientesMin} min si no lo confirmás.`
+              : 'Un turno reservado queda así hasta que lo confirmes o lo canceles vos.'}
           </p>
         </div>
       )}
@@ -516,6 +523,7 @@ function RivalToggle({ reserva, fecha, onCambio }) {
 
   async function activar() {
     if (!teamName.trim()) { setError('Completá el nombre del equipo.'); return; }
+    if (!category) { setError('Elegí la categoría del equipo.'); return; }
     setEnviando(true);
     setError(null);
     try {
@@ -649,7 +657,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       </div>
       <div className="agenda-detalle-cliente">
         {reserva.client_name}
-        {reserva.looking_for_rival && reserva.team_name ? ` · ${reserva.team_name} (${reserva.category || 's/cat'})` : ''}
+        {reserva.looking_for_rival && reserva.team_name ? ` · ${nombreEquipo(reserva.team_name)} (${reserva.category || 's/cat'})` : ''}
         {reserva.parrilla ? ' · 🔥 consultó parrilla' : ''}
       </div>
       <div className="agenda-detalle-meta">
@@ -1695,7 +1703,7 @@ function TurnosFijosPanel() {
           <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>
-                {f.client_name}{f.team_name ? ` · ${f.team_name}` : ''}
+                {f.client_name}{f.team_name ? ` · ${nombreEquipo(f.team_name)}` : ''}
               </div>
               <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
               <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone} · desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
@@ -2012,7 +2020,7 @@ export default function AdminPanel() {
                 {resultado.reserva.client_name} {resultado.reserva.category ? `· ${resultado.reserva.category}` : ''}
                 {resultado.reserva.looking_for_rival && (
                   <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>
-                    {' · '}Busca rival{resultado.reserva.team_name ? ` (${resultado.reserva.team_name})` : ''}
+                    {' · '}Busca rival{resultado.reserva.team_name ? ` (${nombreEquipo(resultado.reserva.team_name)})` : ''}
                   </span>
                 )}
                 {resultado.reserva.parrilla && <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>{' · '}🔥 consultó parrilla</span>}

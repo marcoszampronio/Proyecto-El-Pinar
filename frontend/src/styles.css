@@ -1550,7 +1550,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .sitio .gp-rival-cat {
-  font-size: 0.62rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
   margin-top: 1px;
 }
 .sitio .gp-rival-sub {
@@ -1598,12 +1598,31 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (max-width: 620px) {
   .sitio .espera-cta { margin-left: 46px; } /* 40px de horas + 6px de separación */
 }
-.sitio .btn-espera {
-  width: 100%; justify-content: center; border: 1.5px dashed var(--s-linea);
-  color: var(--s-cal); background: transparent;
+/* Tarjeta de lista de espera: el aviso más visible de la grilla (dorado), pero sin competir con 'Libre'. */
+.sitio .espera-card {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 16px 18px;
+  background: rgba(242, 193, 78, 0.08); border: 1px solid rgba(242, 193, 78, 0.45); border-radius: 14px;
 }
-.sitio .btn-espera:hover { border-color: var(--s-oro); color: var(--s-oro); }
-.sitio .espera-nota { color: var(--s-niebla); font-size: 0.82rem; }
+.sitio .espera-cab { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.sitio .espera-ico {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(242, 193, 78, 0.16); color: var(--s-oro);
+}
+.sitio .espera-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sitio .espera-txt strong { color: var(--s-cal); font-size: 1.02rem; }
+.sitio .espera-txt > span { color: var(--s-niebla); font-size: 0.9rem; line-height: 1.5; }
+.sitio .btn-espera { width: 100%; justify-content: center; }
+@media (max-width: 620px) {
+  /* En celular el título va en una sola línea: ícono más chico y tipografía que se adapta al ancho. */
+  .sitio .espera-card { padding: 14px 12px; }
+  .sitio .espera-cab { gap: 10px; }
+  .sitio .espera-ico { width: 34px; height: 34px; flex: none; }
+  .sitio .espera-ico svg { width: 20px; height: 20px; }
+  .sitio .btn-espera { padding-inline: 10px; font-size: clamp(0.85rem, 4vw, 1rem); }
+  .sitio .espera-txt strong { display: block; white-space: nowrap; font-size: clamp(0.8rem, 4.2vw, 1rem); }
+}
+.sitio .modal-nota-parrilla { margin: 0 0 14px; text-align: center; font-size: 0.9rem; color: var(--s-niebla); }
 
 /* pádel */
 .sitio .padel-paso { padding: 14px 0 4px; font-family: var(--s-texto); color: var(--s-cal); font-weight: 700; font-size: 0.95rem; }
@@ -1659,7 +1678,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   border-radius: 12px; padding: 14px; gap: 8px; color: var(--s-cal);
   justify-content: space-between;
 }
-.sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); }
+.sitio .rival-cel-nom { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); overflow-wrap: anywhere; }
+.sitio .rival-cel-cat { color: var(--s-niebla); font-size: 0.8rem; font-weight: 400; }
 .sitio .rival-cel-meta { color: var(--s-niebla); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .sitio .rival-cel-btn { background: #1A7F45; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
 .sitio .rival-cel-btn--off { background: var(--s-marino-600); color: var(--s-niebla); }
@@ -1948,7 +1969,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .grilla-pub-celda { font-size: var(--t-lead); }
   .sitio .espera-cta { margin-left: 70px; } /* 62px de horas + 8px de separación */
   .sitio .btn-espera { font-size: 1.05rem; }
-  .sitio .espera-nota { font-size: var(--t-chico); }
+  .sitio .espera-txt > span { font-size: var(--t-chico); }
 
   /* tarjeta de la cancha (al lado de la grilla) */
   .clado-tags span { font-size: var(--t-micro); }
@@ -1996,7 +2017,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .mascota-globo { font-size: var(--t-micro); }
 
   .pie-nota,
-  .sitio .espera-nota,
   .sitio .rivales-cal-vacio p,
   .sitio .grilla-pub-hora { font-size: var(--t-chico); }
 
@@ -2050,3 +2070,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* mapa/foto dentro de la tarjeta "Tu reserva" de la pantalla ¡Ya casi! */
 .sitio .resumen-reserva .modal-foto { margin: 8px 0 12px; }
+
+/* "Reservá online" (encabezado de la grilla): 1-2 pt más grande que el resto de los rótulos */
+.sitio .board-intro .eyebrow { font-size: 0.85rem; }
+@media (min-width: 941px) {
+  .sitio .board-intro .eyebrow { font-size: 0.95rem; }
+}

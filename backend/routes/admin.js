@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
+import { normalizarEquipo } from '../lib/equipo.js';
 import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
 import {
   TURNOS_FUTBOL,
@@ -439,7 +440,7 @@ router.post('/manual', async (req, res) => {
       client_phone: body.clientPhone,
       client_email: body.clientEmail || null,
       category: body.lookingForRival ? (body.category || null) : null,
-      team_name: body.lookingForRival ? (body.teamName || null) : null,
+      team_name: body.lookingForRival ? normalizarEquipo(body.teamName) : null,
       looking_for_rival: !!body.lookingForRival,
       parrilla: !!body.parrilla,
       status: 'confirmada',
@@ -493,7 +494,7 @@ router.post('/rival/:code', async (req, res) => {
 
   const patch = { looking_for_rival: activar };
   if (activar) {
-    patch.team_name = req.body.teamName || reserva.team_name || null;
+    patch.team_name = normalizarEquipo(req.body.teamName) || reserva.team_name || null;
     patch.category = req.body.category || reserva.category || null;
   }
 
@@ -633,7 +634,7 @@ router.post('/turnos-fijos', async (req, res) => {
       client_name: b.clientName,
       client_phone: b.clientPhone,
       client_email: b.clientEmail || null,
-      team_name: (b.teamName || '').trim() || null,
+      team_name: normalizarEquipo(b.teamName),
       desde: b.desde,
       hasta: b.hasta || null,
       created_by: req.adminEmail,

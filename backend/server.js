@@ -95,8 +95,9 @@ app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
-// Cada minuto libera los turnos "guardados" que no apretaron WhatsApp (10 min) y
-// los pendientes sin comprobante (3 h), para que el horario vuelva a estar libre.
+// Cada minuto libera los turnos "guardados" que no apretaron WhatsApp (10 min), para que
+// el horario vuelva a estar libre. Los que sí lo apretaron quedan reservados hasta que
+// Mateo los confirme o cancele (el vencimiento automático está apagado por defecto).
 expirarPendientesVencidas();
 setInterval(expirarPendientesVencidas, 60 * 1000);
 

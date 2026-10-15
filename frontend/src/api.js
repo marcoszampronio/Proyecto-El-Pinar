@@ -91,6 +91,11 @@ export const api = {
   reservarPadel: (payload) =>
     requestPublico('/reservations/padel', { method: 'POST', body: JSON.stringify(payload) }),
 
+  // La persona apretó "Enviar WhatsApp": el turno deja de estar solo "guardado" y queda firme.
+  // keepalive: el pedido sale aunque el navegador pase a la app de WhatsApp enseguida.
+  avisarWhatsappEnviado: (payload) =>
+    requestPublico('/reservations/whatsapp-enviado', { method: 'POST', body: JSON.stringify(payload), keepalive: true }),
+
   anotarseEspera: (payload) =>
     requestPublico('/espera', { method: 'POST', body: JSON.stringify(payload) }),
 

@@ -309,8 +309,11 @@ export default function BookingModal({ slotInfo, onClose }) {
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
         </div>
 
-        <p style={{ fontSize: 13.5, color: 'var(--s-cal)', margin: '0 0 16px' }}>
+        <p style={{ fontSize: 13.5, color: 'var(--s-cal)', margin: '0 0 10px' }}>
           Enviá el comprobante de pago por WhatsApp para confirmar tu turno.
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--s-oro)', margin: '0 0 16px' }}>
+          Tu turno queda guardado {resultado.holdMinutos || 10} minutos: apretá “Enviar WhatsApp” para dejarlo reservado.
         </p>
 
         <div className="modal-actions">
@@ -321,6 +324,16 @@ export default function BookingModal({ slotInfo, onClose }) {
             href={linkWhatsapp}
             target="_blank"
             rel="noreferrer"
+            onClick={() => {
+              // Deja el turno firme. No bloquea el link: si el aviso falla, Mateo igual
+              // recibe el WhatsApp y puede reactivar el turno desde el panel.
+              api
+                .avisarWhatsappEnviado({
+                  code: resultado.reserva.code,
+                  clientPhone: resultado.reserva.client_phone,
+                })
+                .catch(() => {});
+            }}
           >
             Enviar WhatsApp
           </a>

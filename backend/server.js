@@ -54,8 +54,10 @@ const limiteReservas = rateLimit({
   legacyHeaders: false,
   message: { error: 'Demasiados intentos seguidos. Probá de nuevo en unos minutos.' },
 });
+// '/whatsapp-enviado' es el segundo paso de la MISMA reserva (aviso de que apretó
+// "Enviar WhatsApp"): no cuenta como un intento nuevo de reservar.
 app.use('/api/reservations', (req, res, next) =>
-  req.method === 'GET' ? next() : limiteReservas(req, res, next)
+  req.method === 'GET' || req.path === '/whatsapp-enviado' ? next() : limiteReservas(req, res, next)
 );
 app.use('/api/espera', (req, res, next) =>
   req.method === 'GET' ? next() : limiteReservas(req, res, next)
@@ -93,10 +95,10 @@ app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
-// Cada 15 min pasa a "cancelada" las reservas que quedaron "pendiente" sin
-// comprobante por mas de 60 min, para que el horario vuelva a estar libre.
+// Cada minuto libera los turnos "guardados" que no apretaron WhatsApp (10 min) y
+// los pendientes sin comprobante (3 h), para que el horario vuelva a estar libre.
 expirarPendientesVencidas();
-setInterval(expirarPendientesVencidas, 15 * 60 * 1000);
+setInterval(expirarPendientesVencidas, 60 * 1000);
 
 // Backup diario: manda el CSV de todas las reservas por email a los admins (3:00 ART).
 iniciarBackupDiario();

@@ -8,6 +8,7 @@ import {
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
+import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
 import 'dotenv/config';
@@ -72,11 +73,12 @@ function armarMensajeWhatsapp(reserva) {
 }
 
 function respuestaReserva(res, data) {
-  // Aviso a los admins de que entró una solicitud (no bloquea la respuesta).
-  enviarAvisoNuevaReserva(data).catch((e) => console.error('[aviso reserva] error:', e.message));
-
+  // El aviso por mail a los admins ya NO sale acá: sale cuando la persona aprieta
+  // "Enviar WhatsApp" (ruta /whatsapp-enviado), así no avisamos de turnos que
+  // alguien abandonó y se liberan solos.
   res.json({
     reserva: data,
+    holdMinutos: MINUTOS_HOLD_SIN_WHATSAPP,
     mensajeWhatsapp: armarMensajeWhatsapp(data),
     numeroWhatsapp: process.env.WHATSAPP_NUMERO,
     aliasTransferencia: process.env.ALIAS_TRANSFERENCIA,
@@ -118,6 +120,52 @@ router.get('/estado/:code', async (req, res) => {
     parrilla: !!data.parrilla,
     vencioPorSistema,
   });
+});
+
+
+// POST /api/reservations/whatsapp-enviado  { code, clientPhone }
+// La persona apretó "Enviar WhatsApp": el turno deja de ser una reserva "guardada"
+// por unos minutos y queda firme, esperando el comprobante. Recién ahora se avisa
+// por mail a los admins. Se exige el teléfono con el que se reservó (además del
+// código, que es fácil de adivinar) para que nadie pueda firmar turnos ajenos.
+router.post('/whatsapp-enviado', async (req, res) => {
+  const code = String(req.body?.code || '').trim();
+  const digitos = String(req.body?.clientPhone || '').replace(/D/g, '');
+  if (!code || digitos.length < 8) return res.status(400).json({ error: 'Faltan datos.' });
+
+  // Un mismo código puede repetirse en distintos años: tomamos el más reciente.
+  const { data: filas, error } = await supabaseAdmin
+    .from('reservations')
+    .select('*')
+    .eq('code', code)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (error) return res.status(500).json({ error: error.message });
+
+  const r = filas?.[0];
+  if (!r || String(r.client_phone || '').replace(/D/g, '') !== digitos) {
+    return res.status(404).json({ error: 'No encontramos esa reserva.' });
+  }
+
+  // Ya se había liberado (pasaron los minutos): Mateo puede reactivarla desde el panel
+  // si el turno sigue libre ("Este turno se había liberado por falta de comprobante").
+  if (r.status === 'cancelada') return res.json({ ok: false, vencida: true });
+  if (r.status === 'confirmada' || r.whatsapp_enviado_at) return res.json({ ok: true, yaEnviado: true });
+
+  // Solo si sigue pendiente y sin marcar (evita carreras con el vencimiento automático).
+  const { data: act, error: e2 } = await supabaseAdmin
+    .from('reservations')
+    .update({ whatsapp_enviado_at: new Date().toISOString() })
+    .eq('id', r.id)
+    .eq('status', 'pendiente')
+    .is('whatsapp_enviado_at', null)
+    .select()
+    .maybeSingle();
+  if (e2) return res.status(500).json({ error: e2.message });
+  if (!act) return res.json({ ok: false, vencida: true }); // se liberó justo en este instante
+
+  enviarAvisoNuevaReserva(act).catch((e) => console.error('[aviso reserva] error:', e.message));
+  res.json({ ok: true });
 });
 
 router.post('/futbol', async (req, res) => {

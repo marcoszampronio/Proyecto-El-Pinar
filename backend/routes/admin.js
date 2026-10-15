@@ -665,12 +665,15 @@ router.delete('/turnos-fijos/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
-// GET /api/admin/pending - lista de reservas pendientes (para el listado rapido del panel)
+// GET /api/admin/pending - lista de reservas pendientes (para el listado rapido del panel).
+// Solo las que ya apretaron "Enviar WhatsApp": las "guardadas" (10 min, todavia sin
+// WhatsApp) no son un pedido real, pueden liberarse solas y no deben ensuciar la lista.
 router.get('/pending', async (req, res) => {
   const { data, error } = await supabaseAdmin
     .from('reservations')
     .select('*')
     .eq('status', 'pendiente')
+    .not('whatsapp_enviado_at', 'is', null)
     .order('reservation_date', { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });

@@ -2135,3 +2135,32 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 @media (prefers-reduced-motion: no-preference) {
   .sitio .segmentado-op.on { animation: sitioPop var(--pop) var(--curva-pop); }
 }
+
+/* ---------- "¡Ya casi!": confirmación + una sola acción principal ---------- */
+.sitio .ya-casi-cab { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; margin: 4px 0 18px; }
+.sitio .ya-casi-ico {
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; margin-bottom: 6px;
+  background: color-mix(in srgb, var(--s-cesped) 18%, transparent); color: var(--s-cesped);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--s-cesped) 8%, transparent);
+}
+.sitio .ya-casi-ico svg { width: 26px; height: 26px; }
+.sitio .ya-casi-cab .modal-sub { margin: 0; max-width: 32ch; }
+.sitio .ya-casi-aviso {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0 0 18px; padding: 11px 13px;
+  border-radius: var(--radio); background: var(--oro-velo); border: 1px solid var(--borde-oro);
+  font-size: 0.88rem; line-height: 1.45; color: var(--s-cal);
+}
+.sitio .ya-casi-aviso svg { width: 18px; height: 18px; flex: none; color: var(--s-oro); margin-top: 1px; }
+.sitio .ya-casi-aviso strong { color: var(--s-oro); }
+.sitio .ya-casi-acciones { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.sitio .btn-grande { justify-content: center; padding: 15px 22px; font-size: 1.02rem; }
+.sitio .btn-grande svg { width: 20px; height: 20px; }
+.sitio .btn-texto {
+  align-self: center; background: none; border: 0; cursor: pointer; padding: 10px 16px;
+  font-family: var(--s-texto); font-size: 0.92rem; font-weight: 600; color: var(--s-niebla);
+  border-radius: var(--pill); transition: color var(--rapido) var(--curva);
+}
+.sitio .btn-texto:hover { color: var(--s-cal); }
+@media (prefers-reduced-motion: no-preference) {
+  .sitio .ya-casi-ico { animation: sitioPop var(--pop) var(--curva-pop); }
+}

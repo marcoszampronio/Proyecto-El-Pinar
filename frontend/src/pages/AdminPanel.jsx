@@ -158,6 +158,10 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
       setError('Completá el nombre del equipo.');
       return;
     }
+    if (esFutbol && lookingForRival && !category) {
+      setError('Elegí la categoría del equipo.');
+      return;
+    }
     setEnviando(true);
     try {
       const payload = {
@@ -519,6 +523,7 @@ function RivalToggle({ reserva, fecha, onCambio }) {
 
   async function activar() {
     if (!teamName.trim()) { setError('Completá el nombre del equipo.'); return; }
+    if (!category) { setError('Elegí la categoría del equipo.'); return; }
     setEnviando(true);
     setError(null);
     try {

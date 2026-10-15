@@ -1550,7 +1550,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .sitio .gp-rival-cat {
-  font-size: 0.72rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
+  font-size: 0.8rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
   margin-top: 1px;
 }
 .sitio .gp-rival-sub {

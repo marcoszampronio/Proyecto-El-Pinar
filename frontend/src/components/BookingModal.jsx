@@ -11,30 +11,11 @@ const FOTO_CANCHA = {
   PAD: { src: '/canchas/padel.jpg', pos: 'center 50%' },
 };
 
-function BotonCopiar({ texto }) {
-  const [copiado, setCopiado] = useState(false);
-  async function copiar() {
-    try {
-      await navigator.clipboard.writeText(texto);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
-    } catch {
-      /* algunos navegadores sin permiso: no hacemos nada */
-    }
-  }
-  return (
-    <button type="button" className="btn-copiar" onClick={copiar} aria-label="Copiar">
-      {copiado ? '✓ Copiado' : '📋 Copiar'}
-    </button>
-  );
-}
-
 export default function BookingModal({ slotInfo, onClose }) {
   const [form, setForm] = useState({
     clientName: '',
     phoneArea: '',
     phoneNum: '',
-    clientEmail: '',
     lookingForRival: false,
     teamName: '',
     category: '',
@@ -47,7 +28,7 @@ export default function BookingModal({ slotInfo, onClose }) {
 
   // Mientras el modal está abierto, bloqueamos el scroll del fondo. El modal
   // NO se cierra tocando fuera: sólo con los botones (Cancelar / Cerrar), así
-  // nadie pierde el alias por un toque accidental mientras copia y va a pagar.
+  // nadie pierde su turno guardado por un toque accidental.
   useEffect(() => {
     const previo = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -84,7 +65,6 @@ export default function BookingModal({ slotInfo, onClose }) {
     const faltan = {};
     if (!form.clientName.trim()) faltan.clientName = true;
     if (area.length < 2 || num.length < 6) faltan.telefono = true;
-    if (!form.clientEmail.trim()) faltan.clientEmail = true;
     if (esCanchaFutbol && form.lookingForRival && !form.teamName.trim()) faltan.teamName = true;
     if (esCanchaFutbol && form.lookingForRival && !form.category) faltan.category = true;
     setErrs(faltan);
@@ -99,7 +79,6 @@ export default function BookingModal({ slotInfo, onClose }) {
       const payload = {
         clientName: form.clientName.trim(),
         clientPhone: telefonoCompleto,
-        clientEmail: form.clientEmail.trim(),
         lookingForRival: esCanchaFutbol ? form.lookingForRival : false,
         teamName: esCanchaFutbol ? (form.teamName.trim() || null) : null,
         category: esCanchaFutbol ? (form.category || null) : null,
@@ -212,16 +191,6 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           </div>
 
-          <div className={'field' + (errs.clientEmail ? ' field--error' : '')}>
-            <label>Email</label>
-            <input
-              value={form.clientEmail}
-              onChange={(e) => actualizar('clientEmail', e.target.value)}
-              placeholder="Para recibir la confirmación"
-              type="email"
-            />
-          </div>
-
           {esCanchaFutbol && (
             <div className={'rival-opcion' + (form.lookingForRival ? ' on' : '')}>
               {/* Interruptor: toda la tarjeta es tocable. El checkbox real queda
@@ -297,43 +266,19 @@ export default function BookingModal({ slotInfo, onClose }) {
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
         <h3 className="modal-titulo">¡Ya casi!</h3>
-        <p style={{ fontSize: 14, marginBottom: 6 }}>
-          Transferí {resultado.montoReserva ? <strong>{resultado.montoReserva}</strong> : 'el monto'} al alias:
+        <p style={{ fontSize: 14, marginBottom: 12 }}>
+          Tu turno está guardado. Mandanos el WhatsApp para dejarlo reservado.
         </p>
-        {resultado.aliasTransferencia ? (
-          <div className="dato-copiable">
-            <strong>{resultado.aliasTransferencia}</strong>
-            <BotonCopiar texto={resultado.aliasTransferencia} />
-          </div>
-        ) : (
-          <p style={{ fontSize: 14, marginTop: 0 }}><strong>Consultá el alias por WhatsApp</strong></p>
-        )}
 
         <div className="resumen-reserva">
           <div className="resumen-titulo">Tu reserva</div>
-          {/* Mismo mapa del primer paso: confirma de un vistazo qué cancha reservó. */}
-          {resultado.reserva.court === 'C1' || resultado.reserva.court === 'C2' ? (
-            <MapaCanchaElegida court={resultado.reserva.court} />
-          ) : FOTO_CANCHA[resultado.reserva.court] ? (
-            <div className="modal-foto">
-              <img
-                src={FOTO_CANCHA[resultado.reserva.court].src}
-                alt={`${NOMBRE_CANCHA[resultado.reserva.court]} de Complejo El Pinar, Paraná`}
-                style={{ objectPosition: FOTO_CANCHA[resultado.reserva.court].pos }}
-              />
-              <span>{NOMBRE_CANCHA[resultado.reserva.court]}</span>
-            </div>
-          ) : null}
           <p><strong>{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</strong></p>
           <p>{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</p>
           <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
         </div>
 
-        <p style={{ fontSize: 13.5, color: 'var(--s-cal)', margin: '0 0 10px' }}>
-          Enviá el comprobante de pago por WhatsApp para confirmar tu turno.
-        </p>
         <p style={{ fontSize: 13, color: 'var(--s-oro)', margin: '0 0 16px' }}>
-          Tu turno queda guardado {resultado.holdMinutos || 10} minutos: apretá “Enviar WhatsApp” para dejarlo reservado.
+          Si no apretás “Enviar WhatsApp” en {resultado.holdMinutos || 10} minutos, el turno se libera para otras personas.
         </p>
 
         <div className="modal-actions">

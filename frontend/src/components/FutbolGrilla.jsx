@@ -14,6 +14,11 @@ import { hhmm } from '../lib/fechas';
 export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVerRival, onListaEspera }) {
   const turnos = c1 || [];
 
+  // Horarios en los que no queda ninguna cancha libre: son los que pueden liberarse.
+  const completos = turnos
+    .filter((t, i) => c1[i]?.status !== 'libre' && c2?.[i]?.status !== 'libre')
+    .map((t) => hhmm(t.start));
+
   // index de "busca rival" para este día: "C1|20:30" -> rival
   const idxRival = {};
   for (const r of rivales || []) {
@@ -78,11 +83,21 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
       </div>
 
       {onListaEspera && (
-        <div className="espera-cta">
-          <button className="btn btn-espera" onClick={onListaEspera}>
-            Lista de espera
+        <div className="espera-cta espera-card">
+          <span className="espera-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z" /><path d="M10.3 20a1.9 1.9 0 0 0 3.4 0" /></svg>
+          </span>
+          <div className="espera-txt">
+            <strong>¿Tu horario está ocupado?</strong>
+            <span>
+              {completos.length > 0
+                ? <>Sin lugar: {completos.map((h) => <b key={h} className="espera-hora">{h}</b>)}</>
+                : 'Dejanos tu WhatsApp y te avisamos si se libera algo.'}
+            </span>
+          </div>
+          <button className="btn btn-oro btn-espera" onClick={onListaEspera}>
+            Avisame si se libera un turno
           </button>
-          <p className="espera-nota">Te avisamos si se libera un turno para este día.</p>
         </div>
       )}
     </>

@@ -4,7 +4,7 @@ import { fechaLargaCompleta } from '../lib/fechas';
 
 // Formulario chico: el cliente deja su WhatsApp para que le avisen si se
 // libera un turno de fútbol ese día (cualquier cancha). No reserva nada.
-export default function ListaEsperaModal({ fecha, onCerrar }) {
+export default function ListaEsperaModal({ fecha, onCerrar, horarios = [] }) {
   const [nombre, setNombre] = useState('');
   const [area, setArea] = useState('');
   const [num, setNum] = useState('');
@@ -58,10 +58,15 @@ export default function ListaEsperaModal({ fecha, onCerrar }) {
           </>
         ) : (
           <>
-            <h3 className="modal-titulo">Lista de espera</h3>
+            <h3 className="modal-titulo">Avisame si se libera un turno</h3>
             <p className="modal-sub">Fútbol · {fechaTxt}</p>
-            <p style={{ fontSize: 13, color: '#5C6B60', marginTop: 0 }}>
-              Te avisamos por WhatsApp si se libera un turno para este día.
+            {horarios.length > 0 && (
+              <p className="espera-modal-hs">
+                Turnos sin lugar: {horarios.map((h) => <b key={h}>{h}</b>)}
+              </p>
+            )}
+            <p style={{ fontSize: 13, color: 'var(--s-niebla)', marginTop: 0, marginBottom: 16 }}>
+              Si alguien cancela, te escribimos por WhatsApp.
             </p>
 
             <div className="field">

@@ -122,6 +122,11 @@ export default function PublicPage() {
     }
   }
 
+  // Horarios de fútbol sin ninguna cancha libre (para la lista de espera).
+  const horariosCompletos = (futbol?.C1 || [])
+    .map((t, i) => (t.status !== 'libre' && futbol.C2?.[i]?.status !== 'libre' ? t.start.slice(0, 5) : null))
+    .filter(Boolean);
+
   return (
     <div className="sitio" id="top">
       <SiteNav onIr={irA} />
@@ -193,6 +198,7 @@ export default function PublicPage() {
         <button className="btn btn-oro" onClick={() => irA('rival')}>
           Ver equipos <FlechaAbajo />
         </button>
+        <p className="rival-cta-nota">Contamos con parrilla y cantina.</p>
       </div>
 
       {/* ---------- BUSCO RIVAL ---------- */}
@@ -216,7 +222,13 @@ export default function PublicPage() {
 
       {slotSeleccionado && <BookingModal slotInfo={slotSeleccionado} onClose={recargarTodo} />}
       {rivalVisto && <RivalInfoModal rival={rivalVisto} onCerrar={() => setRivalVisto(null)} />}
-      {esperaAbierta && <ListaEsperaModal fecha={fecha} onCerrar={() => setEsperaAbierta(false)} />}
+      {esperaAbierta && (
+        <ListaEsperaModal
+          fecha={fecha}
+          horarios={horariosCompletos}
+          onCerrar={() => setEsperaAbierta(false)}
+        />
+      )}
       {!mascotaOff && !slotSeleccionado && (
         <MascotaRival onIr={() => { irA('rival'); setMascotaOff(true); }} />
       )}

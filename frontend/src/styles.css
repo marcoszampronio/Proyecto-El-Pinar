@@ -2004,3 +2004,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .seccion-cab p:not(.eyebrow),
   .sitio .board-intro p:not(.eyebrow) { font-size: var(--t-cuerpo); }
 }
+
+/* mapa/foto dentro de la tarjeta "Tu reserva" de la pantalla ¡Ya casi! */
+.sitio .resumen-reserva .modal-foto { margin: 8px 0 12px; }

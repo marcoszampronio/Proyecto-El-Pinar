@@ -1550,7 +1550,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .sitio .gp-rival-cat {
-  font-size: 0.62rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
+  font-size: 0.72rem; font-weight: 400; letter-spacing: 0.03em; color: var(--s-niebla);
   margin-top: 1px;
 }
 .sitio .gp-rival-sub {
@@ -1612,11 +1612,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .espera-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .sitio .espera-txt strong { color: var(--s-cal); font-size: 1.02rem; }
 .sitio .espera-txt > span { color: var(--s-niebla); font-size: 0.9rem; line-height: 1.5; }
-.sitio .espera-hora, .sitio .espera-modal-hs b {
-  display: inline-block; margin: 0 0 0 6px; padding: 1px 9px; border-radius: 999px;
-  background: var(--s-pino-800); color: var(--s-cal); font-weight: 700; font-variant-numeric: tabular-nums;
-}
-.sitio .espera-modal-hs { margin: 0 0 8px; font-size: 13.5px; color: var(--s-niebla); }
 .sitio .btn-espera { width: 100%; justify-content: center; }
 @media (max-width: 620px) {
   /* En celular el título va en una sola línea: ícono más chico y tipografía que se adapta al ancho. */
@@ -1683,7 +1678,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   border-radius: 12px; padding: 14px; gap: 8px; color: var(--s-cal);
   justify-content: space-between;
 }
-.sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); }
+.sitio .rival-cel-nom { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sitio .rival-cel-eq { font-family: var(--s-texto); font-size: 1.15rem; font-weight: 700; color: var(--s-cal); overflow-wrap: anywhere; }
+.sitio .rival-cel-cat { color: var(--s-niebla); font-size: 0.8rem; font-weight: 400; }
 .sitio .rival-cel-meta { color: var(--s-niebla); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
 .sitio .rival-cel-btn { background: #1A7F45; margin-top: auto; padding: 9px 12px; white-space: nowrap; }
 .sitio .rival-cel-btn--off { background: var(--s-marino-600); color: var(--s-niebla); }

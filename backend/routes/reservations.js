@@ -8,6 +8,7 @@ import {
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
+import { normalizarEquipo } from '../lib/equipo.js';
 import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
@@ -184,7 +185,7 @@ router.post('/futbol', async (req, res) => {
       client_phone: String(body.clientPhone).trim(),
       client_email: String(body.clientEmail || '').trim() || null,
       category: body.category || null,
-      team_name: body.teamName ? String(body.teamName).trim() : null,
+      team_name: normalizarEquipo(body.teamName),
       looking_for_rival: !!body.lookingForRival,
       ...(body.parrilla ? { parrilla: true } : {}),
       status: 'pendiente',

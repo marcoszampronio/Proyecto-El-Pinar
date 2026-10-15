@@ -1,5 +1,6 @@
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 import { IconoWhatsapp } from './Iconos';
+import { nombreEquipo } from '../lib/equipo';
 
 // Info de un equipo que reservó y busca rival (se abre desde la grilla).
 export default function RivalInfoModal({ rival, onCerrar }) {
@@ -8,7 +9,7 @@ export default function RivalInfoModal({ rival, onCerrar }) {
   return (
     <div className="overlay" role="dialog" aria-modal="true" onClick={onCerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3 className="modal-titulo">{rival.team_name}</h3>
+        <h3 className="modal-titulo">{nombreEquipo(rival.team_name)}</h3>
         <p className="modal-sub">
           {rival.category ? `Categoría ${rival.category}` : 'Equipo de fútbol 11'}
         </p>

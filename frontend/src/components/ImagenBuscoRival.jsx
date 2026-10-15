@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import LogoPino from './site/LogoPino';
 import { IG_URL } from './site/config';
 import { hhmm } from '../lib/fechas';
+import { nombreEquipo } from '../lib/equipo';
 
 // Imagen de Instagram Story (1080x1920) para una reserva que busca rival.
 // Mateo la descarga y se la manda por WhatsApp a quien reservó, que la sube a su
@@ -135,7 +136,7 @@ const Afiche = forwardRef(function Afiche({ equipo, cancha, dia, hora }, ref) {
 });
 
 export default function ImagenBuscoRivalModal({ reserva, fecha, nombreCancha, onCerrar }) {
-  const [equipo, setEquipo] = useState(reserva.team_name || '');
+  const [equipo, setEquipo] = useState(nombreEquipo(reserva.team_name));
   const [generando, setGenerando] = useState(false);
   const [error, setError] = useState(null);
   const [escala, setEscala] = useState(0.25);
@@ -152,7 +153,7 @@ export default function ImagenBuscoRivalModal({ reserva, fecha, nombreCancha, on
   }, []);
 
   const datos = {
-    equipo: equipo.trim(),
+    equipo: nombreEquipo(equipo),
     cancha: `Fútbol 11\n${nombreCancha || reserva.court}`,
     dia: diaCorto(fecha),
     hora: `${hhmm(reserva.start_time)} hs`,

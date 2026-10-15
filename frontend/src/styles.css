@@ -1158,6 +1158,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   --radio-s: 8px;   /* chips, etiquetas chicas */
   --radio:   12px;  /* celdas, botones de día, campos */
   --radio-l: 16px;  /* tarjetas, modales, mapa */
+  --pill: 999px;    /* botones y etiquetas: la forma de la marca */
   --sombra-objeto: 0 24px 56px -24px rgba(0, 0, 0, 0.65);  /* la única sombra grande */
   --rapido: 150ms;  --entrar: 450ms;  --pop: 420ms;
   --curva: cubic-bezier(.4, 0, .2, 1);          /* hover y cambios de estado */
@@ -1206,7 +1207,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .btn {
   display: inline-flex; align-items: center; gap: 9px;
   font-family: var(--s-texto); font-weight: 600; font-size: 0.95rem;
-  letter-spacing: 0.02em; padding: 13px 22px; border-radius: var(--radio-l);
+  letter-spacing: 0.02em; padding: 13px 22px; border-radius: var(--pill);
   border: 1.5px solid transparent; cursor: pointer; text-decoration: none;
   white-space: nowrap; background: transparent; color: var(--s-cal);
   text-transform: none;
@@ -1250,7 +1251,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .snav-acc { display: flex; align-items: center; gap: 12px; }
 .snav-ico {
   display: grid; place-items: center; width: 38px; height: 38px;
-  border-radius: var(--radio-l); border: 1.5px solid var(--s-linea);
+  border-radius: var(--pill); border: 1.5px solid var(--s-linea);
   color: var(--s-cal); background: transparent; cursor: pointer;
   transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
 }
@@ -1407,7 +1408,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .clado-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .clado-tags span {
   font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
-  padding: 4px 11px; border-radius: var(--radio-l); border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
+  padding: 4px 11px; border-radius: var(--pill); border: 1px solid var(--s-linea-fria); color: var(--s-niebla);
 }
 @media (prefers-reduced-motion: no-preference) {
   .clado-card { animation: cladoIn var(--pop) var(--curva-pop); }
@@ -1417,7 +1418,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 /* foto de la cancha 2 bajo "Reservá online", solo celular */
 .foto-cancha-movil { display: none; }
 .foto-cancha-movil img {
-  display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; object-position: center 66%;
+  display: block; width: 100%; aspect-ratio: 5 / 2; object-fit: cover; object-position: center 66%;
 }
 
 @media (max-width: 940px) {
@@ -1433,15 +1434,17 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* selector de canchas -> pills */
 .sitio .canchas-selector {
-  display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin-bottom: 18px;
+  display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: 4px;
+  padding: 4px; margin-bottom: 20px; border-radius: 999px;
+  background: var(--s-pino-800); border: 1px solid var(--borde);
 }
 .sitio .cancha-card {
-  border: 1.5px solid var(--s-linea-fria); border-radius: var(--radio-l);
-  padding: 10px 18px; background: transparent; color: var(--s-niebla);
+  border: 0; border-radius: 999px;
+  padding: 9px 22px; background: transparent; color: var(--s-niebla); cursor: pointer;
   font-family: var(--s-texto); font-weight: 600; font-size: 0.92rem;
   transition: background-color var(--rapido) var(--curva), border-color var(--rapido) var(--curva), color var(--rapido) var(--curva), transform var(--rapido) var(--curva);
 }
-.sitio .cancha-card:hover { transform: none; border-color: var(--s-oro); color: var(--s-cal); }
+.sitio .cancha-card:hover { transform: none; color: var(--s-cal); }
 .sitio .cancha-card svg { display: none; }
 .sitio .cancha-card .nombre {
   display: inline; margin: 0; font-size: inherit; font-weight: inherit;
@@ -1458,19 +1461,19 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .fechas-semana { display: flex; align-items: center; gap: 4px; }
 .sitio .fechas-flecha--lado {
   display: grid; place-items: center; flex: none;
-  width: 36px; height: 52px; font-size: 2.1rem; line-height: 1;
-  border: none; background: transparent; color: var(--s-oro); cursor: pointer;
+  width: 32px; height: 44px; font-size: 1.6rem; line-height: 1;
+  border: none; background: transparent; color: var(--s-niebla); cursor: pointer;
   transition: color var(--rapido) var(--curva);
 }
-.sitio .fechas-flecha--lado:hover:not(:disabled) { color: var(--s-oro-300); }
+.sitio .fechas-flecha--lado:hover:not(:disabled) { color: var(--s-oro); }
 .sitio .fechas-flecha--lado:disabled { opacity: 0.28; cursor: default; }
 .sitio .fechas-dias {
-  flex: 1; display: grid; grid-template-columns: 0.62fr 1fr 1fr 1fr 0.62fr; gap: 6px;
+  flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
   touch-action: pan-y;
 }
 .sitio .dia-btn {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 9px 2px 8px; border-radius: var(--radio); cursor: pointer;
+  padding: 7px 2px 6px; border-radius: var(--radio); cursor: pointer;
   background: var(--s-pino-800); border: 1px solid var(--borde-fuerte);
   transition: border-color var(--rapido) var(--curva), background-color var(--rapido) var(--curva);
 }
@@ -1480,22 +1483,21 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   display: block; font-size: 0.57rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.09em; color: var(--s-niebla);
 }
-.sitio .dia-btn .dia-numero { font-family: var(--s-texto); font-weight: 700; font-size: 1.45rem; line-height: 1.05; color: #fff; }
+.sitio .dia-btn .dia-numero { font-family: var(--s-texto); font-weight: 700; font-size: 1.3rem; line-height: 1.1; color: #fff; font-variant-numeric: tabular-nums; }
 .sitio .dia-btn.activo { background: var(--s-oro); border-color: var(--s-oro); }
 .sitio .dia-btn.activo .dia-nombre,
 .sitio .dia-btn.activo .dia-numero,
 .sitio .dia-btn.activo .dia-mes { color: var(--s-pino-900); }
 .sitio .dia-btn:disabled, .sitio .dia-btn.no-habilitado {
-  opacity: 0.2; background: transparent; border-color: transparent;
-  padding-inline: 0; cursor: default; text-decoration: none;
+  opacity: 0.32; background: transparent; border-color: transparent;
+  cursor: default; text-decoration: none;
 }
-.sitio .dia-btn.no-habilitado .dia-numero { font-size: 1.1rem; }
 
 @media (max-width: 620px) {
   .sitio .fechas { max-width: none; }
-  .sitio .fechas-flecha--lado { width: 30px; font-size: 1.9rem; }
-  .sitio .fechas-dias { gap: 5px; grid-template-columns: 0.5fr 1fr 1fr 1fr 0.5fr; }
-  .sitio .dia-btn .dia-numero { font-size: 1.3rem; }
+  .sitio .fechas-flecha--lado { width: 26px; font-size: 1.5rem; }
+  .sitio .fechas-dias { gap: 5px; }
+  .sitio .dia-btn .dia-numero { font-size: 1.2rem; }
   .sitio .dia-btn .dia-nombre, .sitio .dia-btn .dia-mes { font-size: 0.65rem; letter-spacing: 0.06em; }
 }
 
@@ -1823,7 +1825,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .modal-foto span {
   position: absolute; left: 12px; bottom: 10px;
   font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal);
-  padding: 3px 10px; border-radius: var(--radio-l); background: rgba(7, 17, 28, 0.62);
+  padding: 3px 10px; border-radius: var(--pill); background: rgba(7, 17, 28, 0.62);
 }
 /* en la reserva de fútbol: mapa del complejo con la cancha elegida marcada
    (cuatro esquinas doradas, la otra cancha apagada y la etiqueta "Tu cancha") */
@@ -1840,7 +1842,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   position: absolute; bottom: auto; transform: translate(-50%, -100%); white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--s-texto); font-weight: 700; font-size: 0.74rem; line-height: 1;
-  padding: 5px 10px 5px 6px; border-radius: var(--radio-l);
+  padding: 5px 10px 5px 6px; border-radius: var(--pill);
   background: var(--s-oro); color: var(--s-pino-900); box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
 }
 .sitio .modal-foto-mapa .mapa-tucancha i {
@@ -1975,7 +1977,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   /* selector de día y de deporte */
   .sitio .dia-btn .dia-nombre,
   .sitio .dia-btn .dia-mes { font-size: var(--t-micro); }
-  .sitio .dia-btn .dia-numero { font-size: 1.6rem; }
+  .sitio .dia-btn .dia-numero { font-size: 1.45rem; }
   .sitio .cancha-card { font-size: var(--t-chico); }
 
   /* grilla de turnos (la columna de horas se ensancha: 52 → 62px) */
@@ -2069,7 +2071,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .sitio .rival-opcion-txt strong { font-family: var(--s-texto); font-weight: 700; font-size: 1rem; color: var(--s-cal); }
 .sitio .rival-opcion-txt span { font-size: 0.85rem; line-height: 1.35; color: var(--s-niebla); }
 .sitio .rival-switch {
-  flex: none; position: relative; width: 46px; height: 28px; border-radius: var(--radio-l);
+  flex: none; position: relative; width: 46px; height: 28px; border-radius: var(--pill);
   background: rgba(148, 167, 186, 0.28); transition: background-color var(--rapido) var(--curva);
 }
 .sitio .rival-switch::after {
@@ -2100,4 +2102,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .cancha-card.activa { animation: sitioPop var(--pop) var(--curva-pop); }
   .sitio .grilla-pub-celda.libre:active { transform: scale(.97); }
   @keyframes sitioPop { from { transform: scale(.94); } }
+}
+
+/* tira de fechas: el mes es dato secundario */
+.sitio .dia-btn .dia-mes { opacity: 0.7; }
+.sitio .dia-btn.activo .dia-mes { opacity: 0.8; }
+/* el selector de deporte ocupa todo el ancho en celular */
+@media (max-width: 620px) {
+  .sitio .canchas-selector { display: grid; width: 100%; }
 }

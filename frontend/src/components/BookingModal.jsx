@@ -237,6 +237,8 @@ export default function BookingModal({ slotInfo, onClose }) {
             </div>
           )}
 
+          <p className="modal-nota-parrilla">Contamos con parrilla y cantina</p>
+
           {/* Honeypot anti-bot: oculto para personas, los bots suelen completarlo igual. */}
           <input
             type="text"

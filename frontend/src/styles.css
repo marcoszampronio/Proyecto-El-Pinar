@@ -1627,7 +1627,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sitio .btn-espera { padding-inline: 10px; font-size: clamp(0.85rem, 4vw, 1rem); }
   .sitio .espera-txt strong { display: block; white-space: nowrap; font-size: clamp(0.8rem, 4.2vw, 1rem); }
 }
-.rival-cta-nota { flex-basis: 100%; margin: -6px 0 0; font-size: 0.9rem; color: var(--s-niebla); }
+.sitio .modal-nota-parrilla { margin: 0 0 14px; text-align: center; font-size: 0.9rem; color: var(--s-niebla); }
 
 /* pádel */
 .sitio .padel-paso { padding: 14px 0 4px; font-family: var(--s-texto); color: var(--s-cal); font-weight: 700; font-size: 0.95rem; }

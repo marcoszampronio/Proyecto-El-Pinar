@@ -198,7 +198,6 @@ export default function PublicPage() {
         <button className="btn btn-oro" onClick={() => irA('rival')}>
           Ver equipos <FlechaAbajo />
         </button>
-        <p className="rival-cta-nota">Contamos con parrilla y cantina.</p>
       </div>
 
       {/* ---------- BUSCO RIVAL ---------- */}

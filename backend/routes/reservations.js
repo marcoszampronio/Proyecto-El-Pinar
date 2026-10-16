@@ -9,6 +9,7 @@ import {
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
 import { normalizarEquipo } from '../lib/equipo.js';
+import { fechaCorta, hora } from '../lib/mensajes.js';
 import { demasiadoTarde, MENSAJE_ANTICIPACION } from '../lib/anticipacion.js';
 import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
@@ -43,21 +44,12 @@ function validarDatosCliente(body) {
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 
-const DIAS_SEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const MESES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-function fechaLinda(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  const dia = DIAS_SEM[d.getDay()];
-  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${d.getDate()} de ${MESES_LARGO[d.getMonth()]}`;
-}
-
 function armarMensajeWhatsapp(reserva) {
-  const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  const lugar = reserva.court === 'PAD' ? 'la cancha de pádel' : `la ${NOMBRE_CANCHA[reserva.court] || reserva.court}`;
   return (
-    `¡Hola! Quiero reservar en El Pinar.\n\n` +
-    `${cancha} · ${fechaLinda(reserva.reservation_date)} · ${horario}\n` +
-    `A nombre de ${reserva.client_name}`
+    `¡Hola! Quiero reservar ${lugar} el ${fechaCorta(reserva.reservation_date)} ` +
+    `de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}. ` +
+    `A nombre de ${reserva.client_name} 🙂`
   );
 }
 

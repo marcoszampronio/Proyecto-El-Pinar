@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { normalizarEquipo } from '../lib/equipo.js';
-import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
+import { fechaCorta, primerNombre, hora } from '../lib/mensajes.js';
 import {
   TURNOS_FUTBOL,
   PADEL_APERTURA,
@@ -32,38 +32,30 @@ const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 const MAPS_URL = process.env.MAPS_URL || 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';
 
 function armarMensajeConfirmacion(reserva) {
-  const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  const cuando = reserva.court === 'PAD'
+    ? `la cancha de pádel el ${fechaCorta(reserva.reservation_date)} de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}`
+    : `la ${NOMBRE_CANCHA_WA[reserva.court] || reserva.court} el ${fechaCorta(reserva.reservation_date)} a las ${hora(reserva.start_time)}`;
   return (
-    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `✅ Tu turno quedó CONFIRMADO:\n` +
-    `${cancha} · ${reserva.reservation_date} · ${horario}\n` +
-    `Código: ${reserva.code}\n\n` +
-    (MAPS_URL ? `Cómo llegar: ${MAPS_URL}\n\n` : '') +
-    `Cualquier cosa escribinos por acá. Nos vemos!`
+    `${primerNombre(reserva.client_name)}, ¡listo! Tenés ${cuando}. Te esperamos 🙌` +
+    (MAPS_URL ? `\n\nCómo llegar: ${MAPS_URL}` : '')
   );
 }
 
 function armarMensajeSuspension(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
   return (
-    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Por lluvia, SE SUSPENDE el turno del ${reserva.reservation_date} ` +
-    `(${cancha}, ${horario}).\n\n` +
-    `Tu reserva ${reserva.code} queda cancelada. Escribinos por aca para reprogramar. ` +
-    `Disculpa las molestias.`
+    `Hola ${primerNombre(reserva.client_name)}! Con la lluvia no vamos a poder jugar 🌧️ ` +
+    `Tu turno del ${fechaCorta(reserva.reservation_date)} (${cancha}, ${hora(reserva.start_time)}) queda suspendido. ` +
+    `¿Lo pasamos para otro día?`
   );
 }
 
 function armarMensajeCancelacionTurno(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
   return (
-    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Tu turno ${reserva.code} del ${reserva.reservation_date} ` +
-    `(${cancha}, ${horario}) queda CANCELADO.\n\n` +
-    `Cualquier duda o para reprogramar, escribinos por aca.`
+    `Hola ${primerNombre(reserva.client_name)}! Te avisamos que se canceló tu turno del ` +
+    `${fechaCorta(reserva.reservation_date)} (${cancha}, ${hora(reserva.start_time)}). ` +
+    `Cualquier duda, escribinos por acá.`
   );
 }
 
@@ -100,9 +92,8 @@ function fechaDDMM(iso) {
 
 function armarMensajeEspera(e) {
   return (
-    `Hola ${e.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Se liberó un turno de fútbol para el ${fechaDDMM(e.reservation_date)}. ` +
-    `Si lo querés, respondé este mensaje y te lo reservamos.`
+    `Hola ${primerNombre(e.client_name)}! Se liberó un turno de fútbol para el ${fechaCorta(e.reservation_date)} 🙌 ` +
+    `¿Lo querés? Respondenos y te lo reservamos.`
   );
 }
 
@@ -339,14 +330,12 @@ router.post('/confirm/:code', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  enviarEmailConfirmacion(actualizada).catch((e) => console.error('Error enviando email:', e));
-
   const tel = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(actualizada);
 
   res.json({
     reserva: actualizada,
-    mensaje: 'Reserva confirmada. Email enviado al cliente.',
+    mensaje: 'Reserva confirmada.',
     mensajeWhatsappConfirmacion: mensajeConfirmacion,
     linkWhatsappConfirmacion: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensajeConfirmacion)}` : null,
   });
@@ -375,9 +364,7 @@ router.post('/cancel/:code', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  enviarEmailCancelacion(actualizada).catch((e) => console.error('Error enviando email:', e));
-
-  res.json({ reserva: actualizada, mensaje: 'Reserva cancelada. Email enviado al cliente.' });
+  res.json({ reserva: actualizada, mensaje: 'Reserva cancelada.' });
 });
 
 // POST /api/admin/manual - Mateo agenda un turno el mismo, ya confirmado
@@ -464,11 +451,8 @@ router.post('/manual', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  // Igual que /confirm: dejamos listo el WhatsApp (y el email si hay) para
-  // avisarle al cliente que Mateo le agendó y confirmó el turno.
-  if (data.client_email) {
-    enviarEmailConfirmacion(data).catch((e) => console.error('Error enviando email:', e));
-  }
+  // Igual que /confirm: dejamos listo el WhatsApp para avisarle al cliente que Mateo
+  // le agendó y confirmó el turno. (Los mails son solo para Mateo, no para clientes.)
 
   const tel = normalizarTelefonoAR(data.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(data);

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
+import { fechaCorta, primerNombre } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
@@ -14,9 +15,8 @@ const SITIO_URL = import.meta.env.VITE_SITIO_URL || 'https://complejo-el-pinar.p
 // Mensaje de WhatsApp para avisarle a un contacto que hay turnos libres.
 function mensajeAvisoTurnos(nombre) {
   return (
-    `Hola ${nombre}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Hay turnos de fútbol disponibles esta semana. ` +
-    `Mirá la disponibilidad y reservá acá:\n${SITIO_URL}`
+    `Hola ${primerNombre(nombre)}! Esta semana tenemos turnos de fútbol libres ⚽ ` +
+    `Mirá la disponibilidad y reservá acá: ${SITIO_URL}`
   );
 }
 
@@ -694,11 +694,9 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
   function linkLiberado(e) {
     if (!e.linkWhatsapp) return null;
     const base = e.linkWhatsapp.split('?text=')[0];
-    const ddmm = (fecha || '').split('-').slice(1).reverse().join('/');
     const msg =
-      `Hola ${e.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-      `Se liberó ${NOMBRE_CANCHA[reserva.court]} de ${hhmm(reserva.start_time)} a ${hhmm(reserva.end_time)} ` +
-      `el ${ddmm}. Si lo querés, respondé este mensaje y te lo reservamos.`;
+      `Hola ${primerNombre(e.client_name)}! Se liberó la ${NOMBRE_CANCHA[reserva.court]} el ${fechaCorta(fecha)} ` +
+      `a las ${hhmm(reserva.start_time)} 🙌 ¿La querés? Respondenos y te la reservamos.`;
     return `${base}?text=${encodeURIComponent(msg)}`;
   }
 
@@ -1827,14 +1825,15 @@ function descripcionTurnoFijo(f) {
 // Recordatorios de turnos fijos: lista de los próximos turnos fijos con un botón que abre
 // WhatsApp con el mensaje armado. Se manda a mano (no hay envío automático): al tocar el
 // botón queda marcado como enviado para no repetirlo.
-function mensajeRecordatorioFijo(r) {
-  const f = fechaLargaCompleta(r.reservation_date);
-  const fecha = f.charAt(0).toUpperCase() + f.slice(1);
-  const primerNombre = (r.client_name || '').trim().split(/\s+/)[0] || '';
+function mensajeRecordatorioFijo(r, hoy) {
+  const cuando = r.reservation_date === hoy
+    ? 'de hoy'
+    : hoy && r.reservation_date === sumarDias(hoy, 1)
+    ? 'de mañana'
+    : `del ${fechaCorta(r.reservation_date)}`;
   return (
-    `¡Hola ${primerNombre}! Te recordamos tu turno fijo en El Pinar:\n\n` +
-    `${NOMBRE_CANCHA[r.court] || r.court} · ${fecha} · ${hhmm(r.start_time)} a ${hhmm(r.end_time)} hs\n\n` +
-    `¿Nos confirmás que vienen? ¡Gracias!`
+    `¡Hola ${primerNombre(r.client_name)}! Te recordamos tu turno ${cuando}: ` +
+    `${NOMBRE_CANCHA[r.court] || r.court}, ${hhmm(r.start_time)} a ${hhmm(r.end_time)}. ¡Los esperamos!`
   );
 }
 
@@ -1891,7 +1890,7 @@ function RecordatoriosFijos() {
           {filas.map((r) => {
             const enviado = !!r.recordatorio_enviado_at;
             const link = r.telefonoWa
-              ? `https://wa.me/${r.telefonoWa}?text=${encodeURIComponent(mensajeRecordatorioFijo(r))}`
+              ? `https://wa.me/${r.telefonoWa}?text=${encodeURIComponent(mensajeRecordatorioFijo(r, hoy))}`
               : null;
             return (
               <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
@@ -2364,7 +2363,7 @@ export default function AdminPanel() {
     setProcesando(true);
     try {
       const r = await api.adminConfirmar(resultado.reserva.code);
-      setAviso('Reserva confirmada. Email enviado al cliente.');
+      setAviso('Reserva confirmada.');
       setConfirmadaWa(
         r.linkWhatsappConfirmacion
           ? { link: r.linkWhatsappConfirmacion, nombre: r.reserva.client_name }
@@ -2384,7 +2383,7 @@ export default function AdminPanel() {
     setProcesando(true);
     try {
       await api.adminCancelar(resultado.reserva.code);
-      setAviso('Reserva cancelada. Email enviado al cliente.');
+      setAviso('Reserva cancelada.');
       setResultado(null);
       setCodigo('');
       cargarPendientes();

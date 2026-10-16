@@ -16,3 +16,9 @@ export function primerNombre(nombre) {
 export function hora(h) {
   return String(h || '').slice(0, 5);
 }
+
+// ["20:30", "21:30", "22:30"] -> "20:30, 21:30 y 22:30"
+export function unir(lista) {
+  if (lista.length <= 1) return lista.join('');
+  return `${lista.slice(0, -1).join(', ')} y ${lista[lista.length - 1]}`;
+}

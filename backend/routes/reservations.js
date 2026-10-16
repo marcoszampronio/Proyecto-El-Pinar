@@ -49,7 +49,7 @@ function armarMensajeWhatsapp(reserva) {
   return (
     `¡Hola! Quiero reservar ${lugar} el ${fechaCorta(reserva.reservation_date)} ` +
     `de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}. ` +
-    `A nombre de ${reserva.client_name} 🙂`
+    `A nombre de ${reserva.client_name}.`
   );
 }
 

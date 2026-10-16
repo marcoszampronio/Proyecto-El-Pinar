@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { normalizarEquipo } from '../lib/equipo.js';
-import { fechaCorta, primerNombre, hora } from '../lib/mensajes.js';
+import { fechaCorta, primerNombre, hora, unir } from '../lib/mensajes.js';
 import {
   TURNOS_FUTBOL,
   PADEL_APERTURA,
@@ -90,16 +90,21 @@ function fechaDDMM(iso) {
   return d && m ? `${d}/${m}` : iso;
 }
 
-function armarMensajeEspera(e) {
+// libres: horarios de inicio de los turnos de fútbol con lugar ese día, ej. ["21:30", "22:30"].
+function armarMensajeEspera(e, libres = []) {
+  const cuando = fechaCorta(e.reservation_date);
+  const que = libres.length
+    ? `Se liberó lugar para el ${cuando} a las ${unir(libres)}`
+    : `Se liberó un turno de fútbol para el ${cuando}`;
   return (
-    `Hola ${primerNombre(e.client_name)}! Se liberó un turno de fútbol para el ${fechaCorta(e.reservation_date)} 🙌 ` +
+    `Hola ${primerNombre(e.client_name)}! ${que} 🙌 ` +
     `¿Lo querés? Respondenos y te lo reservamos.`
   );
 }
 
-function resumenEspera(e) {
+function resumenEspera(e, libres) {
   const tel = normalizarTelefonoAR(e.client_phone);
-  const mensaje = armarMensajeEspera(e);
+  const mensaje = armarMensajeEspera(e, libres);
   return {
     id: e.id,
     client_name: e.client_name,
@@ -151,7 +156,11 @@ router.get('/agenda/:date', async (req, res) => {
   const padel = data.filter((x) => x.court === 'PAD').map(resumenAgenda);
   const conParrilla = data.filter((x) => x.parrilla).map(resumenAgenda);
 
-  const espera = (esperaRes.data || []).map(resumenEspera);
+  // Turnos de fútbol con alguna cancha libre ese día (para decirles cuál se liberó).
+  const libresDelDia = Object.entries(TURNOS_FUTBOL)
+    .filter(([turn]) => ['C1', 'C2'].some((c) => futbol[c].find((s) => s.turn === turn)?.status === 'libre'))
+    .map(([, h]) => hora(h.start));
+  const espera = (esperaRes.data || []).map((e) => resumenEspera(e, libresDelDia));
 
   res.json({
     date,

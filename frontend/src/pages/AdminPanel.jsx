@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
-import { fechaCorta, primerNombre } from '../lib/mensajes';
+import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
@@ -13,11 +13,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 const SITIO_URL = import.meta.env.VITE_SITIO_URL || 'https://complejo-el-pinar.pages.dev';
 
 // Mensaje de WhatsApp para avisarle a un contacto que hay turnos libres.
-function mensajeAvisoTurnos(nombre) {
-  return (
-    `Hola ${primerNombre(nombre)}! Esta semana tenemos turnos de fútbol libres ⚽ ` +
-    `Mirá la disponibilidad y reservá acá: ${SITIO_URL}`
-  );
+// libres: texto con los turnos, ej. "martes 20/10: 20:30 y 21:30 · miércoles 21/10: 22:30".
+function mensajeAvisoTurnos(nombre, libres) {
+  const que = libres
+    ? `Tenemos turnos de fútbol libres: ${libres}. `
+    : `Esta semana tenemos turnos de fútbol libres. `;
+  return `Hola ${primerNombre(nombre)}! ${que}Reservá acá: ${SITIO_URL}`;
 }
 
 async function tokenAdmin() {
@@ -1316,6 +1317,39 @@ function ContactosPanel() {
   const [agregar, setAgregar] = useState(false);
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
+  const [libresTxt, setLibresTxt] = useState(null); // turnos libres de los próximos días, para el aviso
+
+  // Turnos de fútbol libres de los próximos días abiertos (hasta 4), con los mismos horarios que ve Mateo.
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const hoy = hoyISO();
+        const fechas = [];
+        for (let n = 0; n <= 10 && fechas.length < 4; n++) {
+          const f = sumarDias(hoy, n);
+          if (esDiaHabilitado(f)) fechas.push(f);
+        }
+        const agendas = await Promise.all(fechas.map((f) => api.adminAgenda(f)));
+        const ahora = new Date();
+        const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+        const partes = [];
+        fechas.forEach((f, i) => {
+          const { C1, C2 } = agendas[i].futbol;
+          const horas = C1.map((s, k) => ({ s, c2: C2[k] }))
+            .filter(({ s, c2 }) => s.status === 'libre' || c2.status === 'libre')
+            // hoy: solo los que todavía se pueden reservar online (falta más de 1 hora)
+            .filter(({ s }) => f !== hoy || (Number(s.start.slice(0, 2)) * 60 + Number(s.start.slice(3, 5))) - minAhora >= 61)
+            .map(({ s }) => hhmm(s.start));
+          if (horas.length) partes.push(`${fechaCorta(f)} a las ${unir(horas)}`);
+        });
+        if (vivo) setLibresTxt(partes.join(' · '));
+      } catch {
+        /* sin datos: el aviso sale con el texto general */
+      }
+    })();
+    return () => { vivo = false; };
+  }, []);
 
   async function guardarContacto({ nombre, telefono, equipo, comentario }, c) {
     setGuardando(true);
@@ -1457,7 +1491,7 @@ function ContactosPanel() {
                 <a
                   className="btn btn-ghost"
                   style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
-                  href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre))}`}
+                  href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre, libresTxt))}`}
                   target="_blank"
                   rel="noreferrer"
                 >

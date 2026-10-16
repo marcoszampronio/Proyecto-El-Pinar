@@ -16,8 +16,8 @@ Dos partes: **backend** (API, tiene que estar prendido siempre) y **frontend**
    |---|---|
    | `SUPABASE_URL` | `https://djhttdogqwcrzhpwixlm.supabase.co` |
    | `SUPABASE_SERVICE_ROLE_KEY` | la service_role key de Supabase (Settings → API) |
-   | `ADMIN_EMAILS` | `jmarcoszampronio@gmail.com` (y el de Mateo, separados por coma) |
-   | `WHATSAPP_NUMERO` | `5493434718364` |
+   | `ADMIN_EMAILS` | `jmarcoszampronio@gmail.com,hillairetmateo@gmail.com` |
+   | `WHATSAPP_NUMERO` | `5493435345257` |
    | `ALIAS_TRANSFERENCIA` | `marcoszampronio` |
    | `CORS_ORIGINS` | *(lo completás en el paso 3, con la URL de Cloudflare)* |
    | `SMTP_USER` | `turnoselpinar@gmail.com` |

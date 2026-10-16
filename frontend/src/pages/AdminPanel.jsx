@@ -2307,6 +2307,200 @@ function SuspensionPanel() {
 }
 
 // Lee ?tab= y ?code= de la URL (para los links de los emails).
+// ---------- Pendientes: confirmar o cancelar desde la misma tarjeta ----------
+// Después de confirmar, la tarjeta queda a la vista con el botón para avisarle por
+// WhatsApp (aunque la reserva ya no esté en la lista de pendientes del servidor).
+function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
+  const [ocupado, setOcupado] = useState(null); // 'confirmando' | 'cancelando'
+  const [error, setError] = useState(null);
+
+  async function correr(tipo, fn) {
+    setOcupado(tipo);
+    setError(null);
+    try {
+      await fn(p);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setOcupado(null);
+    }
+  }
+
+  const titulo = p.team_name ? `${nombreEquipo(p.team_name)} · ${p.client_name}` : p.client_name;
+  return (
+    <div className={`pend-card${hecha ? ` pend-card--${hecha.estado}` : ''}`}>
+      <div className="pend-info">
+        <b>{titulo}</b>
+        <span>{NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)}</span>
+      </div>
+      {error && <p className="error-msg">{error}</p>}
+      {hecha?.estado === 'confirmada' && (
+        <div className="pend-hecho">
+          <span className="pend-ok">✓ Confirmado</span>
+          {hecha.link && (
+            <a className="btn btn-primary btn-sm" href={hecha.link} target="_blank" rel="noreferrer">Avisarle por WhatsApp</a>
+          )}
+        </div>
+      )}
+      {hecha?.estado === 'cancelada' && <div className="pend-hecho"><span className="pend-baja">Turno cancelado</span></div>}
+      {!hecha && (
+        <div className="pend-acciones">
+          <button className="btn btn-primary" disabled={!!ocupado} onClick={() => correr('confirmando', onConfirmar)}>
+            {ocupado === 'confirmando' ? 'Confirmando…' : 'Confirmar'}
+          </button>
+          <BotonConfirmar
+            label="Cancelar"
+            confirmLabel="¿Cancelar? Tocá de nuevo"
+            className="btn btn-ghost"
+            disabled={!!ocupado}
+            onConfirm={() => correr('cancelando', onCancelar)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PendientesLista({ pendientes, onCambio }) {
+  const [hechas, setHechas] = useState({}); // code -> { p, estado, link }
+
+  async function confirmar(p) {
+    const r = await api.adminConfirmar(p.code);
+    setHechas((h) => ({ ...h, [p.code]: { p, estado: 'confirmada', link: r.linkWhatsappConfirmacion } }));
+    onCambio?.();
+  }
+  async function cancelar(p) {
+    await api.adminCancelar(p.code);
+    setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelada' } }));
+    onCambio?.();
+  }
+
+  // las ya resueltas siguen a la vista (con su resultado) hasta salir de la pantalla
+  const lista = [
+    ...pendientes,
+    ...Object.values(hechas).map((h) => h.p).filter((p) => !pendientes.some((x) => x.code === p.code)),
+  ].sort((a, b) => `${a.reservation_date}${a.start_time}`.localeCompare(`${b.reservation_date}${b.start_time}`));
+
+  if (lista.length === 0) return <p className="agenda-vacio">No hay reservas para confirmar.</p>;
+  return (
+    <div className="pend-lista">
+      {lista.map((p) => (
+        <PendienteCard key={p.code} p={p} hecha={hechas[p.code]} onConfirmar={confirmar} onCancelar={cancelar} />
+      ))}
+    </div>
+  );
+}
+
+// ---------- Hoy: lo del día en una sola pantalla ----------
+function HoyPanel({ pendientes, onCambio, irA }) {
+  const hoy = hoyISO();
+  const fecha = esDiaHabilitado(hoy) ? hoy : proximoDiaHabilitado(hoy);
+  const esHoy = fecha === hoy;
+  const [agenda, setAgenda] = useState(null);
+  const [recordatorios, setRecordatorios] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let vivo = true;
+    Promise.all([api.adminAgenda(fecha), api.adminRecordatoriosFijos(2)])
+      .then(([a, r]) => {
+        if (!vivo) return;
+        setAgenda(a);
+        // solo los de hoy y mañana que todavía no se mandaron
+        const manana = sumarDias(r.hoy || hoy, 1);
+        setRecordatorios(r.recordatorios.filter((x) => !x.recordatorio_enviado_at && [r.hoy || hoy, manana].includes(x.reservation_date)));
+      })
+      .catch((e) => vivo && setError(e.message));
+    return () => { vivo = false; };
+  }, [fecha, hoy]);
+
+  const turnos = agenda ? agenda.futbol.C1.map((s, i) => ({ s1: s, s2: agenda.futbol.C2[i] })) : [];
+  const ocupados = agenda ? [...agenda.futbol.C1, ...agenda.futbol.C2].filter((s) => s.reserva).length : 0;
+  const quien = (r) => (r.team_name ? nombreEquipo(r.team_name) : r.client_name);
+  const Celda = ({ s }) => (
+    <span className={`hoy-celda ${s.reserva ? (s.reserva.status === 'pendiente' ? 'pend' : 'ocupada') : s.status}`}>
+      {s.reserva ? quien(s.reserva) : s.status === 'bloqueado' ? 'Bloqueado' : 'Libre'}
+    </span>
+  );
+
+  return (
+    <div className="hoy">
+      <div className="hoy-cab">
+        <h2>{esHoy ? 'Hoy' : 'Próximo día de juego'}</h2>
+        <p>{(() => { const f = fechaLargaCompleta(fecha); return f.charAt(0).toUpperCase() + f.slice(1); })()}{!esHoy && ' · hoy no se juega'}</p>
+      </div>
+
+      <section className="stat-card">
+        <h3 className="hoy-titulo">
+          Para confirmar
+          {pendientes.length > 0 && <span className="agenda-contador">{pendientes.length}</span>}
+        </h3>
+        <PendientesLista pendientes={pendientes} onCambio={onCambio} />
+      </section>
+
+      {error && <p className="error-msg">{error}</p>}
+      {!agenda && !error && <p className="hoy-cargando">Cargando el día…</p>}
+
+      {agenda && (
+        <section className="stat-card">
+          <h3 className="hoy-titulo">
+            {esHoy ? 'Turnos de hoy' : 'Turnos de ese día'}
+            <span className="hoy-resumen">{ocupados} de 6 de fútbol{agenda.padel.length ? ` · ${agenda.padel.length} de pádel` : ''}</span>
+          </h3>
+          <div className="hoy-grilla">
+            <span />
+            <span className="hoy-col">Cancha 1</span>
+            <span className="hoy-col">Cancha 2</span>
+            {turnos.map(({ s1, s2 }) => (
+              <div className="hoy-fila" key={s1.turn}>
+                <span className="hoy-hora">{hhmm(s1.start)}</span>
+                <Celda s={s1} />
+                <Celda s={s2} />
+              </div>
+            ))}
+          </div>
+          {agenda.padel.length > 0 && (
+            <ul className="hoy-padel">
+              {agenda.padel.map((r) => (
+                <li key={r.code}><span className="hoy-hora">{hhmm(r.start_time)}</span> Pádel · {quien(r)}</li>
+              ))}
+            </ul>
+          )}
+          <button className="btn btn-ghost btn-sm hoy-mas" onClick={() => irA('agenda')}>Ver la agenda completa</button>
+        </section>
+      )}
+
+      {agenda?.espera?.length > 0 && (
+        <section className="stat-card">
+          <h3 className="hoy-titulo">Lista de espera <span className="agenda-contador">{agenda.espera.length}</span></h3>
+          <ul className="hoy-lista">
+            {agenda.espera.map((e) => (
+              <li key={e.id}>
+                <span>{e.client_name}</span>
+                {e.linkWhatsapp && <a className="btn btn-ghost btn-sm" href={e.linkWhatsapp} target="_blank" rel="noreferrer">Avisar</a>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {recordatorios?.length > 0 && (
+        <section className="stat-card">
+          <h3 className="hoy-titulo">Recordatorios por mandar <span className="agenda-contador">{recordatorios.length}</span></h3>
+          <ul className="hoy-lista">
+            {recordatorios.map((r) => (
+              <li key={r.id}>
+                <span>{quien(r)} · {r.reservation_date === hoy ? 'hoy' : 'mañana'} {hhmm(r.start_time)}</span>
+              </li>
+            ))}
+          </ul>
+          <button className="btn btn-ghost btn-sm hoy-mas" onClick={() => irA('fijos')}>Mandarlos desde Turnos fijos</button>
+        </section>
+      )}
+    </div>
+  );
+}
+
 function paramsUrl() {
   try {
     const p = new URLSearchParams(window.location.search);
@@ -2318,7 +2512,9 @@ function paramsUrl() {
 
 export default function AdminPanel() {
   const inicial = paramsUrl();
-  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
+  const [tab, setTab] = useState(
+    ['hoy', 'buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : inicial.code ? 'buscar' : 'hoy'
+  );
   const [codigo, setCodigo] = useState('');
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -2429,6 +2625,7 @@ export default function AdminPanel() {
   }
 
   const NAV = [
+    { id: 'hoy', label: 'Hoy', ico: <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /> },
     { id: 'buscar', label: 'Confirmar', tag: pendientes.length || null, ico: <path d="M9 11l3 3 6-6M4 4h16v16H4z" /> },
     { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
     { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
@@ -2468,6 +2665,7 @@ export default function AdminPanel() {
       </aside>
 
       <main className="pmain">
+      {tab === 'hoy' && <HoyPanel pendientes={pendientes} onCambio={cargarPendientes} irA={irA} />}
       {tab === 'agenda' && <AgendaPanel />}
       {tab === 'suspender' && (
         <>
@@ -2551,19 +2749,7 @@ export default function AdminPanel() {
               Pendientes de confirmación
               {pendientes.length > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes.length}</span>}
             </h3>
-            {pendientes.length === 0 && <p className="agenda-vacio">No hay reservas pendientes.</p>}
-            {pendientes.map((p) => (
-              <button
-                key={p.id}
-                className="pendiente-item"
-                onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              >
-                <div style={{ fontWeight: 700, fontSize: 15 }}>{p.team_name ? `${nombreEquipo(p.team_name)} · ${p.client_name}` : p.client_name}</div>
-                <div style={{ fontSize: 13, color: 'var(--p-oro)' }}>
-                  {NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)} hs
-                </div>
-              </button>
-            ))}
+            <PendientesLista pendientes={pendientes} onCambio={cargarPendientes} />
           </div>
         </>
       )}

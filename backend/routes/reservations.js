@@ -9,6 +9,8 @@ import {
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
 import { normalizarEquipo } from '../lib/equipo.js';
+import { fechaCorta, hora } from '../lib/mensajes.js';
+import { demasiadoTarde, MENSAJE_ANTICIPACION } from '../lib/anticipacion.js';
 import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
@@ -42,21 +44,12 @@ function validarDatosCliente(body) {
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 
-const DIAS_SEM = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-const MESES_LARGO = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-function fechaLinda(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  const dia = DIAS_SEM[d.getDay()];
-  return `${dia.charAt(0).toUpperCase()}${dia.slice(1)} ${d.getDate()} de ${MESES_LARGO[d.getMonth()]}`;
-}
-
 function armarMensajeWhatsapp(reserva) {
-  const cancha = NOMBRE_CANCHA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  const lugar = reserva.court === 'PAD' ? 'la cancha de pádel' : `la ${NOMBRE_CANCHA[reserva.court] || reserva.court}`;
   return (
-    `¡Hola! Quiero reservar en El Pinar.\n\n` +
-    `${cancha} · ${fechaLinda(reserva.reservation_date)} · ${horario}\n` +
-    `A nombre de ${reserva.client_name}`
+    `¡Hola! Quiero reservar ${lugar} el ${fechaCorta(reserva.reservation_date)} ` +
+    `de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}. ` +
+    `A nombre de ${reserva.client_name}.`
   );
 }
 
@@ -164,6 +157,7 @@ router.post('/futbol', async (req, res) => {
   if (!['C1', 'C2'].includes(body.court)) return res.status(400).json({ error: 'Cancha inválida.' });
   const turnoInfo = TURNOS_FUTBOL[body.turn];
   if (!turnoInfo) return res.status(400).json({ error: 'Turno inválido.' });
+  if (demasiadoTarde(body.date, turnoInfo.start)) return res.status(409).json({ error: MENSAJE_ANTICIPACION });
 
   const { bloqueos } = await obtenerBloqueosDelDia(body.date);
   if (estaBloqueado(bloqueos, body.court, body.turn)) {
@@ -212,6 +206,7 @@ router.post('/padel', async (req, res) => {
   if (body.startTime < PADEL_APERTURA || body.endTime > PADEL_CIERRE || body.startTime >= body.endTime) {
     return res.status(400).json({ error: 'Horario fuera del rango permitido (20:00 a 23:30).' });
   }
+  if (demasiadoTarde(body.date, body.startTime)) return res.status(409).json({ error: MENSAJE_ANTICIPACION });
 
   const { bloqueos } = await obtenerBloqueosDelDia(body.date);
   if (estaBloqueado(bloqueos, 'PAD')) {

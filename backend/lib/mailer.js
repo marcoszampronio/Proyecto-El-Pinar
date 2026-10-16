@@ -1,3 +1,4 @@
+import { fechaCorta, hora } from './mensajes.js';
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
@@ -163,21 +164,19 @@ export async function enviarAvisoNuevaReserva(reserva) {
   const hs = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)}`;
   const extras = [
     reserva.looking_for_rival ? `Busca rival: ${reserva.team_name || '(sin nombre)'}${reserva.category ? ` — ${reserva.category}` : ''}` : null,
-    reserva.parrilla ? 'Consulta por la parrilla 🔥 (confirmale si hay lugar)' : null,
   ].filter(Boolean);
 
   return enviar({
     to: para,
-    subject: `🔔 Nueva solicitud: ${cancha} ${reserva.reservation_date} ${reserva.start_time.slice(0, 5)}`,
+    subject: `🔔 Nueva solicitud: ${cancha}, ${fechaCorta(reserva.reservation_date)} ${hora(reserva.start_time)}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
         <h2 style="margin-top:0;color:#123C6E;">Nueva solicitud de reserva</h2>
-        <p style="color:#555;">Alguien reservó y va a mandar el comprobante por WhatsApp. Está <strong>pendiente de tu confirmación</strong>.</p>
+        <p style="color:#555;">Alguien pidió un turno y está esperando que lo confirmes.</p>
         <div style="background:#f6f4ea;border-radius:8px;padding:14px;margin:14px 0;">
-          <p style="margin:4px 0;"><strong>${cancha}</strong> · ${reserva.reservation_date} · ${hs} hs</p>
+          <p style="margin:4px 0;"><strong>${cancha}</strong> · ${fechaCorta(reserva.reservation_date)} · ${hs} hs</p>
           <p style="margin:4px 0;">${reserva.client_name} · ${reserva.client_phone}${reserva.client_email ? ` · ${reserva.client_email}` : ''}</p>
           ${extras.map((x) => `<p style="margin:4px 0;color:#7A6A4F;">${x}</p>`).join('')}
-          <p style="margin:8px 0 0;"><strong>Código:</strong> <span style="font-family:monospace;">${reserva.code}</span></p>
         </div>
         ${process.env.PANEL_URL ? `
         <p style="text-align:center;margin:18px 0;">
@@ -186,67 +185,8 @@ export async function enviarAvisoNuevaReserva(reserva) {
             Abrir en el panel
           </a>
         </p>
-        <p style="color:#999;font-size:12px;">El link te lleva directo a esta reserva. Confirmá o cancelá cuando te llegue el comprobante.</p>
-        ` : `<p style="color:#555;font-size:13px;">Entrá al panel, pegá el código y confirmá (o cancelá) cuando te llegue el comprobante.</p>`}
+        <p style="color:#999;font-size:12px;">El link te lleva directo a esta reserva.</p>
+        ` : `<p style="color:#555;font-size:13px;">Entrá al panel y confirmala o cancelala desde ahí.</p>`}
       </div>`,
-  });
-}
-
-export async function enviarEmailConfirmacion(reserva) {
-  if (!reserva.client_email) return { omitido: 'sin email' };
-
-  const cancha =
-    reserva.court === 'PAD' ? 'Pádel' : `Cancha ${reserva.court.slice(1)}`;
-
-  return enviar({
-    to: reserva.client_email,
-    subject: '✅ Tu turno está confirmado — Complejo El Pinar',
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f6f4ea;border-radius:12px;">
-        <h2 style="color:#122A1C;margin-top:0;">¡Tu turno está confirmado!</h2>
-        <p style="color:#333;">Hola <strong>${reserva.client_name}</strong>, te confirmamos tu reserva:</p>
-
-        <div style="background:#fff;border-radius:8px;padding:16px;margin:16px 0;border-left:4px solid #2E6B4F;">
-          <p style="margin:4px 0;"><strong>Cancha:</strong> ${cancha}</p>
-          <p style="margin:4px 0;"><strong>Fecha:</strong> ${reserva.reservation_date}</p>
-          <p style="margin:4px 0;"><strong>Horario:</strong> ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs</p>
-          <!-- <p style="margin:4px 0;"><strong>Código de reserva:</strong> <span style="font-family:monospace;font-weight:bold;">${reserva.code}</span></p> -->
-        </div>
-
-        <p style="color:#555;font-size:14px;">Guardá este email como comprobante. Si necesitás cancelar, escribinos por WhatsApp.</p>
-        <p style="color:#2E6B4F;font-weight:bold;">¡Te esperamos!</p>
-        <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
-        <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · ${FROM_EMAIL}</p>
-      </div>
-    `,
-  });
-}
-
-export async function enviarEmailCancelacion(reserva) {
-  if (!reserva.client_email) return { omitido: 'sin email' };
-
-  const cancha =
-    reserva.court === 'PAD' ? 'Pádel' : `Cancha ${reserva.court.slice(1)}`;
-
-  return enviar({
-    to: reserva.client_email,
-    subject: '❌ Tu turno fue cancelado — Complejo El Pinar',
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f6f4ea;border-radius:12px;">
-        <h2 style="color:#B3382E;margin-top:0;">Tu turno fue cancelado</h2>
-        <p style="color:#333;">Hola <strong>${reserva.client_name}</strong>, te informamos que tu reserva fue cancelada:</p>
-
-        <div style="background:#fff;border-radius:8px;padding:16px;margin:16px 0;border-left:4px solid #B3382E;">
-          <p style="margin:4px 0;"><strong>Cancha:</strong> ${cancha}</p>
-          <p style="margin:4px 0;"><strong>Fecha:</strong> ${reserva.reservation_date}</p>
-          <p style="margin:4px 0;"><strong>Horario:</strong> ${reserva.start_time.slice(0,5)} a ${reserva.end_time.slice(0,5)} hs</p>
-          <!-- <p style="margin:4px 0;"><strong>Código:</strong> <span style="font-family:monospace;">${reserva.code}</span></p> -->
-        </div>
-
-        <p style="color:#555;font-size:14px;">Si tenés alguna duda, escribinos por WhatsApp.</p>
-        <hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">
-        <p style="color:#999;font-size:12px;margin:0;">Complejo El Pinar · ${FROM_EMAIL}</p>
-      </div>
-    `,
   });
 }

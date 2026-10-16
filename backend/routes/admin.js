@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
 import { normalizarEquipo } from '../lib/equipo.js';
-import { enviarEmailConfirmacion, enviarEmailCancelacion } from '../lib/mailer.js';
+import { fechaCorta, primerNombre, hora, unir } from '../lib/mensajes.js';
 import {
   TURNOS_FUTBOL,
   PADEL_APERTURA,
@@ -13,6 +13,7 @@ import {
 } from '../lib/codeGenerator.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
+import { hoyART } from '../lib/anticipacion.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 import {
   listarAperturasEspeciales,
@@ -31,38 +32,30 @@ const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 const MAPS_URL = process.env.MAPS_URL || 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';
 
 function armarMensajeConfirmacion(reserva) {
-  const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
+  const cuando = reserva.court === 'PAD'
+    ? `la cancha de pádel el ${fechaCorta(reserva.reservation_date)} de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}`
+    : `la ${NOMBRE_CANCHA_WA[reserva.court] || reserva.court} el ${fechaCorta(reserva.reservation_date)} a las ${hora(reserva.start_time)}`;
   return (
-    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `✅ Tu turno quedó CONFIRMADO:\n` +
-    `${cancha} · ${reserva.reservation_date} · ${horario}\n` +
-    `Código: ${reserva.code}\n\n` +
-    (MAPS_URL ? `Cómo llegar: ${MAPS_URL}\n\n` : '') +
-    `Cualquier cosa escribinos por acá. Nos vemos!`
+    `${primerNombre(reserva.client_name)}, ¡listo! Tenés ${cuando}. Te esperamos 🙌` +
+    (MAPS_URL ? `\n\nCómo llegar: ${MAPS_URL}` : '')
   );
 }
 
 function armarMensajeSuspension(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
   return (
-    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Por lluvia, SE SUSPENDE el turno del ${reserva.reservation_date} ` +
-    `(${cancha}, ${horario}).\n\n` +
-    `Tu reserva ${reserva.code} queda cancelada. Escribinos por aca para reprogramar. ` +
-    `Disculpa las molestias.`
+    `Hola ${primerNombre(reserva.client_name)}! Con la lluvia no vamos a poder jugar 🌧️ ` +
+    `Tu turno del ${fechaCorta(reserva.reservation_date)} (${cancha}, ${hora(reserva.start_time)}) queda suspendido. ` +
+    `¿Lo pasamos para otro día?`
   );
 }
 
 function armarMensajeCancelacionTurno(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
-  const horario = `${reserva.start_time.slice(0, 5)} a ${reserva.end_time.slice(0, 5)} hs`;
   return (
-    `Hola ${reserva.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Tu turno ${reserva.code} del ${reserva.reservation_date} ` +
-    `(${cancha}, ${horario}) queda CANCELADO.\n\n` +
-    `Cualquier duda o para reprogramar, escribinos por aca.`
+    `Hola ${primerNombre(reserva.client_name)}! Te avisamos que se canceló tu turno del ` +
+    `${fechaCorta(reserva.reservation_date)} (${cancha}, ${hora(reserva.start_time)}). ` +
+    `Cualquier duda, escribinos por acá.`
   );
 }
 
@@ -97,17 +90,21 @@ function fechaDDMM(iso) {
   return d && m ? `${d}/${m}` : iso;
 }
 
-function armarMensajeEspera(e) {
+// libres: horarios de inicio de los turnos de fútbol con lugar ese día, ej. ["21:30", "22:30"].
+function armarMensajeEspera(e, libres = []) {
+  const cuando = fechaCorta(e.reservation_date);
+  const que = libres.length
+    ? `Se liberó lugar para el ${cuando} a las ${unir(libres)}`
+    : `Se liberó un turno de fútbol para el ${cuando}`;
   return (
-    `Hola ${e.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Se liberó un turno de fútbol para el ${fechaDDMM(e.reservation_date)}. ` +
-    `Si lo querés, respondé este mensaje y te lo reservamos.`
+    `Hola ${primerNombre(e.client_name)}! ${que} 🙌 ` +
+    `¿Lo querés? Respondenos y te lo reservamos.`
   );
 }
 
-function resumenEspera(e) {
+function resumenEspera(e, libres) {
   const tel = normalizarTelefonoAR(e.client_phone);
-  const mensaje = armarMensajeEspera(e);
+  const mensaje = armarMensajeEspera(e, libres);
   return {
     id: e.id,
     client_name: e.client_name,
@@ -159,7 +156,11 @@ router.get('/agenda/:date', async (req, res) => {
   const padel = data.filter((x) => x.court === 'PAD').map(resumenAgenda);
   const conParrilla = data.filter((x) => x.parrilla).map(resumenAgenda);
 
-  const espera = (esperaRes.data || []).map(resumenEspera);
+  // Turnos de fútbol con alguna cancha libre ese día (para decirles cuál se liberó).
+  const libresDelDia = Object.entries(TURNOS_FUTBOL)
+    .filter(([turn]) => ['C1', 'C2'].some((c) => futbol[c].find((s) => s.turn === turn)?.status === 'libre'))
+    .map(([, h]) => hora(h.start));
+  const espera = (esperaRes.data || []).map((e) => resumenEspera(e, libresDelDia));
 
   res.json({
     date,
@@ -338,14 +339,12 @@ router.post('/confirm/:code', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  enviarEmailConfirmacion(actualizada).catch((e) => console.error('Error enviando email:', e));
-
   const tel = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(actualizada);
 
   res.json({
     reserva: actualizada,
-    mensaje: 'Reserva confirmada. Email enviado al cliente.',
+    mensaje: 'Reserva confirmada.',
     mensajeWhatsappConfirmacion: mensajeConfirmacion,
     linkWhatsappConfirmacion: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensajeConfirmacion)}` : null,
   });
@@ -374,9 +373,7 @@ router.post('/cancel/:code', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  enviarEmailCancelacion(actualizada).catch((e) => console.error('Error enviando email:', e));
-
-  res.json({ reserva: actualizada, mensaje: 'Reserva cancelada. Email enviado al cliente.' });
+  res.json({ reserva: actualizada, mensaje: 'Reserva cancelada.' });
 });
 
 // POST /api/admin/manual - Mateo agenda un turno el mismo, ya confirmado
@@ -396,6 +393,12 @@ router.post('/manual', async (req, res) => {
   }
   if (body.lookingForRival && body.court === 'PAD') {
     return res.status(400).json({ error: 'Busco rival es solo para fútbol.' });
+  }
+  if (body.lookingForRival && !normalizarEquipo(body.teamName)) {
+    return res.status(400).json({ error: 'Completá el nombre del equipo.' });
+  }
+  if (body.lookingForRival && !body.category) {
+    return res.status(400).json({ error: 'Elegí la categoría del equipo.' });
   }
 
   let start_time, end_time, turn = null, code;
@@ -440,7 +443,7 @@ router.post('/manual', async (req, res) => {
       client_phone: body.clientPhone,
       client_email: body.clientEmail || null,
       category: body.lookingForRival ? (body.category || null) : null,
-      team_name: body.lookingForRival ? normalizarEquipo(body.teamName) : null,
+      team_name: normalizarEquipo(body.teamName), // Mateo conoce a los equipos: se guarda aunque no busque rival
       looking_for_rival: !!body.lookingForRival,
       parrilla: !!body.parrilla,
       status: 'confirmada',
@@ -457,11 +460,8 @@ router.post('/manual', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  // Igual que /confirm: dejamos listo el WhatsApp (y el email si hay) para
-  // avisarle al cliente que Mateo le agendó y confirmó el turno.
-  if (data.client_email) {
-    enviarEmailConfirmacion(data).catch((e) => console.error('Error enviando email:', e));
-  }
+  // Igual que /confirm: dejamos listo el WhatsApp para avisarle al cliente que Mateo
+  // le agendó y confirmó el turno. (Los mails son solo para Mateo, no para clientes.)
 
   const tel = normalizarTelefonoAR(data.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(data);
@@ -496,6 +496,8 @@ router.post('/rival/:code', async (req, res) => {
   if (activar) {
     patch.team_name = normalizarEquipo(req.body.teamName) || reserva.team_name || null;
     patch.category = req.body.category || reserva.category || null;
+    if (!patch.team_name) return res.status(400).json({ error: 'Completá el nombre del equipo.' });
+    if (!patch.category) return res.status(400).json({ error: 'Elegí la categoría del equipo.' });
   }
 
   const { data, error } = await supabaseAdmin
@@ -666,6 +668,47 @@ router.delete('/turnos-fijos/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+// GET /api/admin/recordatorios-fijos?dias=7 - próximos turnos que vienen de un turno fijo, para
+// mandarle a cada cliente el recordatorio por WhatsApp (se arma y se manda a mano desde el panel).
+router.get('/recordatorios-fijos', async (req, res) => {
+  const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 7, 1), 14);
+  const desde = hoyART();
+  const hasta = new Date(new Date(desde + 'T00:00:00Z').getTime() + dias * 86400000).toISOString().slice(0, 10);
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .select('id, court, reservation_date, start_time, end_time, client_name, client_phone, team_name, recordatorio_enviado_at')
+    .not('origen_fijo_id', 'is', null)
+    .eq('status', 'confirmada')
+    .gte('reservation_date', desde)
+    .lte('reservation_date', hasta)
+    .order('reservation_date', { ascending: true })
+    .order('start_time', { ascending: true });
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({
+    hoy: desde,
+    recordatorios: data.map((r) => ({ ...r, telefonoWa: normalizarTelefonoAR(r.client_phone) })),
+  });
+});
+
+// POST /api/admin/recordatorios-fijos/:id/enviado - marca que ya se le mandó el recordatorio.
+// { enviado: false } lo desmarca (por si se marcó sin querer).
+router.post('/recordatorios-fijos/:id/enviado', async (req, res) => {
+  const marcar = req.body?.enviado !== false;
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .update({ recordatorio_enviado_at: marcar ? new Date().toISOString() : null })
+    .eq('id', req.params.id)
+    .not('origen_fijo_id', 'is', null)
+    .select('id, recordatorio_enviado_at')
+    .maybeSingle();
+
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data) return res.status(404).json({ error: 'No se encontró ese turno fijo.' });
+  res.json({ ok: true, recordatorio_enviado_at: data.recordatorio_enviado_at });
+});
+
 // GET /api/admin/pending - lista de reservas pendientes (para el listado rapido del panel).
 // Solo las que ya apretaron "Enviar WhatsApp": las "guardadas" (10 min, todavia sin
 // WhatsApp) no son un pedido real, pueden liberarse solas y no deben ensuciar la lista.
@@ -688,7 +731,7 @@ router.get('/contactos', async (req, res) => {
   const [{ data, error }, manuales] = await Promise.all([
     supabaseAdmin
       .from('reservations')
-      .select('client_name, client_phone, client_email, reservation_date, status, court, created_at')
+      .select('client_name, client_phone, client_email, team_name, reservation_date, status, court, created_at')
       .order('created_at', { ascending: false }),
     supabaseAdmin
       .from('contactos_manuales')
@@ -712,6 +755,7 @@ router.get('/contactos', async (req, res) => {
         telefono: r.client_phone,
         telefonoWa: normalizarTelefonoAR(r.client_phone),
         email: r.client_email || null,
+        equipo: normalizarEquipo(r.team_name),
         comentario: null,
         manualId: null,
         totalReservas: 0,
@@ -726,6 +770,7 @@ router.get('/contactos', async (req, res) => {
     if (r.status === 'confirmada') c.confirmadas++;
     if (r.status === 'cancelada') c.canceladas++;
     if (!c.email && r.client_email) c.email = r.client_email;
+    if (!c.equipo && r.team_name) c.equipo = normalizarEquipo(r.team_name); // las reservas vienen de la más nueva a la más vieja
     if (r.reservation_date > c.ultimaReserva) c.ultimaReserva = r.reservation_date;
     c.canchasUsadas.add(r.court);
   }
@@ -739,6 +784,7 @@ router.get('/contactos', async (req, res) => {
     const existente = mapa.get(clave);
     if (existente) {
       existente.nombre = m.nombre || existente.nombre;
+      existente.equipo = normalizarEquipo(m.equipo) || existente.equipo || null; // el que cargó Mateo gana
       existente.comentario = m.comentario || null;
       existente.manualId = m.id;
     } else {
@@ -747,6 +793,7 @@ router.get('/contactos', async (req, res) => {
         telefono: m.telefono,
         telefonoWa: normalizarTelefonoAR(m.telefono),
         email: null,
+        equipo: normalizarEquipo(m.equipo),
         comentario: m.comentario || null,
         manualId: m.id,
         totalReservas: 0,
@@ -804,6 +851,7 @@ router.post('/contactos', async (req, res) => {
   const nombre = String(req.body.nombre || '').trim();
   const telefono = String(req.body.telefono || '').trim();
   const comentario = String(req.body.comentario || '').trim() || null;
+  const equipo = normalizarEquipo(req.body.equipo);
   if (!nombre || telefono.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá nombre y teléfono.' });
   }
@@ -816,7 +864,7 @@ router.post('/contactos', async (req, res) => {
   if (yaExiste) {
     const { error } = await supabaseAdmin
       .from('contactos_manuales')
-      .update({ nombre, telefono, comentario })
+      .update({ nombre, telefono, equipo, comentario })
       .eq('id', yaExiste.id);
     if (error) return res.status(500).json({ error: error.message });
     return res.json({ ok: true, actualizado: true });
@@ -824,7 +872,7 @@ router.post('/contactos', async (req, res) => {
 
   const { error } = await supabaseAdmin
     .from('contactos_manuales')
-    .insert({ nombre, telefono, comentario, created_by: req.adminEmail });
+    .insert({ nombre, telefono, equipo, comentario, created_by: req.adminEmail });
 
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
@@ -835,13 +883,14 @@ router.put('/contactos/:id', async (req, res) => {
   const nombre = String(req.body.nombre || '').trim();
   const telefono = String(req.body.telefono || '').trim();
   const comentario = String(req.body.comentario || '').trim() || null;
+  const equipo = normalizarEquipo(req.body.equipo);
   if (!nombre || telefono.replace(/\D/g, '').length < 8) {
     return res.status(400).json({ error: 'Completá nombre y teléfono.' });
   }
 
   const { error } = await supabaseAdmin
     .from('contactos_manuales')
-    .update({ nombre, telefono, comentario })
+    .update({ nombre, telefono, equipo, comentario })
     .eq('id', req.params.id);
 
   if (error) return res.status(500).json({ error: error.message });

@@ -7,6 +7,7 @@ import {
 } from '../lib/codeGenerator.js';
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { listarAperturasEspeciales } from '../lib/aperturasEspeciales.js';
+import { demasiadoTarde, inicioMinimoPadel } from '../lib/anticipacion.js';
 
 const router = Router();
 
@@ -26,6 +27,9 @@ router.get('/dias-especiales', async (req, res) => {
 // GET /api/availability/futbol?date=2026-08-30&court=C1
 router.get('/futbol', async (req, res) => {
   const { date, court } = req.query;
+  // ?sinAnticipacion=1 (agendar a mano en el panel): no aplica la regla de la hora. Solo cambia lo que se
+  // muestra; el POST público igual la valida, así que no abre ninguna puerta.
+  const aplicaAnticipacion = req.query.sinAnticipacion !== '1';
   if (!date || !court) {
     return res.status(400).json({ error: 'Faltan parametros: date y court son requeridos.' });
   }
@@ -48,7 +52,9 @@ router.get('/futbol', async (req, res) => {
     turn,
     start: horario.start,
     end: horario.end,
-    status: ocupados[turn] || (estaBloqueado(bloqueos, court, turn) ? 'bloqueado' : 'libre'),
+    status:
+      ocupados[turn] ||
+      (estaBloqueado(bloqueos, court, turn) ? 'bloqueado' : aplicaAnticipacion && demasiadoTarde(date, horario.start) ? 'cerrado' : 'libre'),
   }));
 
   res.json({ court, date, turnos });
@@ -57,6 +63,7 @@ router.get('/futbol', async (req, res) => {
 // GET /api/availability/padel?date=2026-08-30
 router.get('/padel', async (req, res) => {
   const { date } = req.query;
+  const aplicaAnticipacion = req.query.sinAnticipacion !== '1';
   if (!date) return res.status(400).json({ error: 'Falta el parametro date.' });
 
   const [{ data, error }, { bloqueos }] = await Promise.all([
@@ -82,6 +89,7 @@ router.get('/padel', async (req, res) => {
     apertura: PADEL_APERTURA,
     cierre: PADEL_CIERRE,
     ocupados, // el frontend calcula los huecos libres visualmente
+    inicioMinimo: aplicaAnticipacion ? inicioMinimoPadel(date) : null, // 'HH:MM' = antes de esa hora ya no se reserva (anticipación)
   });
 });
 

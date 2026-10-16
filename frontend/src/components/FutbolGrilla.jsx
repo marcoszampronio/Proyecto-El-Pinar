@@ -38,7 +38,8 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
               const libre = slot && slot.status === 'libre';
               const rival = !libre ? idxRival[`${court}|${hhmm(t.start)}`] : null;
               const pendienteSinRival = !libre && !rival && slot?.status === 'pendiente' && !!onListaEspera;
-              const clase = libre ? 'libre' : rival ? 'rival' : pendienteSinRival ? 'ocupado ocupado-espera' : 'ocupado';
+              const cerrado = slot?.status === 'cerrado'; // falta menos de 1 hora: ya no se reserva online
+              const clase = libre ? 'libre' : rival ? 'rival' : pendienteSinRival ? 'ocupado ocupado-espera' : cerrado ? 'ocupado cerrado' : 'ocupado';
               return (
                 <button
                   key={court}
@@ -56,11 +57,13 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
                       ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado por ${nombreEquipo(rival.team_name)}, busca rival`
                       : pendienteSinRival
                       ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado. Todavía no se confirmó — tocá para anotarte a la lista de espera por si se libera.`
+                      : cerrado
+                      ? `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: cerrado, las reservas online se cierran 1 hora antes del turno`
                       : `Cancha ${court === 'C1' ? 1 : 2}, ${hhmm(t.start)}: reservado`
                   }
                 >
                   {libre && 'Libre'}
-                  {!libre && !rival && 'Reservado'}
+                  {!libre && !rival && (cerrado ? 'Cerrado' : 'Reservado')}
                   {rival && (
                     <>
                       <span className="gp-rival-top">Reservado</span>

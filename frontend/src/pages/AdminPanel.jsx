@@ -2,22 +2,23 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
+import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
-  hhmm, sumarDias, esDiaHabilitado,
+  hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
 } from '../lib/fechas';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const SITIO_URL = import.meta.env.VITE_SITIO_URL || 'https://complejo-el-pinar.pages.dev';
 
 // Mensaje de WhatsApp para avisarle a un contacto que hay turnos libres.
-function mensajeAvisoTurnos(nombre) {
-  return (
-    `Hola ${nombre}! Te escribimos del Complejo El Pinar.\n\n` +
-    `Hay turnos de fútbol disponibles esta semana. ` +
-    `Mirá la disponibilidad y reservá acá:\n${SITIO_URL}`
-  );
+// libres: texto con los turnos, ej. "martes 20/10: 20:30 y 21:30 · miércoles 21/10: 22:30".
+function mensajeAvisoTurnos(nombre, libres) {
+  const que = libres
+    ? `Tenemos turnos de fútbol libres: ${libres}. `
+    : `Esta semana tenemos turnos de fútbol libres. `;
+  return `Hola ${primerNombre(nombre)}! ${que}Reservá acá: ${SITIO_URL}`;
 }
 
 async function tokenAdmin() {
@@ -91,16 +92,45 @@ const TURNOS_FUTBOL_LABEL = {
 
 // Modal para que Mateo agende un turno el mismo (cliente que le escribe
 // directo por WhatsApp), ya confirmado. Puede marcarlo "busca rival".
-function ManualBookingModal({ contacto, onCerrar, onCreado }) {
-  const [cancha, setCancha] = useState('C1');
-  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
-  const [turn, setTurn] = useState('T1');
-  const [padelStart, setPadelStart] = useState('20:00');
-  const [padelEnd, setPadelEnd] = useState('21:00');
+function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
+  const [cancha, setCancha] = useState(inicial?.court || 'C1');
+  const [fecha, setFecha] = useState(() => inicial?.date || proximoDiaHabilitado(hoyISO()));
+  const [turn, setTurn] = useState(inicial?.turn || 'T1');
+
+  // Si no viene de un contacto (se tocó una celda libre), se piden el nombre y el WhatsApp acá.
+  const [nombreIn, setNombreIn] = useState('');
+  const [area, setArea] = useState('');
+  const [num, setNum] = useState('');
+  const areaLimpia = area.replace(/\D/g, '');
+  const numLimpio = num.replace(/\D/g, '');
+  const quien = contacto || { nombre: nombreIn.trim(), telefono: `54 9 ${areaLimpia} ${numLimpio}` };
+  const [padelStart, setPadelStart] = useState(inicial?.padelStart || '20:00');
+  const [padelEnd, setPadelEnd] = useState(inicial?.padelEnd || '21:00');
   const [lookingForRival, setLookingForRival] = useState(false);
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState(contacto?.equipo || '');
   const [category, setCategory] = useState('');
-  const [parrilla, setParrilla] = useState(false);
+
+  // Buscador de contactos (cuando no viene de un contacto): se busca por equipo, nombre o teléfono.
+  const [contactos, setContactos] = useState([]);
+  const [foco, setFoco] = useState(false);
+  useEffect(() => {
+    if (!contacto) api.adminContactos().then((d) => setContactos(d.contactos || [])).catch(() => {});
+    // eslint-disable-next-line
+  }, []);
+  const sugerencias = nombreIn.trim().length >= 1
+    ? contactos
+        .filter((c) => `${c.equipo || ''} ${c.nombre} ${c.telefono}`.toLowerCase().includes(nombreIn.trim().toLowerCase()))
+        .slice(0, 6)
+    : [];
+  function elegirContacto(c) {
+    setNombreIn(c.nombre);
+    const p = partirTelefono(c.telefono);
+    setArea(p.area);
+    setNum(p.num);
+    if (c.equipo) setTeamName(c.equipo);
+    setFoco(false);
+  }
+
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
   const [hecho, setHecho] = useState(null);
@@ -118,7 +148,9 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
   useEffect(() => {
     let cancelado = false;
     setDisponibilidad(null);
-    const pedido = cancha === 'PAD' ? api.disponibilidadPadel(fecha) : api.disponibilidadFutbol(cancha, fecha);
+    const pedido = cancha === 'PAD'
+      ? api.disponibilidadPadel(fecha, { sinAnticipacion: true })
+      : api.disponibilidadFutbol(cancha, fecha, { sinAnticipacion: true });
     pedido.then((d) => { if (!cancelado) setDisponibilidad(d); }).catch(() => {});
     return () => { cancelado = true; };
   }, [cancha, fecha]);
@@ -154,6 +186,14 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
 
   async function agendar() {
     setError(null);
+    if (!contacto && !nombreIn.trim()) {
+      setError('Completá el nombre del cliente.');
+      return;
+    }
+    if (!contacto && (areaLimpia.length < 2 || numLimpio.length < 6)) {
+      setError('Completá el WhatsApp: característica y número.');
+      return;
+    }
     if (esFutbol && lookingForRival && !teamName.trim()) {
       setError('Completá el nombre del equipo.');
       return;
@@ -167,12 +207,11 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
       const payload = {
         court: cancha,
         date: fecha,
-        clientName: contacto.nombre,
-        clientPhone: contacto.telefono,
+        clientName: quien.nombre,
+        clientPhone: quien.telefono,
         lookingForRival: esFutbol && lookingForRival,
-        teamName: esFutbol && lookingForRival ? teamName.trim() : null,
+        teamName: esFutbol ? (teamName.trim() || null) : null,
         category: esFutbol && lookingForRival ? category : null,
-        parrilla,
         ...(esFutbol ? { turn } : { startTime: `${padelStart}:00`, endTime: `${padelEnd}:00` }),
       };
       const data = await api.adminAgendarManual(payload);
@@ -240,7 +279,48 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
         <h3 className="modal-titulo">Agendar turno manual</h3>
-        <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
+        {contacto ? (
+          <p className="modal-sub">{contacto.nombre} · {contacto.telefono}</p>
+        ) : (
+          <>
+            <div className="field" style={{ position: 'relative' }}>
+              <label>Cliente o equipo</label>
+              <input
+                value={nombreIn}
+                onChange={(e) => { setNombreIn(e.target.value); setFoco(true); }}
+                onFocus={() => setFoco(true)}
+                onBlur={() => setTimeout(() => setFoco(false), 150)}
+                placeholder="Buscá un contacto o escribí un nombre"
+                autoComplete="off"
+              />
+              {foco && sugerencias.length > 0 && (
+                <div className="ac-lista">
+                  {sugerencias.map((c) => (
+                    <button
+                      key={c.manualId || c.telefonoWa || c.telefono}
+                      type="button"
+                      className="ac-item"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => elegirContacto(c)}
+                    >
+                      <strong>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</strong>
+                      <span>{c.equipo ? `${c.nombre} · ` : ''}{c.telefono}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="field">
+              <label>WhatsApp</label>
+              <div className="tel-split">
+                <span className="tel-fijo">+54&nbsp;9</span>
+                <input className="tel-area" value={area} onChange={(e) => setArea(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="343" inputMode="numeric" aria-label="Característica" />
+                <span className="tel-fijo">15</span>
+                <input className="tel-num" value={num} onChange={(e) => setNum(e.target.value.replace(/\D/g, '').slice(0, 8))} placeholder="5134747" inputMode="numeric" aria-label="Número" />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="field">
           <label>Cancha</label>
@@ -289,6 +369,10 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
 
         {esFutbol && (
           <>
+            <div className="field">
+              <label>Equipo (opcional)</label>
+              <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
+            </div>
             <div className="field-check">
               <label>
                 <input type="checkbox" checked={lookingForRival} onChange={(e) => setLookingForRival(e.target.checked)} />
@@ -297,10 +381,6 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
             </div>
             {lookingForRival && (
               <>
-                <div className="field">
-                  <label>Nombre del equipo</label>
-                  <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
-                </div>
                 <div className="field">
                   <label>Categoría</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}>
@@ -312,13 +392,6 @@ function ManualBookingModal({ contacto, onCerrar, onCreado }) {
             )}
           </>
         )}
-
-        <div className="field-check">
-          <label>
-            <input type="checkbox" checked={parrilla} onChange={(e) => setParrilla(e.target.checked)} />
-            {' Con parrilla 🔥'}
-          </label>
-        </div>
 
         {bloqueoMsg && <p className="error-msg">{bloqueoMsg}</p>}
         {error && <p className="error-msg">{error}</p>}
@@ -395,20 +468,9 @@ function ExportPanel() {
       <button className="btn btn-primary" onClick={descargarExcel} disabled={descargando} style={{ width: '100%' }}>
         {descargando ? 'Generando...' : '⬇ Descargar reporte (.xlsx)'}
       </button>
-      <p style={{ fontSize: 12, color: 'var(--p-mut)' }}>
-        Trae una hoja "Resumen" con los números del negocio (por cancha, por mes, por día,
-        clientes frecuentes) y una hoja "Detalle" con todas las reservas como tabla para filtrar
-        y armar gráficos.
-      </p>
-
       <hr style={{ border: 'none', borderTop: '1px solid var(--p-linea)', margin: '14px 0' }} />
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        <strong>Backup automático:</strong> el sistema manda el CSV completo por email a los
-        administradores (el día y la hora figuran en "Estado del sistema", arriba).
-        También lo podés disparar ahora:
-      </p>
       <button className="btn btn-ghost" onClick={backupAhora} disabled={backup === '...'} style={{ width: '100%' }}>
-        {backup === '...' ? 'Enviando...' : 'Enviar backup ahora'}
+        {backup === '...' ? 'Enviando...' : 'Enviar backup por email ahora'}
       </button>
       {backup && backup !== '...' && (
         <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
@@ -418,6 +480,23 @@ function ExportPanel() {
 }
 
 const NOMBRE_CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel', PAR: 'Parrilla' };
+
+// 'Martes 27 de octubre' (en vez de la fecha cruda 2026-10-27).
+const fechaLinda = (iso) => {
+  const f = fechaLargaCompleta(iso);
+  return f.charAt(0).toUpperCase() + f.slice(1);
+};
+
+// Una cifra de las Estadísticas.
+function Cifra({ titulo, valor, sub }) {
+  return (
+    <div className="stat-card">
+      <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>{titulo}</div>
+      <div className="big-num">{valor}</div>
+      {sub && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{sub}</div>}
+    </div>
+  );
+}
 
 function Semaforo({ ok, label, detalle }) {
   return (
@@ -451,13 +530,14 @@ function EstadoSistema() {
   useEffect(() => { cargar(); }, []);
 
   return (
-    <div className="stat-card" style={{ margin: '12px 20px 0' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ margin: 0 }}>Estado del sistema</h3>
-        <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12 }} onClick={cargar} disabled={cargando}>
-          {cargando ? '...' : 'Actualizar'}
-        </button>
-      </div>
+    <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>
+      <summary>
+        <span>Estado del sistema</span>
+        {d && <span aria-hidden="true">{d.baseDatos.ok && d.email.ok ? '🟢' : '🔴'}</span>}
+      </summary>
+      <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12, marginTop: 10 }} onClick={cargar} disabled={cargando}>
+        {cargando ? '...' : 'Actualizar'}
+      </button>
       {error && <p className="error-msg">{error}</p>}
       {d && (
         <div style={{ marginTop: 8 }}>
@@ -487,14 +567,9 @@ function EstadoSistema() {
             label="CORS (seguridad)"
             detalle={d.corsOrigenes.length ? d.corsOrigenes.join(', ') : 'Abierto a cualquier origen — conviene restringirlo'}
           />
-          <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0, marginTop: 6 }}>
-            {d.ventanaPendientesMin > 0
-              ? `Un turno reservado se libera solo a los ${d.ventanaPendientesMin} min si no lo confirmás.`
-              : 'Un turno reservado queda así hasta que lo confirmes o lo canceles vos.'}
-          </p>
         </div>
       )}
-    </div>
+    </details>
   );
 }
 
@@ -620,11 +695,9 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
   function linkLiberado(e) {
     if (!e.linkWhatsapp) return null;
     const base = e.linkWhatsapp.split('?text=')[0];
-    const ddmm = (fecha || '').split('-').slice(1).reverse().join('/');
     const msg =
-      `Hola ${e.client_name}! Te escribimos del Complejo El Pinar.\n\n` +
-      `Se liberó ${NOMBRE_CANCHA[reserva.court]} de ${hhmm(reserva.start_time)} a ${hhmm(reserva.end_time)} ` +
-      `el ${ddmm}. Si lo querés, respondé este mensaje y te lo reservamos.`;
+      `Hola ${primerNombre(e.client_name)}! Se liberó la ${NOMBRE_CANCHA[reserva.court]} el ${fechaCorta(fecha)} ` +
+      `a las ${hhmm(reserva.start_time)} 🙌 ¿La querés? Respondenos y te la reservamos.`;
     return `${base}?text=${encodeURIComponent(msg)}`;
   }
 
@@ -656,14 +729,12 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
         {reserva.status === 'pendiente' ? 'Pendiente de confirmar' : 'Confirmada'}
       </div>
       <div className="agenda-detalle-cliente">
-        {reserva.client_name}
-        {reserva.looking_for_rival && reserva.team_name ? ` · ${nombreEquipo(reserva.team_name)} (${reserva.category || 's/cat'})` : ''}
-        {reserva.parrilla ? ' · 🔥 consultó parrilla' : ''}
+        {reserva.team_name ? `${nombreEquipo(reserva.team_name)} · ${reserva.client_name}` : reserva.client_name}
+        {reserva.looking_for_rival && reserva.category ? ` (${reserva.category})` : ''}
       </div>
       <div className="agenda-detalle-meta">
         Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}
       </div>
-      <div className="agenda-detalle-meta">{reserva.code}</div>
 
       {error && <p className="error-msg">{error}</p>}
 
@@ -689,9 +760,6 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
           <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
         )}
       </div>
-      <p style={{ fontSize: 11, color: 'var(--p-mut)', marginTop: 6, marginBottom: 0 }}>
-        Tip: primero avisá por WhatsApp, después cancelá el turno.
-      </p>
 
       {reserva.status === 'confirmada' && ['C1', 'C2'].includes(reserva.court) && (
         <RivalToggle reserva={reserva} fecha={fecha} onCambio={onCancelado} />
@@ -709,7 +777,7 @@ const ESTADO_BADGE = {
 const TXT_ESTADO = { libre: 'Libre', pendiente: 'A confirmar', confirmada: 'Reservado', bloqueado: 'Bloqueado' };
 
 // Grilla visual de fútbol: Cancha 1 y Cancha 2 en columnas, turnos en filas.
-function GrillaFutbol({ agenda, sel, onCelda }) {
+function GrillaFutbol({ agenda, sel, onCelda, onLibre }) {
   const turnos = agenda.futbol.C1.map((s) => ({ turn: s.turn, start: s.start, end: s.end }));
   return (
     <div className="grilla">
@@ -728,12 +796,12 @@ function GrillaFutbol({ agenda, sel, onCelda }) {
               <button
                 key={court}
                 className={`grilla-celda ${slot.status} ${activo ? 'sel' : ''}`}
-                disabled={!r}
-                onClick={() => r && onCelda(r.code)}
+                disabled={!r && !(onLibre && slot.status === 'libre')}
+                title={!r && onLibre && slot.status === 'libre' ? 'Agendar un turno acá' : undefined}
+                onClick={() => (r ? onCelda(r.code) : onLibre && slot.status === 'libre' && onLibre(court, t.turn))}
               >
-                <span className="grilla-celda-nombre">{r ? r.client_name.split(' ')[0] : ''}</span>
+                <span className="grilla-celda-nombre">{r ? (r.team_name ? nombreEquipo(r.team_name) : r.client_name.split(' ')[0]) : ''}</span>
                 <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
-                {r && r.parrilla && <span className="grilla-celda-tag">🔥</span>}
                 {r && r.looking_for_rival && <span className="grilla-celda-rival">Busco rival</span>}
               </button>
             );
@@ -837,12 +905,13 @@ function FilaFlexible({ r, seleccionado, onClick, detalle }) {
   );
 }
 
-function AgendaPanel() {
+function AgendaDia() {
   const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
   const [agenda, setAgenda] = useState(null);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [sel, setSel] = useState(null);
+  const [agendando, setAgendando] = useState(null); // { court, date, turn? } desde una celda libre
 
   async function cargar() {
     setCargando(true);
@@ -868,7 +937,6 @@ function AgendaPanel() {
           ...agenda.futbol.C1.map((s) => s.reserva),
           ...agenda.futbol.C2.map((s) => s.reserva),
           ...agenda.padel,
-          ...agenda.parrilla.reservas,
         ].find((r) => r && r.code === sel)
       : null;
 
@@ -890,17 +958,21 @@ function AgendaPanel() {
           <p className="agenda-resumen">
             {totalDia === 0
               ? 'Sin reservas este día.'
-              : `${totalDia} reserva${totalDia > 1 ? 's' : ''}${agenda.parrilla.pidieron ? ` · ${agenda.parrilla.pidieron} consultó parrilla` : ''}`}
+              : `${totalDia} reserva${totalDia > 1 ? 's' : ''}`}
           </p>
 
           <div className="agenda-card">
             <div className="agenda-card-titulo">Fútbol</div>
-            <GrillaFutbol agenda={agenda} sel={sel} onCelda={toggle} />
+            <GrillaFutbol
+              agenda={agenda}
+              sel={sel}
+              onCelda={toggle}
+              onLibre={(court, turn) => setAgendando({ court, date: fecha, turn })}
+            />
             <div className="grilla-leyenda">
               <span><i className="pt libre" /> Libre</span>
               <span><i className="pt pendiente" /> A confirmar</span>
               <span><i className="pt confirmada" /> Reservado</span>
-              <span>🔥 parrilla · "Busco rival" = busca rival</span>
             </div>
           </div>
 
@@ -931,35 +1003,11 @@ function AgendaPanel() {
             />
           )}
 
-          <div className="agenda-card">
-            <div className="agenda-card-titulo">
-              Consultas por parrilla 🔥 <span className="agenda-contador">{agenda.parrilla.pidieron}</span>
-            </div>
-            {agenda.parrilla.reservas.length === 0 ? (
-              <p className="agenda-vacio">Nadie consultó por la parrilla</p>
-            ) : (
-              <div className="agenda-slots">
-                {agenda.parrilla.reservas.map((r) => (
-                  <FilaFlexible
-                    key={r.code}
-                    r={r}
-                    seleccionado={sel === r.code}
-                    onClick={() => toggle(r.code)}
-                    detalle={`${NOMBRE_CANCHA[r.court]} ${r.turn || hhmm(r.start_time)}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
           {agenda.espera && agenda.espera.length > 0 && (
             <div className="agenda-card">
               <div className="agenda-card-titulo">
                 Lista de espera <span className="agenda-contador">{agenda.espera.length}</span>
               </div>
-              <p style={{ fontSize: 12, color: 'var(--p-mut)', margin: '0 0 8px' }}>
-                Pidieron que les avises si se libera un turno de fútbol este día.
-              </p>
               {agenda.espera.map((e) => (
                 <EsperaItem key={e.id} e={e} onAccion={cargar} />
               ))}
@@ -967,7 +1015,295 @@ function AgendaPanel() {
           )}
         </>
       )}
+
+      {agendando && (
+        <ManualBookingModal
+          contacto={null}
+          inicial={agendando}
+          onCerrar={() => setAgendando(null)}
+          onCreado={() => { setAgendando(null); cargar(); }}
+        />
+      )}
     </div>
+  );
+}
+
+// Vista de toda la semana en UNA hoja, como el calendario del celular: un eje de horas
+// (20:00 a 23:30) y los días como columnas; dentro de cada día, Cancha 1, Cancha 2 y Pádel.
+// Las reservas son bloques de color ubicados en su horario. Es una vista para mirar:
+// tocar un bloque abre su detalle y tocar un hueco libre abre "Agendar turno manual".
+// Muestra martes a jueves; lunes y viernes solo si Mateo los abrió como día especial.
+const SEM_INI = 20 * 60;
+const SEM_FIN = 23 * 60 + 30;
+const SEM_TOTAL = SEM_FIN - SEM_INI;
+const semMin = (hora) => {
+  const [h, m] = String(hora).slice(0, 5).split(':').map(Number);
+  return h * 60 + m;
+};
+const semHora = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+const semPos = (iniMin, finMin) => ({
+  top: `${((iniMin - SEM_INI) / SEM_TOTAL) * 100}%`,
+  height: `${((finMin - iniMin) / SEM_TOTAL) * 100}%`,
+});
+
+// Primera semana a mostrar: la actual; si ya es viernes o fin de semana, la que viene.
+function semanaInicial() {
+  const lunes = lunesDeLaSemana(hoyISO());
+  const dow = new Date().getDay(); // 0=Dom ... 5=Vie, 6=Sáb
+  return dow === 0 || dow >= 5 ? sumarDias(lunes, 7) : lunes;
+}
+
+function SemanaPanel() {
+  const [lunes, setLunes] = useState(semanaInicial);
+  const [dias, setDias] = useState(null); // [{ fecha, agenda }]
+  const [error, setError] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [sel, setSel] = useState(null);
+  const [agendando, setAgendando] = useState(null); // { court, date, turn? | padelStart?, padelEnd? }
+
+  async function cargar() {
+    setCargando(true);
+    setError(null);
+    setSel(null);
+    try {
+      const aperturas = await api.adminAperturas(lunes, sumarDias(lunes, 4)).catch(() => ({ aperturas: [] }));
+      const abiertos = new Set((aperturas.aperturas || []).map((a) => a.reservation_date));
+      const fechas = [0, 1, 2, 3, 4]
+        .map((n) => sumarDias(lunes, n))
+        .filter((f) => esDiaHabilitado(f) || abiertos.has(f));
+      const agendas = await Promise.all(fechas.map((f) => api.adminAgenda(f)));
+      setDias(fechas.map((fecha, i) => ({ fecha, agenda: agendas[i] })));
+    } catch (e) {
+      setError(e.message);
+      setDias(null);
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [lunes]);
+
+  const toggle = (code) => setSel((s) => (s === code ? null : code));
+  const etiqueta = (r) => (r.team_name ? nombreEquipo(r.team_name) : (r.client_name || '').split(' ')[0]);
+
+  // Cifras de toda la semana.
+  let reservas = 0;
+  let aConfirmar = 0;
+  let ocupados = 0;
+  let posibles = 0;
+  for (const { agenda } of dias || []) {
+    for (const court of ['C1', 'C2']) {
+      for (const s of agenda.futbol[court]) {
+        if (s.status === 'bloqueado') continue;
+        posibles += 1;
+        if (s.status !== 'libre') {
+          ocupados += 1;
+          reservas += 1;
+          if (s.status === 'pendiente') aConfirmar += 1;
+        }
+      }
+    }
+    for (const r of agenda.padel) {
+      reservas += 1;
+      if (r.status === 'pendiente') aConfirmar += 1;
+    }
+  }
+  const ocupacion = posibles ? Math.round((ocupados / posibles) * 100) : 0;
+
+  const primero = partesFecha(dias && dias.length ? dias[0].fecha : sumarDias(lunes, 1));
+  const ultimo = partesFecha(dias && dias.length ? dias[dias.length - 1].fecha : sumarDias(lunes, 3));
+  const rango = primero.mes === ultimo.mes
+    ? `${primero.diaNum} al ${ultimo.diaNum} de ${ultimo.mes}`
+    : `${primero.diaNum} de ${primero.mes} al ${ultimo.diaNum} de ${ultimo.mes}`;
+
+  // Reserva seleccionada (en cualquier día) para mostrar su detalle debajo de la hoja.
+  let seleccion = null;
+  for (const d of dias || []) {
+    const r = [
+      ...d.agenda.futbol.C1.map((s) => s.reserva),
+      ...d.agenda.futbol.C2.map((s) => s.reserva),
+      ...d.agenda.padel,
+    ].find((x) => x && x.code === sel);
+    if (r) { seleccion = { reserva: r, fecha: d.fecha, espera: d.agenda.espera || [] }; break; }
+  }
+
+  // Tocar un hueco del pádel: el horario sale de dónde se tocó (de a 30 min, 1 hora de juego).
+  function tocarPadel(e, fecha) {
+    if (e.target !== e.currentTarget) return; // un bloque ya existente maneja su propio toque
+    const caja = e.currentTarget.getBoundingClientRect();
+    const min = SEM_INI + ((e.clientY - caja.top) / caja.height) * SEM_TOTAL;
+    const ini = Math.min(Math.max(Math.floor(min / 30) * 30, SEM_INI), SEM_FIN - 60);
+    setAgendando({ court: 'PAD', date: fecha, padelStart: semHora(ini), padelEnd: semHora(ini + 60) });
+  }
+
+  return (
+    <div className="stat-card sem">
+      <div className="agenda-nav-row">
+        <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, -7))} aria-label="Semana anterior">‹</button>
+        <div className="agenda-fecha" style={{ cursor: 'default' }}>
+          <span className="agenda-fecha-dia">Semana del {rango}</span>
+          <span className="agenda-fecha-mes">{primero.anio}</span>
+        </div>
+        <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, 7))} aria-label="Semana siguiente">›</button>
+      </div>
+
+      {error && <p className="error-msg">{error}</p>}
+      {cargando && !dias && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
+
+      {dias && (
+        <>
+          <p className="sem-resumen">
+            <b>{reservas}</b> {reservas === 1 ? 'reserva' : 'reservas'} · <b>{aConfirmar}</b> a confirmar · <b>{ocupacion}%</b> ocupación fútbol
+          </p>
+
+          {dias.length === 0 ? (
+            <p className="agenda-vacio">No hay días abiertos esta semana.</p>
+          ) : (
+            <div className="sem-cal" style={cargando ? { opacity: 0.55 } : undefined}>
+              <div className="sem-eje">
+                <div className="sem-cab" />
+                <div className="sem-cuerpo">
+                  {[0, 1, 2, 3].map((n) => (
+                    <span key={n} style={{ top: `${((n * 60) / SEM_TOTAL) * 100}%` }}>{20 + n}</span>
+                  ))}
+                </div>
+              </div>
+
+              {dias.map(({ fecha, agenda }) => {
+                const p = partesFecha(fecha);
+                const esHoy = fecha === hoyISO();
+                return (
+                  <div key={fecha} className={`sem-diacol ${esHoy ? 'hoy' : ''}`}>
+                    <div className="sem-cab">
+                      <div className="sem-cab-dia">
+                        <span>{p.diaSemana.slice(0, 3)}</span>
+                        <b>{p.diaNum}</b>
+                      </div>
+                      <div className="sem-cab-sub" aria-hidden="true">
+                        <span>C1</span><span>C2</span><span>Pád</span>
+                      </div>
+                    </div>
+
+                    <div className="sem-cuerpo sem-cuerpo-dia">
+                      {['C1', 'C2'].map((court) => (
+                        <div key={court} className="sem-col" aria-label={`${NOMBRE_CANCHA[court]} ${fechaLinda(fecha)}`}>
+                          {agenda.futbol[court].map((slot) => {
+                            const pos = semPos(semMin(slot.start), semMin(slot.end));
+                            if (slot.reserva) {
+                              const r = slot.reserva;
+                              return (
+                                <button
+                                  key={slot.turn}
+                                  type="button"
+                                  className={`sem-b ${slot.status} ${r.looking_for_rival ? 'con-rival' : ''} ${sel === r.code ? 'sel' : ''}`}
+                                  style={pos}
+                                  onClick={() => toggle(r.code)}
+                                  title={`${NOMBRE_CANCHA[court]} · ${hhmm(slot.start)}: ${r.team_name ? nombreEquipo(r.team_name) + ' · ' : ''}${r.client_name}`}
+                                >
+                                  <span className="sem-b-txt">{etiqueta(r)}</span>
+                                  {r.looking_for_rival && <span className="sem-pelota" role="img" aria-label="Busca rival" title="Busca rival">⚽</span>}
+                                </button>
+                              );
+                            }
+                            if (slot.status === 'bloqueado') {
+                              return <div key={slot.turn} className="sem-b bloqueado" style={pos} title="Bloqueado" />;
+                            }
+                            return (
+                              <button
+                                key={slot.turn}
+                                type="button"
+                                className="sem-b libre"
+                                style={pos}
+                                aria-label={`Agendar ${NOMBRE_CANCHA[court]} ${fechaLinda(fecha)} ${hhmm(slot.start)}`}
+                                title="Libre · tocá para agendar"
+                                onClick={() => setAgendando({ court, date: fecha, turn: slot.turn })}
+                              />
+                            );
+                          })}
+                        </div>
+                      ))}
+
+                      <div
+                        className="sem-col sem-col-padel"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Agendar pádel ${fechaLinda(fecha)}`}
+                        title="Pádel · tocá un horario libre para agendar"
+                        onClick={(e) => tocarPadel(e, fecha)}
+                        onKeyDown={(e) => {
+                          if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                            e.preventDefault();
+                            setAgendando({ court: 'PAD', date: fecha });
+                          }
+                        }}
+                      >
+                        {agenda.padel.map((r) => (
+                          <button
+                            key={r.code}
+                            type="button"
+                            className={`sem-b ${r.status} ${sel === r.code ? 'sel' : ''}`}
+                            style={semPos(Math.max(semMin(r.start_time), SEM_INI), Math.min(semMin(r.end_time), SEM_FIN))}
+                            onClick={() => toggle(r.code)}
+                            title={`Pádel · ${hhmm(r.start_time)} a ${hhmm(r.end_time)}: ${r.client_name}`}
+                          >
+                            <span className="sem-b-txt">{etiqueta(r)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="grilla-leyenda sem-leyenda">
+            <span><i className="pt pendiente" /> A confirmar</span>
+            <span><i className="pt confirmada" /> Reservado</span>
+            <span><i className="pt bloq" /> Bloqueado</span>
+            <span><span aria-hidden="true">⚽</span> Busca rival</span>
+          </div>
+
+          {seleccion && (
+            <DetalleReserva
+              reserva={seleccion.reserva}
+              espera={seleccion.espera}
+              fecha={seleccion.fecha}
+              onCancelado={cargar}
+            />
+          )}
+        </>
+      )}
+
+      {agendando && (
+        <ManualBookingModal
+          contacto={null}
+          inicial={agendando}
+          onCerrar={() => setAgendando(null)}
+          onCreado={() => { setAgendando(null); cargar(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// La Agenda tiene dos vistas: la semana completa (la de siempre al abrir) y un día en detalle.
+function AgendaPanel() {
+  const [vista, setVista] = useState(() => {
+    try { return localStorage.getItem('panel-agenda-vista') === 'dia' ? 'dia' : 'semana'; } catch { return 'semana'; }
+  });
+  function elegir(v) {
+    setVista(v);
+    try { localStorage.setItem('panel-agenda-vista', v); } catch { /* sin almacenamiento: no pasa nada */ }
+  }
+  return (
+    <>
+      <div className="vista-toggle" role="tablist" aria-label="Vista de la agenda">
+        <button type="button" role="tab" aria-selected={vista === 'dia'} className={vista === 'dia' ? 'on' : ''} onClick={() => elegir('dia')}>Día</button>
+        <button type="button" role="tab" aria-selected={vista === 'semana'} className={vista === 'semana' ? 'on' : ''} onClick={() => elegir('semana')}>Semana</button>
+      </div>
+      {vista === 'semana' ? <SemanaPanel /> : <AgendaDia />}
+    </>
   );
 }
 
@@ -981,16 +1317,49 @@ function ContactosPanel() {
   const [agregar, setAgregar] = useState(false);
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
+  const [libresTxt, setLibresTxt] = useState(null); // turnos libres de los próximos días, para el aviso
 
-  async function guardarContacto({ nombre, telefono, comentario }, c) {
+  // Turnos de fútbol libres de los próximos días abiertos (hasta 4), con los mismos horarios que ve Mateo.
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const hoy = hoyISO();
+        const fechas = [];
+        for (let n = 0; n <= 10 && fechas.length < 4; n++) {
+          const f = sumarDias(hoy, n);
+          if (esDiaHabilitado(f)) fechas.push(f);
+        }
+        const agendas = await Promise.all(fechas.map((f) => api.adminAgenda(f)));
+        const ahora = new Date();
+        const minAhora = ahora.getHours() * 60 + ahora.getMinutes();
+        const partes = [];
+        fechas.forEach((f, i) => {
+          const { C1, C2 } = agendas[i].futbol;
+          const horas = C1.map((s, k) => ({ s, c2: C2[k] }))
+            .filter(({ s, c2 }) => s.status === 'libre' || c2.status === 'libre')
+            // hoy: solo los que todavía se pueden reservar online (falta más de 1 hora)
+            .filter(({ s }) => f !== hoy || (Number(s.start.slice(0, 2)) * 60 + Number(s.start.slice(3, 5))) - minAhora >= 61)
+            .map(({ s }) => hhmm(s.start));
+          if (horas.length) partes.push(`${fechaCorta(f)} a las ${unir(horas)}`);
+        });
+        if (vivo) setLibresTxt(partes.join(' · '));
+      } catch {
+        /* sin datos: el aviso sale con el texto general */
+      }
+    })();
+    return () => { vivo = false; };
+  }, []);
+
+  async function guardarContacto({ nombre, telefono, equipo, comentario }, c) {
     setGuardando(true);
     setError(null);
     try {
       if (c && c.manualId) {
-        await api.adminEditarContacto(c.manualId, { nombre, telefono, comentario });
+        await api.adminEditarContacto(c.manualId, { nombre, telefono, equipo, comentario });
       } else {
         // alta nueva, o primera anotación sobre un contacto que salió de reservas
-        await api.adminAgregarContacto({ nombre, telefono, comentario });
+        await api.adminAgregarContacto({ nombre, telefono, equipo, comentario });
       }
       setAgregar(false);
       setEditando(null);
@@ -1035,15 +1404,12 @@ function ContactosPanel() {
 
   const filtro = texto.trim().toLowerCase();
   const lista = (contactos || []).filter(
-    (c) => !filtro || `${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
+    (c) => !filtro || `${c.equipo || ''} ${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
   );
 
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Base de contactos</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Todos los clientes que alguna vez reservaron. Tocá "WhatsApp" para escribirles.
-      </p>
 
       {agregar ? (
         <ContactoForm
@@ -1059,7 +1425,7 @@ function ContactosPanel() {
 
       <input
         style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
-        placeholder="Buscar por nombre, teléfono o email"
+        placeholder="Buscar por equipo, nombre o teléfono"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
       />
@@ -1068,7 +1434,7 @@ function ContactosPanel() {
       {error && <p className="error-msg">{error}</p>}
       {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
-        <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length} de {contactos.length} contactos</p>
+        <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length === contactos.length ? `${contactos.length} contactos` : `${lista.length} de ${contactos.length} contactos`}</p>
       )}
 
       {lista.map((c) => {
@@ -1078,7 +1444,7 @@ function ContactosPanel() {
           return (
             <ContactoForm
               key={clave}
-              inicial={{ nombre: c.nombre, area: p.area, num: p.num, comentario: c.comentario || '' }}
+              inicial={{ nombre: c.nombre, equipo: c.equipo || '', area: p.area, num: p.num, comentario: c.comentario || '' }}
               onGuardar={(datos) => guardarContacto(datos, c)}
               onCancelar={() => setEditando(null)}
               onEliminar={() => eliminarContacto(c)}
@@ -1095,16 +1461,16 @@ function ContactosPanel() {
         return (
           <div key={clave} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.nombre}</span>
+              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
               <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
               <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
               {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--p-mut)' }}>(agregado a mano)</span>}
             </div>
             <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
-              {c.telefono}{c.email ? ` · ${c.email}` : ''}
+              {c.equipo ? `${c.nombre} · ` : ''}{c.telefono}{c.email ? ` · ${c.email}` : ''}
             </div>
             <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
-              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${c.ultimaReserva}`}
+              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${String(c.ultimaReserva).split('-').reverse().join('/')}`}
             </div>
             {c.comentario && (
               <div style={{ fontSize: 12, color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
@@ -1125,7 +1491,7 @@ function ContactosPanel() {
                 <a
                   className="btn btn-ghost"
                   style={{ textDecoration: 'none', textAlign: 'center', display: 'inline-block', padding: '6px 14px' }}
-                  href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre))}`}
+                  href={`https://wa.me/${c.telefonoWa}?text=${encodeURIComponent(mensajeAvisoTurnos(c.nombre, libresTxt))}`}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -1135,7 +1501,7 @@ function ContactosPanel() {
               <button
                 className="btn btn-primary"
                 style={{ padding: '6px 14px' }}
-                onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono }); }}
+                onClick={() => { setAviso(null); setAgendando({ nombre: c.nombre, telefono: c.telefono, equipo: c.equipo || '' }); }}
               >
                 Agendar turno manual
               </button>
@@ -1157,7 +1523,7 @@ function ContactosPanel() {
           onCerrar={() => setAgendando(null)}
           onCreado={(r) => {
             setAgendando(null);
-            setAviso(`Turno agendado para ${r.client_name} (${r.code}).`);
+            setAviso(`Turno agendado para ${r.client_name}.`);
             cargar();
           }}
         />
@@ -1180,6 +1546,7 @@ function partirTelefono(tel) {
 // Formulario de contacto (alta o edición): nombre + WhatsApp + comentario.
 function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabel, eliminarConfirm, guardando }) {
   const [nombre, setNombre] = useState(inicial?.nombre || '');
+  const [equipo, setEquipo] = useState(inicial?.equipo || '');
   const [area, setArea] = useState(inicial?.area || '');
   const [num, setNum] = useState(inicial?.num || '');
   const [comentario, setComentario] = useState(inicial?.comentario || '');
@@ -1194,6 +1561,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
     if (areaLimpia.length < 2 || numLimpio.length < 6) { setError('Completá característica y número.'); return; }
     onGuardar({
       nombre: nombre.trim(),
+      equipo: equipo.trim() || null,
       telefono: `54 9 ${areaLimpia} ${numLimpio}`,
       comentario: comentario.trim() || null,
     });
@@ -1202,8 +1570,12 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
   return (
     <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 10 }}>
       <div className="field">
-        <label>Nombre</label>
-        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Como lo quieras guardar" />
+        <label>Equipo (opcional)</label>
+        <input value={equipo} onChange={(e) => setEquipo(e.target.value)} placeholder="Ej: Los Pibes FC" />
+      </div>
+      <div className="field">
+        <label>Nombre de la persona</label>
+        <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Quién escribe o paga" />
       </div>
       <div className="field">
         <label>WhatsApp</label>
@@ -1307,10 +1679,6 @@ function BloqueosPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Bloquear turnos o días</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Para sacar de circulación un turno, una cancha o el día entero sin que haya
-        una reserva (mantenimiento, evento privado, etc). No cancela nada existente.
-      </p>
 
       <NavegadorFecha fecha={fecha} onCambiar={setFecha} />
 
@@ -1434,11 +1802,6 @@ function AperturasEspecialesPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Abrir un día especial</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Para abrir puntualmente un lunes o un viernes (fuera de los días de
-        siempre) y que el público lo vea en la web y pueda reservar online,
-        igual que un martes/miércoles/jueves normal.
-      </p>
 
       <div className="field">
         <label>Qué día abrir</label>
@@ -1493,6 +1856,116 @@ function descripcionTurnoFijo(f) {
 
 // Turnos fijos: un cliente que juega siempre el mismo día/horario. El
 // backend genera solo las reservas confirmadas de las próximas semanas.
+// Recordatorios de turnos fijos: lista de los próximos turnos fijos con un botón que abre
+// WhatsApp con el mensaje armado. Se manda a mano (no hay envío automático): al tocar el
+// botón queda marcado como enviado para no repetirlo.
+function mensajeRecordatorioFijo(r, hoy) {
+  const cuando = r.reservation_date === hoy
+    ? 'de hoy'
+    : hoy && r.reservation_date === sumarDias(hoy, 1)
+    ? 'de mañana'
+    : `del ${fechaCorta(r.reservation_date)}`;
+  return (
+    `¡Hola ${primerNombre(r.client_name)}! Te recordamos tu turno ${cuando}: ` +
+    `${NOMBRE_CANCHA[r.court] || r.court}, ${hhmm(r.start_time)} a ${hhmm(r.end_time)}. ¡Los esperamos!`
+  );
+}
+
+function RecordatoriosFijos() {
+  const [lista, setLista] = useState(null);
+  const [hoy, setHoy] = useState(null);
+  const [error, setError] = useState(null);
+
+  async function cargar() {
+    try {
+      const data = await api.adminRecordatoriosFijos(7);
+      setLista(data.recordatorios);
+      setHoy(data.hoy);
+      setError(null);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+  useEffect(() => { cargar(); }, []);
+
+  async function marcar(id, enviado) {
+    // Se marca al instante en pantalla; si el servidor falla, se vuelve a cargar la lista real.
+    setLista((l) => l.map((r) => (r.id === id ? { ...r, recordatorio_enviado_at: enviado ? new Date().toISOString() : null } : r)));
+    try {
+      await api.adminMarcarRecordatorio(id, enviado);
+    } catch {
+      cargar();
+    }
+  }
+
+  const porDia = {};
+  for (const r of lista || []) (porDia[r.reservation_date] ||= []).push(r);
+  const etiquetaDia = (iso) => {
+    const f = fechaLargaCompleta(iso);
+    const txt = f.charAt(0).toUpperCase() + f.slice(1);
+    if (iso === hoy) return `Hoy · ${txt}`;
+    if (hoy && iso === sumarDias(hoy, 1)) return `Mañana · ${txt}`;
+    return txt;
+  };
+  const pendientes = (lista || []).filter((r) => !r.recordatorio_enviado_at).length;
+
+  return (
+    <div className="stat-card" style={{ marginBottom: 14 }}>
+      <h3 style={{ marginTop: 0 }}>
+        Recordatorios · próximos 7 días
+        {lista && pendientes > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes}</span>}
+      </h3>
+      {error && <p className="error-msg">{error}</p>}
+      {!lista && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
+      {lista && lista.length === 0 && <p className="agenda-vacio">No hay turnos fijos en los próximos 7 días.</p>}
+      {Object.entries(porDia).map(([dia, filas]) => (
+        <div key={dia} style={{ marginBottom: 10 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0' }}>{etiquetaDia(dia)}</p>
+          {filas.map((r) => {
+            const enviado = !!r.recordatorio_enviado_at;
+            const link = r.telefonoWa
+              ? `https://wa.me/${r.telefonoWa}?text=${encodeURIComponent(mensajeRecordatorioFijo(r, hoy))}`
+              : null;
+            return (
+              <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                    {r.client_name}{r.team_name ? ` · ${nombreEquipo(r.team_name)}` : ''}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
+                    {NOMBRE_CANCHA[r.court] || r.court} · {hhmm(r.start_time)} a {hhmm(r.end_time)} hs
+                  </div>
+                </div>
+                {link ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
+                    {enviado && (
+                      <button type="button" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => marcar(r.id, false)} title="Marcar como no enviado">
+                        Deshacer
+                      </button>
+                    )}
+                    <a
+                      className={enviado ? 'btn btn-ghost' : 'btn btn-primary'}
+                      style={{ padding: '6px 12px', fontSize: 13, textDecoration: 'none' }}
+                      href={link}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => { if (!enviado) marcar(r.id, true); }}
+                    >
+                      {enviado ? '✓ Enviado · reenviar' : 'Recordar'}
+                    </a>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>Sin teléfono</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TurnosFijosPanel() {
   const [fijos, setFijos] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -1589,13 +2062,10 @@ function TurnosFijosPanel() {
   }
 
   return (
+    <>
+    <RecordatoriosFijos />
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Turnos fijos</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Un cliente que juega siempre el mismo día y horario. Se generan solas las
-        reservas confirmadas de las próximas ~6 semanas; si cancelás una semana puntual
-        desde la Agenda, esa fecha no se vuelve a generar.
-      </p>
 
       <div className="field">
         <label>Cancha</label>
@@ -1706,7 +2176,7 @@ function TurnosFijosPanel() {
                 {f.client_name}{f.team_name ? ` · ${nombreEquipo(f.team_name)}` : ''}
               </div>
               <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
-              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone} · desde {f.desde}{f.hasta ? ` hasta ${f.hasta}` : ''}</div>
+              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
             </div>
             <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
               Dar de baja
@@ -1715,6 +2185,7 @@ function TurnosFijosPanel() {
         ))}
       </div>
     </div>
+    </>
   );
 }
 
@@ -1761,7 +2232,7 @@ function SuspensionPanel() {
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia</h3>
       <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-        Cancela todas las reservas del día y te arma un WhatsApp por cliente para avisarles.
+        Cancela las reservas del día y arma el aviso por WhatsApp para cada cliente.
       </p>
 
       <NavegadorFecha fecha={fecha} onCambiar={(f) => { setFecha(f); setReservas(null); setClientes(null); }} />
@@ -1811,7 +2282,7 @@ function SuspensionPanel() {
                 {c.nombre} — {NOMBRE_CANCHA[c.court]} {hhmm(c.start_time)}
               </div>
               <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>
-                Tel: {c.telefonoOriginal} {c.telefono ? `→ +${c.telefono}` : '(no se pudo armar el número, revisalo)'}
+                {c.telefono ? `+${c.telefono}` : `${c.telefonoOriginal} (no se pudo armar el número, revisalo)`}
               </div>
               {c.linkWhatsapp ? (
                 <a
@@ -1856,6 +2327,26 @@ export default function AdminPanel() {
   const [procesando, setProcesando] = useState(false);
   const [aviso, setAviso] = useState(null);
   const [confirmadaWa, setConfirmadaWa] = useState(null); // { link, nombre } tras confirmar
+  const [menu, setMenu] = useState(false); // menú lateral (solo se usa en celular)
+
+  // Con el menú abierto: Esc lo cierra y el fondo no se desplaza.
+  useEffect(() => {
+    if (!menu) return undefined;
+    const cerrarConEsc = (e) => { if (e.key === 'Escape') setMenu(false); };
+    window.addEventListener('keydown', cerrarConEsc);
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', cerrarConEsc);
+      document.body.style.overflow = previo;
+    };
+  }, [menu]);
+
+  function irA(id) {
+    setTab(id);
+    setMenu(false);
+    window.scrollTo({ top: 0 });
+  }
 
   useEffect(() => {
     cargarPendientes();
@@ -1906,7 +2397,7 @@ export default function AdminPanel() {
     setProcesando(true);
     try {
       const r = await api.adminConfirmar(resultado.reserva.code);
-      setAviso('Reserva confirmada. Email enviado al cliente.');
+      setAviso('Reserva confirmada.');
       setConfirmadaWa(
         r.linkWhatsappConfirmacion
           ? { link: r.linkWhatsappConfirmacion, nombre: r.reserva.client_name }
@@ -1926,7 +2417,7 @@ export default function AdminPanel() {
     setProcesando(true);
     try {
       await api.adminCancelar(resultado.reserva.code);
-      setAviso('Reserva cancelada. Email enviado al cliente.');
+      setAviso('Reserva cancelada.');
       setResultado(null);
       setCodigo('');
       cargarPendientes();
@@ -1948,13 +2439,21 @@ export default function AdminPanel() {
 
   return (
     <div className="panel">
-      <aside className="pnav">
+      <header className="ptop">
+        <button type="button" className="ptop-btn" aria-label="Abrir el menú" aria-expanded={menu} onClick={() => setMenu(true)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          {pendientes.length > 0 && <span className="ptop-punto" aria-label={`${pendientes.length} pendientes`}>{pendientes.length}</span>}
+        </button>
+        <span className="ptop-titulo">{(NAV.find((n) => n.id === tab) || {}).label}</span>
+      </header>
+      {menu && <div className="pnav-fondo" onClick={() => setMenu(false)} aria-hidden="true" />}
+      <aside className={`pnav ${menu ? 'abierto' : ''}`}>
         <div className="pnav-marca">
           <svg viewBox="0 0 40 52" aria-hidden="true"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor" /><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor" /></svg>
           <div><b>El Pinar</b><span>Panel</span></div>
         </div>
         {NAV.map((n) => (
-          <button key={n.id} className={`pnav-item ${tab === n.id ? 'on' : ''}`} onClick={() => setTab(n.id)}>
+          <button key={n.id} className={`pnav-item ${tab === n.id ? 'on' : ''}`} onClick={() => irA(n.id)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{n.ico}</svg>
             {n.label}
             {n.tag ? <span className="pnav-tag">{n.tag}</span> : null}
@@ -1982,70 +2481,52 @@ export default function AdminPanel() {
 
       {tab === 'buscar' && (
         <>
-          <div className="stat-card">
-            <h3 style={{ marginTop: 0 }}>Pegá el código de la reserva</h3>
-            <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
-              El cliente te lo manda por WhatsApp con el comprobante. Al confirmar, el turno
-              queda ocupado en la web, se le manda el email, y si pidió rival aparece solo en "Busco rival".
-            </p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input
-                style={{ flex: 1, padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', fontFamily: 'monospace' }}
-                value={codigo}
-                onChange={(e) => setCodigo(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && buscar()}
-                placeholder="Ej: RES-C1-22SEP-T1"
-              />
-              <button className="btn btn-primary" onClick={() => buscar()}>Buscar</button>
+          {(error || aviso || confirmadaWa) && (
+            <div className="stat-card">
+              {error && <p className="error-msg" style={{ margin: 0 }}>{error}</p>}
+              {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600, margin: 0 }}>{aviso}</p>}
+              {confirmadaWa && (
+                <a
+                  className="btn btn-primary"
+                  style={{ textDecoration: 'none', textAlign: 'center', display: 'block', marginTop: 10 }}
+                  href={confirmadaWa.link}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Enviar confirmación por WhatsApp a {confirmadaWa.nombre}
+                </a>
+              )}
             </div>
-            {error && <p className="error-msg">{error}</p>}
-            {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 8 }}>{aviso}</p>}
-            {confirmadaWa && (
-              <a
-                className="btn btn-primary"
-                style={{ textDecoration: 'none', textAlign: 'center', display: 'block', marginTop: 8 }}
-                href={confirmadaWa.link}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Enviar confirmación por WhatsApp a {confirmadaWa.nombre}
-              </a>
-            )}
-          </div>
+          )}
 
           {resultado && (
             <div className="stat-card">
-              <div style={{ fontFamily: 'monospace', fontWeight: 700, marginBottom: 4 }}>{resultado.reserva.code}</div>
-              <p style={{ margin: '4px 0' }}>
-                {resultado.reserva.client_name} {resultado.reserva.category ? `· ${resultado.reserva.category}` : ''}
-                {resultado.reserva.looking_for_rival && (
-                  <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>
-                    {' · '}Busca rival{resultado.reserva.team_name ? ` (${nombreEquipo(resultado.reserva.team_name)})` : ''}
-                  </span>
+              <p style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700 }}>
+                {resultado.reserva.client_name}
+                {resultado.reserva.team_name && (
+                  <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (${resultado.reserva.category})` : ''}</span>
                 )}
-                {resultado.reserva.parrilla && <span style={{ color: 'var(--p-oro)', fontWeight: 600 }}>{' · '}🔥 consultó parrilla</span>}
               </p>
               <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>
-                {NOMBRE_CANCHA[resultado.reserva.court]} · {resultado.reserva.reservation_date} · {resultado.reserva.start_time.slice(0, 5)} a {resultado.reserva.end_time.slice(0, 5)}
+                {NOMBRE_CANCHA[resultado.reserva.court]} · {fechaLinda(resultado.reserva.reservation_date)} · {hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs
               </p>
-              <p style={{ fontSize: 13 }}>Tel: {resultado.reserva.client_phone}</p>
+              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>{resultado.reserva.client_phone}</p>
 
               {resultado.vencioPorSistema && (
                 <p style={{ fontSize: 12, color: 'var(--p-oro)', marginTop: 4 }}>
-                  Este turno se había liberado por falta de comprobante. Si el turno sigue libre,
-                  al confirmar se reactiva.
+                  Este turno se liberó solo. Si sigue libre, al confirmar se reactiva.
                 </p>
               )}
               {resultado.accionSugerida === 'confirmar' && (
                 <>
                   <div className="modal-actions">
-                    <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Sí, confirmar</button>
+                    <button className="btn btn-primary" disabled={procesando} onClick={confirmar}>Confirmar turno</button>
                     <button className="btn btn-ghost" onClick={() => setResultado(null)}>Atrás</button>
                   </div>
                   <div style={{ marginTop: 8 }}>
                     <BotonConfirmar
-                      label="Dar de baja este turno"
-                      confirmLabel="Confirmar: cancelar el turno"
+                      label="Cancelar este turno"
+                      confirmLabel="Tocá de nuevo para cancelar"
                       onConfirm={cancelar}
                       disabled={procesando}
                       style={{ width: '100%' }}
@@ -2055,93 +2536,63 @@ export default function AdminPanel() {
               )}
               {resultado.accionSugerida === 'cancelar' && (
                 <div className="modal-actions">
-                  <button className="btn btn-danger" disabled={procesando} onClick={cancelar}>Sí, cancelar</button>
+                  <button className="btn btn-danger" disabled={procesando} onClick={cancelar}>Cancelar turno</button>
                   <button className="btn btn-ghost" onClick={() => setResultado(null)}>Atrás</button>
                 </div>
               )}
               {resultado.accionSugerida === 'ninguna' && (
-                <p style={{ fontStyle: 'italic', color: 'var(--p-mut)' }}>Este turno ya fue cancelado. No hay acciones disponibles.</p>
+                <p style={{ fontStyle: 'italic', color: 'var(--p-mut)' }}>Este turno ya fue cancelado.</p>
               )}
             </div>
           )}
 
           <div className="stat-card">
-            <h3 style={{ marginTop: 0 }}>Pendientes de confirmación</h3>
-            {pendientes.length === 0 && <p style={{ color: 'var(--p-mut)' }}>No hay reservas pendientes.</p>}
+            <h3 style={{ marginTop: 0 }}>
+              Pendientes de confirmación
+              {pendientes.length > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes.length}</span>}
+            </h3>
+            {pendientes.length === 0 && <p className="agenda-vacio">No hay reservas pendientes.</p>}
             {pendientes.map((p) => (
               <button
                 key={p.id}
                 className="pendiente-item"
                 onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               >
-                <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 13 }}>{p.code}</div>
-                <div style={{ fontSize: 12, color: 'var(--p-oro)' }}>
-                  {p.client_name} · {NOMBRE_CANCHA[p.court] || p.court} · {p.reservation_date}
+                <div style={{ fontWeight: 700, fontSize: 15 }}>{p.team_name ? `${nombreEquipo(p.team_name)} · ${p.client_name}` : p.client_name}</div>
+                <div style={{ fontSize: 13, color: 'var(--p-oro)' }}>
+                  {NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)} hs
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--p-oro)', marginTop: 2, fontWeight: 600 }}>Tocá para confirmar / cancelar →</div>
               </button>
             ))}
           </div>
         </>
       )}
 
-      {tab === 'stats' && <EstadoSistema />}
-
       {tab === 'stats' && stats && (
         <>
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
             <h3 style={{ marginTop: 0 }}>Próximos {stats.rangoDias} días</h3>
             <div className="stat-grid">
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Confirmadas</div>
-                <div className="big-num">{stats.ventana.confirmadas}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Pendientes</div>
-                <div className="big-num">{stats.ventana.pendientes}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Ocupación fútbol</div>
-                <div className="big-num">{stats.ventana.ocupacionFutbolPct}%</div>
-                <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>
-                  {stats.ventana.turnosFutbolOcupados}/{stats.ventana.turnosFutbolPosibles} turnos
-                </div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Consultas parrilla</div>
-                <div className="big-num">{stats.ventana.parrillasReservadas}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Cancha 1 · Cancha 2</div>
-                <div className="big-num">{stats.ventana.reservasPorCancha.C1} · {stats.ventana.reservasPorCancha.C2}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Pádel · Buscan rival</div>
-                <div className="big-num">{stats.ventana.reservasPorCancha.PAD} · {stats.ventana.equiposBuscandoRival}</div>
-              </div>
+              <Cifra titulo="Confirmadas" valor={stats.ventana.confirmadas} />
+              <Cifra titulo="Pendientes" valor={stats.ventana.pendientes} />
+              <Cifra
+                titulo="Ocupación fútbol"
+                valor={`${stats.ventana.ocupacionFutbolPct}%`}
+                sub={`${stats.ventana.turnosFutbolOcupados} de ${stats.ventana.turnosFutbolPosibles} turnos`}
+              />
+              <Cifra titulo="Buscan rival" valor={stats.ventana.equiposBuscandoRival} />
+              <Cifra titulo="Cancha 1" valor={stats.ventana.reservasPorCancha.C1} />
+              <Cifra titulo="Cancha 2" valor={stats.ventana.reservasPorCancha.C2} />
+              <Cifra titulo="Pádel" valor={stats.ventana.reservasPorCancha.PAD} />
             </div>
           </div>
 
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>
             <div className="stat-grid">
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Reservas</div>
-                <div className="big-num">{stats.historico30.totalActivas}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Clientes distintos</div>
-                <div className="big-num">{stats.historico30.clientesUnicos}</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Cancelaciones</div>
-                <div className="big-num">{stats.historico30.canceladas}</div>
-                <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{stats.historico30.tasaCancelacionPct}% del total</div>
-              </div>
-              <div className="stat-card">
-                <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>Consultas parrilla</div>
-                <div className="big-num">{stats.historico30.parrillas}</div>
-              </div>
+              <Cifra titulo="Reservas" valor={stats.historico30.totalActivas} />
+              <Cifra titulo="Clientes distintos" valor={stats.historico30.clientesUnicos} />
+              <Cifra titulo="Cancelaciones" valor={stats.historico30.canceladas} sub={`${stats.historico30.tasaCancelacionPct}% del total`} />
             </div>
             <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Reservas por día</div>
@@ -2165,6 +2616,7 @@ export default function AdminPanel() {
       )}
 
       {tab === 'stats' && !stats && <ExportPanel />}
+      {tab === 'stats' && <EstadoSistema />}
       </main>
     </div>
   );

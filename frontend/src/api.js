@@ -76,11 +76,12 @@ async function requestAdmin(path, options = {}) {
 }
 
 export const api = {
-  disponibilidadFutbol: (court, date) =>
-    requestPublico(`/availability/futbol?court=${court}&date=${date}`),
+  // sinAnticipacion: solo para el panel (agendar a mano): muestra también los turnos que faltan menos de 1 hora.
+  disponibilidadFutbol: (court, date, { sinAnticipacion = false } = {}) =>
+    requestPublico(`/availability/futbol?court=${court}&date=${date}${sinAnticipacion ? '&sinAnticipacion=1' : ''}`),
 
-  disponibilidadPadel: (date) =>
-    requestPublico(`/availability/padel?date=${date}`),
+  disponibilidadPadel: (date, { sinAnticipacion = false } = {}) =>
+    requestPublico(`/availability/padel?date=${date}${sinAnticipacion ? '&sinAnticipacion=1' : ''}`),
 
   diasEspeciales: (desde, hasta) =>
     requestPublico(`/availability/dias-especiales?desde=${desde}&hasta=${hasta}`),
@@ -137,6 +138,9 @@ export const api = {
     requestAdmin('/admin/turnos-fijos', { method: 'POST', body: JSON.stringify(payload) }),
   adminBajaTurnoFijo: (id) =>
     requestAdmin(`/admin/turnos-fijos/${id}`, { method: 'DELETE' }),
+  adminRecordatoriosFijos: (dias = 7) => requestAdmin(`/admin/recordatorios-fijos?dias=${dias}`),
+  adminMarcarRecordatorio: (id, enviado = true) =>
+    requestAdmin(`/admin/recordatorios-fijos/${id}/enviado`, { method: 'POST', body: JSON.stringify({ enviado }) }),
   adminAperturas: (desde, hasta) =>
     requestAdmin(`/admin/aperturas-especiales?desde=${desde}&hasta=${hasta}`),
   adminCrearApertura: (payload) =>

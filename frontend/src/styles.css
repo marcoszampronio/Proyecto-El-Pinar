@@ -2337,3 +2337,25 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .sem-b-txt { display: block; writing-mode: vertical-rl; white-space: nowrap; text-overflow: ellipsis; max-height: 100%; }
 }
 .sem-leyenda .pt.bloq { background: repeating-linear-gradient(135deg, rgba(151, 171, 172, 0.5) 0 2px, transparent 2px 4px); }
+
+/* ---------- pádel: mismo lenguaje que el resto del sistema ---------- */
+/* paso 2 (horarios, pueden ser muchos): pastillas sueltas con borde fino */
+.sitio .chips--padel { gap: 8px; }
+.sitio .chips--padel .chip {
+  background: transparent; border: 1px solid var(--borde-fuerte); border-radius: var(--pill);
+  color: var(--s-cal); font-size: 0.95rem; padding: 10px 16px;
+}
+.sitio .chips--padel .chip:hover:not(.ocupado):not(.activo) { border-color: var(--s-oro); }
+.sitio .chips--padel .chip.activo { background: var(--s-oro); border-color: var(--s-oro); color: var(--s-pino-900); }
+.sitio .chips--padel .chip.ocupado { opacity: 0.35; border-color: transparent; background: transparent; }
+/* paso 1 (duración, 4 opciones cortas): control segmentado */
+.sitio .seccion-titulo + .padel-paso + .chips--padel {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px;
+  border-radius: var(--pill); background: var(--s-pino-800); border: 1px solid var(--borde);
+}
+.sitio .seccion-titulo + .padel-paso + .chips--padel .chip { border: 0; padding: 9px 4px; color: var(--s-niebla); }
+.sitio .seccion-titulo + .padel-paso + .chips--padel .chip:hover:not(.activo) { color: var(--s-cal); }
+.sitio .seccion-titulo + .padel-paso + .chips--padel .chip.activo { color: var(--s-pino-900); }
+@media (prefers-reduced-motion: no-preference) {
+  .sitio .chips--padel .chip.activo { animation: sitioPop var(--pop) var(--curva-pop); }
+}

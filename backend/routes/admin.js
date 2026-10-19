@@ -36,7 +36,7 @@ function armarMensajeConfirmacion(reserva) {
     ? `la cancha de pádel el ${fechaCorta(reserva.reservation_date)} de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}`
     : `la ${NOMBRE_CANCHA_WA[reserva.court] || reserva.court} el ${fechaCorta(reserva.reservation_date)} a las ${hora(reserva.start_time)}`;
   return (
-    `${primerNombre(reserva.client_name)}, ¡listo! Tenés ${cuando}. Te esperamos 🙌` +
+    `${primerNombre(reserva.client_name)}, ¡listo! Tenés ${cuando}. Te esperamos.` +
     (MAPS_URL ? `\n\nCómo llegar: ${MAPS_URL}` : '')
   );
 }
@@ -373,7 +373,15 @@ router.post('/cancel/:code', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  res.json({ reserva: actualizada, mensaje: 'Reserva cancelada.' });
+  // Igual que al confirmar: se devuelve el WhatsApp ya armado para avisarle al cliente.
+  const telCliente = normalizarTelefonoAR(actualizada.client_phone);
+  const mensajeCancelacion = armarMensajeCancelacionTurno(actualizada);
+  res.json({
+    reserva: actualizada,
+    mensaje: 'Reserva cancelada.',
+    mensajeWhatsappCancelacion: mensajeCancelacion,
+    linkWhatsappCancelacion: telCliente ? `https://wa.me/${telCliente}?text=${encodeURIComponent(mensajeCancelacion)}` : null,
+  });
 });
 
 // POST /api/admin/manual - Mateo agenda un turno el mismo, ya confirmado

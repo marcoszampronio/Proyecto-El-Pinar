@@ -682,10 +682,9 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
     setError(null);
     try {
       await api.adminCancelar(reserva.code);
-      // Si hay gente en la lista de espera, la mostramos acá mismo para
-      // avisarles. Si no, refrescamos directamente.
-      if (espera.length > 0 && ['C1', 'C2'].includes(reserva.court)) setCancelado(true);
-      else onCancelado();
+      // Queda a la vista (sin refrescar todavía) para poder avisarle al cliente por WhatsApp
+      // y, si hay lista de espera, a esa gente. Se refresca recién al tocar "Listo".
+      setCancelado(true);
     } catch (e) {
       setError(e.message);
       setProcesando(false);
@@ -709,12 +708,30 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
         <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 0 }}>
           Turno cancelado. Se liberó {NOMBRE_CANCHA[reserva.court]} {hhmm(reserva.start_time)}–{hhmm(reserva.end_time)}.
         </p>
-        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '10px 0 6px' }}>
-          Avisá a la lista de espera ({espera.length}):
-        </p>
-        {espera.map((e) => (
-          <EsperaItem key={e.id} e={{ ...e, linkWhatsapp: linkLiberado(e) }} onAccion={() => {}} />
-        ))}
+        {reserva.linkWhatsappCancelacion ? (
+          <a
+            className={`btn ${waAbierto ? 'btn-ghost' : 'btn-primary'}`}
+            style={{ textDecoration: 'none', textAlign: 'center', display: 'block', margin: '10px 0' }}
+            href={reserva.linkWhatsappCancelacion}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setWaAbierto(true)}
+          >
+            {waAbierto ? '✓ WhatsApp abierto' : `Avisarle a ${primerNombre(reserva.client_name)} por WhatsApp`}
+          </a>
+        ) : (
+          <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)', margin: '10px 0' }}>Sin número válido para avisarle por WhatsApp</p>
+        )}
+        {espera.length > 0 && ['C1', 'C2'].includes(reserva.court) && (
+          <>
+            <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '10px 0 6px' }}>
+              Avisá a la lista de espera ({espera.length}):
+            </p>
+            {espera.map((e) => (
+              <EsperaItem key={e.id} e={{ ...e, linkWhatsapp: linkLiberado(e) }} onAccion={() => {}} />
+            ))}
+          </>
+        )}
         <button className="btn btn-primary" style={{ width: '100%', marginTop: 6 }} onClick={onCancelado}>
           Listo
         </button>
@@ -2377,7 +2394,14 @@ function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
         </div>
       )}
       {hecha?.estado === 'cancelando' && <div className="pend-hecho"><span className="pend-baja">Se cancela en unos segundos…</span></div>}
-      {hecha?.estado === 'cancelada' && <div className="pend-hecho"><span className="pend-baja">Turno cancelado</span></div>}
+      {hecha?.estado === 'cancelada' && (
+        <div className="pend-hecho">
+          <span className="pend-baja">Turno cancelado</span>
+          {hecha.link && (
+            <a className="btn btn-primary btn-sm" href={hecha.link} target="_blank" rel="noreferrer">Avisarle por WhatsApp</a>
+          )}
+        </div>
+      )}
       {!hecha && (
         <div className="pend-acciones">
           <button className="btn btn-primary" disabled={ocupado} onClick={confirmar}>
@@ -2409,8 +2433,8 @@ function PendientesLista({ pendientes, onCambio }) {
       mensaje: `Turno de ${p.team_name ? nombreEquipo(p.team_name) : p.client_name} cancelado`,
       errorTexto: 'No se pudo cancelar',
       ejecutar: () => api.adminCancelar(p.code),
-      alConfirmar: () => {
-        setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelada' } }));
+      alConfirmar: (r) => {
+        setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelada', link: r?.linkWhatsappCancelacion } }));
         onCambio?.();
       },
       alDeshacer: () => sacar(p.code),
@@ -2692,8 +2716,13 @@ function AdminPanelInterno() {
   async function cancelar() {
     setProcesando(true);
     try {
-      await api.adminCancelar(resultado.reserva.code);
+      const r = await api.adminCancelar(resultado.reserva.code);
       setAviso('Reserva cancelada.');
+      setConfirmadaWa(
+        r.linkWhatsappCancelacion
+          ? { link: r.linkWhatsappCancelacion, nombre: resultado.reserva.client_name, cancelacion: true }
+          : null
+      );
       setResultado(null);
       setCodigo('');
       cargarPendientes();
@@ -2771,7 +2800,7 @@ function AdminPanelInterno() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Enviar confirmación por WhatsApp a {confirmadaWa.nombre}
+                  {confirmadaWa.cancelacion ? 'Avisar la cancelación' : 'Enviar confirmación'} por WhatsApp a {confirmadaWa.nombre}
                 </a>
               )}
             </div>

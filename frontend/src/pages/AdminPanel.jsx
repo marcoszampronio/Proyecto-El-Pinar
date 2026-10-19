@@ -2482,8 +2482,12 @@ function HoyPanel({ pendientes, onCambio, irA }) {
   return (
     <div className="hoy">
       <div className="hoy-cab">
-        <h2>{esHoy ? 'Hoy' : 'Próximo día de juego'}</h2>
-        <p>{(() => { const f = fechaLargaCompleta(fecha); return f.charAt(0).toUpperCase() + f.slice(1); })()}{!esHoy && ' · hoy no se juega'}</p>
+        <h2>{esHoy ? 'Hoy' : 'Hoy no se juega'}</h2>
+        <p>
+          {esHoy
+            ? fechaLinda(fecha)
+            : `Próximo día de juego: ${fecha === sumarDias(hoy, 1) ? 'mañana, ' : ''}${fechaLargaCompleta(fecha)}`}
+        </p>
       </div>
 
       <section className="stat-card">
@@ -2500,7 +2504,7 @@ function HoyPanel({ pendientes, onCambio, irA }) {
       {agenda && (
         <section className="stat-card">
           <h3 className="hoy-titulo">
-            {esHoy ? 'Turnos de hoy' : 'Turnos de ese día'}
+            {esHoy ? 'Turnos de hoy' : `Turnos del ${fechaLargaCompleta(fecha).split(' ').slice(0, 2).join(' ')}`}
             <span className="hoy-resumen">{ocupados} de 6 de fútbol{agenda.padel.length ? ` · ${agenda.padel.length} de pádel` : ''}</span>
           </h3>
           <div className="hoy-grilla">

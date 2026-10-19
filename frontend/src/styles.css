@@ -2488,16 +2488,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .est-sub { margin: 0 0 12px; font-size: var(--pt-chico); color: var(--p-mut); }
 .est-cargando { margin: 0; color: var(--p-mut); }
 .est-aviso { margin: 0 0 12px; padding: 10px 12px; border-radius: var(--pr); background: var(--p-fila); border-left: 3px solid var(--p-oro); font-size: var(--pt-chico); color: var(--p-txt); }
-.est-cifras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.est-cifra { display: flex; flex-direction: column; gap: 2px; padding: 12px; border-radius: var(--pr); background: var(--p-fila); border: 1px solid var(--p-linea); min-width: 0; }
-.est-cifra-tit { font-size: var(--pt-micro); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-mut); }
-.est-cifra-val { font-size: var(--pt-display); line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--p-txt); }
-.est-cifra-sub { font-size: var(--pt-chico); color: var(--p-mut); }
-.est-delta { margin-top: 4px; font-size: var(--pt-chico); font-weight: 600; }
-.est-delta--bien { color: var(--p-ok); }
-.est-delta--mal { color: var(--p-bad); }
-.est-delta--igual { color: var(--p-mut); }
-
 .est-mapa { display: grid; grid-template-columns: 54px repeat(3, 1fr); gap: 6px; align-items: stretch; }
 .est-mapa-fila { display: contents; }
 .est-mapa-dia { text-align: center; font-size: var(--pt-micro); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-mut); padding-bottom: 2px; }

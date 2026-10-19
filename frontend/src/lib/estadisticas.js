@@ -12,7 +12,6 @@ export const TURNOS = [
   { id: 'T3', hora: '22:30' },
 ];
 const CANCHAS_FUTBOL = ['Cancha 1', 'Cancha 2'];
-const POSIBLES_SEMANA = DIAS_JUEGO.length * TURNOS.length * CANCHAS_FUTBOL.length; // 18
 
 // CSV con comillas ("" = comilla, saltos de línea dentro de comillas) → lista de objetos por columna.
 export function parseCsv(texto) {
@@ -58,17 +57,7 @@ export function analizar(filas, hoy) {
   const futbol = filas.filter((r) => CANCHAS_FUTBOL.includes(r.Cancha) && DIAS_JUEGO.includes(diaSemana(r.Fecha)));
   const enRango = (r, g) => r.Fecha >= g.desde && r.Fecha <= g.hasta;
 
-  const semanas = rangos.map((g) => {
-    const ocupados = futbol.filter((r) => enRango(r, g) && activa(r)).length;
-    return {
-      ...g,
-      ocupados,
-      posibles: POSIBLES_SEMANA,
-      pct: Math.round((ocupados / POSIBLES_SEMANA) * 100),
-      canceladas: filas.filter((r) => enRango(r, g) && r.Estado === 'Cancelada').length,
-      padel: filas.filter((r) => enRango(r, g) && r.Cancha === 'Padel' && activa(r)).length,
-    };
-  });
+  const semanas = rangos.map((g) => ({ ...g, ocupados: futbol.filter((r) => enRango(r, g) && activa(r)).length }));
 
   // mapa día × turno: de todas las veces que ese horario existió en las 4 semanas, cuántas se ocupó
   const mapa = [];
@@ -84,16 +73,7 @@ export function analizar(filas, hoy) {
   return {
     semanas,
     mapa,
-    semanasConDatos: semanas.filter((s) => s.ocupados > 0).length,
     flojos: ordenados.filter((c) => c.pct < 50).slice(0, 2),
     llenos: [...ordenados].reverse().filter((c) => c.pct >= 88).slice(0, 2),
   };
-}
-
-// "Más que la semana anterior" / "Igual" / "Menos que…", para mostrar al lado de un número.
-export function comparar(actual, anterior, { menosEsMejor = false } = {}) {
-  const dif = actual - anterior;
-  if (dif === 0) return { dif, tono: 'igual' };
-  const sube = dif > 0;
-  return { dif, tono: sube !== menosEsMejor ? 'bien' : 'mal' };
 }

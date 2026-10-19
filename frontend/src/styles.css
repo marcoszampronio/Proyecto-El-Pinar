@@ -2517,3 +2517,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .est-lectura li { padding: 10px 12px; border-radius: var(--pr); background: var(--p-fila); border-left: 3px solid var(--p-mut); font-size: var(--pt-chico); line-height: 1.4; color: var(--p-txt); }
 .est-lectura--flojo { border-left-color: var(--p-bad) !important; }
 .est-lectura--lleno { border-left-color: var(--p-ok) !important; }
+
+/* bloques plegables de Estadísticas: título + una línea de resumen cuando están cerrados */
+.estado-sistema .resumen-bloque { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.estado-sistema .resumen-bloque b { font-size: var(--pt-lead); }
+.estado-sistema .resumen-bloque small { font-size: var(--pt-chico); font-weight: 500; color: var(--p-mut); }
+.estado-sistema[open] .resumen-bloque small { display: none; }
+.estado-sistema[open] > .stat-grid { margin-top: 14px; }

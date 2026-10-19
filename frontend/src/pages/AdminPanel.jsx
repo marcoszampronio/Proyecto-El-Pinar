@@ -2833,8 +2833,15 @@ function AdminPanelInterno() {
       {tab === 'stats' && <EstadisticasDecidir cargarCsv={cargarCsv} />}
       {tab === 'stats' && stats && (
         <>
-          <div className="stat-card" style={{ margin: '12px 20px 0' }}>
-            <h3 style={{ marginTop: 0 }}>Próximos {stats.rangoDias} días</h3>
+          <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>
+            <summary>
+              <span className="resumen-bloque">
+                <b>Próximos {stats.rangoDias} días</b>
+                <small>
+                  {stats.ventana.confirmadas} confirmada{stats.ventana.confirmadas === 1 ? '' : 's'} · {stats.ventana.pendientes} pendiente{stats.ventana.pendientes === 1 ? '' : 's'} · {stats.ventana.ocupacionFutbolPct}% de ocupación
+                </small>
+              </span>
+            </summary>
             <div className="stat-grid">
               <Cifra titulo="Confirmadas" valor={stats.ventana.confirmadas} />
               <Cifra titulo="Pendientes" valor={stats.ventana.pendientes} />
@@ -2848,7 +2855,7 @@ function AdminPanelInterno() {
               <Cifra titulo="Cancha 2" valor={stats.ventana.reservasPorCancha.C2} />
               <Cifra titulo="Pádel" valor={stats.ventana.reservasPorCancha.PAD} />
             </div>
-          </div>
+          </details>
 
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>

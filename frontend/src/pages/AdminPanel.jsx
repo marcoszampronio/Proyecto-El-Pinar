@@ -229,11 +229,11 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
       <div className="overlay" role="dialog" aria-modal="true">
         <div className="modal">
           <h3 className="modal-titulo">¡Turno agendado y confirmado!</h3>
-          <p style={{ fontSize: 14 }}>
+          <p style={{ fontSize: 'var(--pt-chico)' }}>
             {hecho.client_name} — {NOMBRE_CANCHA[hecho.court]} · {hhmm(hecho.start_time)} a {hhmm(hecho.end_time)} · {hecho.reservation_date}
             {hecho.looking_for_rival ? ' · en Busco rival' : ''}
           </p>
-          <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+          <p style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', marginTop: 0 }}>
             {waConfirm
               ? 'Mandale la confirmación por WhatsApp con todos los datos del turno.'
               : 'El teléfono del contacto no sirve para WhatsApp — avisale vos por otro medio.'}
@@ -362,7 +362,7 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
         )}
 
         {!esFutbol && disponibilidad?.ocupados?.length > 0 && (
-          <p style={{ fontSize: 12.5, color: 'var(--p-mut)', margin: '-6px 0 14px' }}>
+          <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '-6px 0 14px' }}>
             Ya ocupado ese día: {disponibilidad.ocupados.map((o) => `${hhmm(o.start_time)}–${hhmm(o.end_time)}`).join(', ')}
           </p>
         )}
@@ -473,7 +473,7 @@ function ExportPanel() {
         {backup === '...' ? 'Enviando...' : 'Enviar backup por email ahora'}
       </button>
       {backup && backup !== '...' && (
-        <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
+        <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
       )}
     </div>
   );
@@ -491,9 +491,9 @@ const fechaLinda = (iso) => {
 function Cifra({ titulo, valor, sub }) {
   return (
     <div className="stat-card">
-      <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>{titulo}</div>
+      <div style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>{titulo}</div>
       <div className="big-num">{valor}</div>
-      {sub && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{sub}</div>}
     </div>
   );
 }
@@ -501,10 +501,10 @@ function Cifra({ titulo, valor, sub }) {
 function Semaforo({ ok, label, detalle }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0' }}>
-      <span style={{ fontSize: 15, lineHeight: 1.3 }}>{ok ? '🟢' : '🔴'}</span>
+      <span style={{ fontSize: 'var(--pt-cuerpo)', lineHeight: 1.3 }}>{ok ? '🟢' : '🔴'}</span>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        {detalle && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{detalle}</div>}
+        <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{label}</div>
+        {detalle && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{detalle}</div>}
       </div>
     </div>
   );
@@ -535,7 +535,7 @@ function EstadoSistema() {
         <span>Estado del sistema</span>
         {d && <span aria-hidden="true">{d.baseDatos.ok && d.email.ok ? '🟢' : '🔴'}</span>}
       </summary>
-      <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12, marginTop: 10 }} onClick={cargar} disabled={cargando}>
+      <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 'var(--pt-micro)', marginTop: 10 }} onClick={cargar} disabled={cargando}>
         {cargando ? '...' : 'Actualizar'}
       </button>
       {error && <p className="error-msg">{error}</p>}
@@ -707,7 +707,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
         <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 0 }}>
           Turno cancelado. Se liberó {NOMBRE_CANCHA[reserva.court]} {hhmm(reserva.start_time)}–{hhmm(reserva.end_time)}.
         </p>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '10px 0 6px' }}>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '10px 0 6px' }}>
           Avisá a la lista de espera ({espera.length}):
         </p>
         {espera.map((e) => (
@@ -757,7 +757,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
             {waAbierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
           </a>
         ) : (
-          <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
+          <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
         )}
       </div>
 
@@ -864,14 +864,14 @@ function EsperaItem({ e, onAccion }) {
   }
 
   return (
-    <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
-      <div style={{ fontWeight: 600, fontSize: 14 }}>{e.client_name}</div>
-      <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>{e.client_phone}</div>
+    <div style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+      <div style={{ fontWeight: 600, fontSize: 'var(--pt-chico)' }}>{e.client_name}</div>
+      <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 6 }}>{e.client_phone}</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {e.linkWhatsapp ? (
           <a
             className={`btn ${abierto ? 'btn-ghost' : 'btn-primary'}`}
-            style={{ textDecoration: 'none', textAlign: 'center', padding: '6px 12px', fontSize: 13 }}
+            style={{ textDecoration: 'none', textAlign: 'center', padding: '6px 12px', fontSize: 'var(--pt-chico)' }}
             href={e.linkWhatsapp}
             target="_blank"
             rel="noreferrer"
@@ -880,12 +880,12 @@ function EsperaItem({ e, onAccion }) {
             {abierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
           </a>
         ) : (
-          <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido</span>
+          <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)' }}>Sin número válido</span>
         )}
-        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('avisado')}>
+        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 'var(--pt-chico)' }} disabled={busy} onClick={() => accion('avisado')}>
           Marcar avisado
         </button>
-        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('descartar')}>
+        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 'var(--pt-chico)' }} disabled={busy} onClick={() => accion('descartar')}>
           Descartar
         </button>
       </div>
@@ -1424,7 +1424,7 @@ function ContactosPanel() {
       )}
 
       <input
-        style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
+        style={{ width: '100%', padding: 10, borderRadius: 'var(--pr)', border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
         placeholder="Buscar por equipo, nombre o teléfono"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
@@ -1434,7 +1434,7 @@ function ContactosPanel() {
       {error && <p className="error-msg">{error}</p>}
       {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
-        <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length === contactos.length ? `${contactos.length} contactos` : `${lista.length} de ${contactos.length} contactos`}</p>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{lista.length === contactos.length ? `${contactos.length} contactos` : `${lista.length} de ${contactos.length} contactos`}</p>
       )}
 
       {lista.map((c) => {
@@ -1459,21 +1459,21 @@ function ContactosPanel() {
           );
         }
         return (
-          <div key={clave} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
+          <div key={clave} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
+              <span style={{ fontWeight: 600, fontSize: 'var(--pt-chico)' }}>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
               <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
               <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
-              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--p-mut)' }}>(agregado a mano)</span>}
+              {c.manual && <span style={{ fontWeight: 500, fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>(agregado a mano)</span>}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
+            <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>
               {c.equipo ? `${c.nombre} · ` : ''}{c.telefono}{c.email ? ` · ${c.email}` : ''}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
+            <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
               {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${String(c.ultimaReserva).split('-').reverse().join('/')}`}
             </div>
             {c.comentario && (
-              <div style={{ fontSize: 12, color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {c.telefonoWa && (
@@ -1568,7 +1568,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
   }
 
   return (
-    <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 10 }}>
+    <div style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 10 }}>
       <div className="field">
         <label>Equipo (opcional)</label>
         <input value={equipo} onChange={(e) => setEquipo(e.target.value)} placeholder="Ej: Los Pibes FC" />
@@ -1724,18 +1724,18 @@ function BloqueosPanel() {
       </button>
 
       <div style={{ marginTop: 14 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
           Bloqueos de este día {cargando ? '' : `(${bloqueos.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
         {!cargando && bloqueos.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
         {bloqueos.map((b) => (
-          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
-              {b.motivo && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{b.motivo}</div>}
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
+              {b.motivo && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{b.motivo}</div>}
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(b.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(b.id)}>
               Quitar
             </button>
           </div>
@@ -1807,7 +1807,7 @@ function AperturasEspecialesPanel() {
         <label>Qué día abrir</label>
         <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
         {!diaValido && (
-          <p style={{ fontSize: 12, color: 'var(--p-mut)', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '4px 0 0' }}>
             Por ahora solo se puede abrir un lunes o un viernes.
           </p>
         )}
@@ -1825,18 +1825,18 @@ function AperturasEspecialesPanel() {
       </button>
 
       <div style={{ marginTop: 14 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
           Próximas aperturas {cargando ? '' : `(${aperturas.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
         {!cargando && aperturas.length === 0 && <p className="agenda-vacio">No hay días especiales abiertos.</p>}
         {aperturas.map((a) => (
-          <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+          <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{fechaLargaCompleta(a.reservation_date)}</div>
-              {a.nota && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{a.nota}</div>}
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, textTransform: 'capitalize' }}>{fechaLargaCompleta(a.reservation_date)}</div>
+              {a.nota && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{a.nota}</div>}
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(a.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(a.id)}>
               Quitar
             </button>
           </div>
@@ -1920,32 +1920,32 @@ function RecordatoriosFijos() {
       {lista && lista.length === 0 && <p className="agenda-vacio">No hay turnos fijos en los próximos 7 días.</p>}
       {Object.entries(porDia).map(([dia, filas]) => (
         <div key={dia} style={{ marginBottom: 10 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0' }}>{etiquetaDia(dia)}</p>
+          <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 700, margin: '6px 0' }}>{etiquetaDia(dia)}</p>
           {filas.map((r) => {
             const enviado = !!r.recordatorio_enviado_at;
             const link = r.telefonoWa
               ? `https://wa.me/${r.telefonoWa}?text=${encodeURIComponent(mensajeRecordatorioFijo(r, hoy))}`
               : null;
             return (
-              <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+              <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                  <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
                     {r.client_name}{r.team_name ? ` · ${nombreEquipo(r.team_name)}` : ''}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
+                  <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>
                     {NOMBRE_CANCHA[r.court] || r.court} · {hhmm(r.start_time)} a {hhmm(r.end_time)} hs
                   </div>
                 </div>
                 {link ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
                     {enviado && (
-                      <button type="button" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => marcar(r.id, false)} title="Marcar como no enviado">
+                      <button type="button" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 'var(--pt-micro)' }} onClick={() => marcar(r.id, false)} title="Marcar como no enviado">
                         Deshacer
                       </button>
                     )}
                     <a
                       className={enviado ? 'btn btn-ghost' : 'btn btn-primary'}
-                      style={{ padding: '6px 12px', fontSize: 13, textDecoration: 'none' }}
+                      style={{ padding: '6px 12px', fontSize: 'var(--pt-chico)', textDecoration: 'none' }}
                       href={link}
                       target="_blank"
                       rel="noreferrer"
@@ -1955,7 +1955,7 @@ function RecordatoriosFijos() {
                     </a>
                   </div>
                 ) : (
-                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>Sin teléfono</span>
+                  <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>Sin teléfono</span>
                 )}
               </div>
             );
@@ -2164,21 +2164,21 @@ function TurnosFijosPanel() {
       </button>
 
       <div style={{ marginTop: 14 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
           Fijos activos {cargando ? '' : `(${(fijos || []).length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
         {!cargando && fijos && fijos.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
         {(fijos || []).map((f) => (
-          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
                 {f.client_name}{f.team_name ? ` · ${nombreEquipo(f.team_name)}` : ''}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
-              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => baja(f.id)}>
               Dar de baja
             </button>
           </div>
@@ -2231,7 +2231,7 @@ function SuspensionPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+      <p style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', marginTop: 0 }}>
         Cancela las reservas del día y arma el aviso por WhatsApp para cada cliente.
       </p>
 
@@ -2255,7 +2255,7 @@ function SuspensionPanel() {
                 <div key={r.id} className="agenda-slot" style={{ cursor: 'default' }}>
                   <div className="agenda-slot-hora">{r.turn || hhmm(r.start_time)}</div>
                   <div className="agenda-slot-cliente">{NOMBRE_CANCHA[r.court]} · {r.client_name}</div>
-                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>{r.client_phone}</span>
+                  <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{r.client_phone}</span>
                 </div>
               ))}
               <BotonConfirmar
@@ -2277,11 +2277,11 @@ function SuspensionPanel() {
             Enviá el aviso a cada uno:
           </p>
           {clientes.map((c) => (
-            <div key={c.code} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
+            <div key={c.code} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
                 {c.nombre} — {NOMBRE_CANCHA[c.court]} {hhmm(c.start_time)}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 6 }}>
                 {c.telefono ? `+${c.telefono}` : `${c.telefonoOriginal} (no se pudo armar el número, revisalo)`}
               </div>
               {c.linkWhatsapp ? (
@@ -2296,7 +2296,7 @@ function SuspensionPanel() {
                   {enviados[c.code] ? '✓ Enviado (abrir de nuevo)' : 'Enviar WhatsApp'}
                 </a>
               ) : (
-                <p style={{ fontSize: 12, color: 'var(--p-bad)' }}>Número inválido — contactá al cliente a mano.</p>
+                <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)' }}>Número inválido — contactá al cliente a mano.</p>
               )}
             </div>
           ))}
@@ -2699,19 +2699,19 @@ export default function AdminPanel() {
 
           {resultado && (
             <div className="stat-card">
-              <p style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700 }}>
+              <p style={{ margin: '0 0 4px', fontSize: 'var(--pt-lead)', fontWeight: 700 }}>
                 {resultado.reserva.client_name}
                 {resultado.reserva.team_name && (
                   <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (${resultado.reserva.category})` : ''}</span>
                 )}
               </p>
-              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>
+              <p style={{ margin: '4px 0', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>
                 {NOMBRE_CANCHA[resultado.reserva.court]} · {fechaLinda(resultado.reserva.reservation_date)} · {hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs
               </p>
-              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>{resultado.reserva.client_phone}</p>
+              <p style={{ margin: '4px 0', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>{resultado.reserva.client_phone}</p>
 
               {resultado.vencioPorSistema && (
-                <p style={{ fontSize: 12, color: 'var(--p-oro)', marginTop: 4 }}>
+                <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-oro)', marginTop: 4 }}>
                   Este turno se liberó solo. Si sigue libre, al confirmar se reactiva.
                 </p>
               )}
@@ -2781,16 +2781,16 @@ export default function AdminPanel() {
               <Cifra titulo="Cancelaciones" valor={stats.historico30.canceladas} sub={`${stats.historico30.tasaCancelacionPct}% del total`} />
             </div>
             <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Reservas por día</div>
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, marginBottom: 6 }}>Reservas por día</div>
               {stats.historico30.porDiaSemana.map((d) => {
                 const max = Math.max(1, ...stats.historico30.porDiaSemana.map((x) => x.reservas));
                 return (
                   <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, width: 70, color: 'var(--p-mut)' }}>{d.dia}</span>
-                    <div style={{ flex: 1, background: 'var(--p-fila)', borderRadius: 4, height: 16 }}>
+                    <span style={{ fontSize: 'var(--pt-micro)', width: 70, color: 'var(--p-mut)' }}>{d.dia}</span>
+                    <div style={{ flex: 1, background: 'var(--p-fila)', borderRadius: 'var(--pr-s)', height: 16 }}>
                       <div style={{ width: `${(d.reservas / max) * 100}%`, background: 'var(--p-oro)', height: '100%', borderRadius: 4, minWidth: d.reservas ? 4 : 0 }} />
                     </div>
-                    <span style={{ fontSize: 12, width: 20, textAlign: 'right' }}>{d.reservas}</span>
+                    <span style={{ fontSize: 'var(--pt-micro)', width: 20, textAlign: 'right' }}>{d.reservas}</span>
                   </div>
                 );
               })}

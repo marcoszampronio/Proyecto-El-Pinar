@@ -4,6 +4,8 @@ import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
 import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
+import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
+import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -229,11 +231,11 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
       <div className="overlay" role="dialog" aria-modal="true">
         <div className="modal">
           <h3 className="modal-titulo">¡Turno agendado y confirmado!</h3>
-          <p style={{ fontSize: 14 }}>
+          <p style={{ fontSize: 'var(--pt-chico)' }}>
             {hecho.client_name} — {NOMBRE_CANCHA[hecho.court]} · {hhmm(hecho.start_time)} a {hhmm(hecho.end_time)} · {hecho.reservation_date}
             {hecho.looking_for_rival ? ' · en Busco rival' : ''}
           </p>
-          <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+          <p style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', marginTop: 0 }}>
             {waConfirm
               ? 'Mandale la confirmación por WhatsApp con todos los datos del turno.'
               : 'El teléfono del contacto no sirve para WhatsApp — avisale vos por otro medio.'}
@@ -362,7 +364,7 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
         )}
 
         {!esFutbol && disponibilidad?.ocupados?.length > 0 && (
-          <p style={{ fontSize: 12.5, color: 'var(--p-mut)', margin: '-6px 0 14px' }}>
+          <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '-6px 0 14px' }}>
             Ya ocupado ese día: {disponibilidad.ocupados.map((o) => `${hhmm(o.start_time)}–${hhmm(o.end_time)}`).join(', ')}
           </p>
         )}
@@ -473,7 +475,7 @@ function ExportPanel() {
         {backup === '...' ? 'Enviando...' : 'Enviar backup por email ahora'}
       </button>
       {backup && backup !== '...' && (
-        <p style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
+        <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
       )}
     </div>
   );
@@ -491,9 +493,9 @@ const fechaLinda = (iso) => {
 function Cifra({ titulo, valor, sub }) {
   return (
     <div className="stat-card">
-      <div style={{ fontSize: 13, color: 'var(--p-mut)' }}>{titulo}</div>
+      <div style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>{titulo}</div>
       <div className="big-num">{valor}</div>
-      {sub && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{sub}</div>}
     </div>
   );
 }
@@ -501,10 +503,10 @@ function Cifra({ titulo, valor, sub }) {
 function Semaforo({ ok, label, detalle }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '6px 0' }}>
-      <span style={{ fontSize: 15, lineHeight: 1.3 }}>{ok ? '🟢' : '🔴'}</span>
+      <span style={{ fontSize: 'var(--pt-cuerpo)', lineHeight: 1.3 }}>{ok ? '🟢' : '🔴'}</span>
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600 }}>{label}</div>
-        {detalle && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{detalle}</div>}
+        <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{label}</div>
+        {detalle && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{detalle}</div>}
       </div>
     </div>
   );
@@ -535,7 +537,7 @@ function EstadoSistema() {
         <span>Estado del sistema</span>
         {d && <span aria-hidden="true">{d.baseDatos.ok && d.email.ok ? '🟢' : '🔴'}</span>}
       </summary>
-      <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 12, marginTop: 10 }} onClick={cargar} disabled={cargando}>
+      <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 'var(--pt-micro)', marginTop: 10 }} onClick={cargar} disabled={cargando}>
         {cargando ? '...' : 'Actualizar'}
       </button>
       {error && <p className="error-msg">{error}</p>}
@@ -707,7 +709,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
         <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 0 }}>
           Turno cancelado. Se liberó {NOMBRE_CANCHA[reserva.court]} {hhmm(reserva.start_time)}–{hhmm(reserva.end_time)}.
         </p>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '10px 0 6px' }}>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '10px 0 6px' }}>
           Avisá a la lista de espera ({espera.length}):
         </p>
         {espera.map((e) => (
@@ -757,7 +759,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
             {waAbierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
           </a>
         ) : (
-          <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
+          <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)' }}>Sin número válido para WhatsApp</span>
         )}
       </div>
 
@@ -864,14 +866,14 @@ function EsperaItem({ e, onAccion }) {
   }
 
   return (
-    <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
-      <div style={{ fontWeight: 600, fontSize: 14 }}>{e.client_name}</div>
-      <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>{e.client_phone}</div>
+    <div style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+      <div style={{ fontWeight: 600, fontSize: 'var(--pt-chico)' }}>{e.client_name}</div>
+      <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 6 }}>{e.client_phone}</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {e.linkWhatsapp ? (
           <a
             className={`btn ${abierto ? 'btn-ghost' : 'btn-primary'}`}
-            style={{ textDecoration: 'none', textAlign: 'center', padding: '6px 12px', fontSize: 13 }}
+            style={{ textDecoration: 'none', textAlign: 'center', padding: '6px 12px', fontSize: 'var(--pt-chico)' }}
             href={e.linkWhatsapp}
             target="_blank"
             rel="noreferrer"
@@ -880,12 +882,12 @@ function EsperaItem({ e, onAccion }) {
             {abierto ? '✓ WhatsApp abierto' : 'Avisar por WhatsApp'}
           </a>
         ) : (
-          <span style={{ fontSize: 12, color: 'var(--p-bad)' }}>Sin número válido</span>
+          <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)' }}>Sin número válido</span>
         )}
-        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('avisado')}>
+        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 'var(--pt-chico)' }} disabled={busy} onClick={() => accion('avisado')}>
           Marcar avisado
         </button>
-        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }} disabled={busy} onClick={() => accion('descartar')}>
+        <button className="btn btn-ghost" style={{ padding: '6px 12px', fontSize: 'var(--pt-chico)' }} disabled={busy} onClick={() => accion('descartar')}>
           Descartar
         </button>
       </div>
@@ -1318,6 +1320,8 @@ function ContactosPanel() {
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
   const [libresTxt, setLibresTxt] = useState(null); // turnos libres de los próximos días, para el aviso
+  const des = useDeshacer();
+  const [eliminados, setEliminados] = useState(() => new Set()); // ocultos mientras corre el Deshacer
 
   // Turnos de fútbol libres de los próximos días abiertos (hasta 4), con los mismos horarios que ve Mateo.
   useEffect(() => {
@@ -1372,19 +1376,21 @@ function ContactosPanel() {
     }
   }
 
-  async function eliminarContacto(c) {
-    try {
-      const r = await api.adminEliminarContacto({ telefono: c.telefono });
-      setEditando(null);
-      setAviso(
-        r.reservasBorradas
-          ? `Contacto eliminado (y ${r.reservasBorradas} reserva${r.reservasBorradas === 1 ? '' : 's'}).`
-          : 'Contacto eliminado.'
-      );
-      cargar();
-    } catch (e) {
-      alert('No se pudo eliminar: ' + e.message);
-    }
+  function eliminarContacto(c) {
+    const volver = () => setEliminados((e) => { const n = new Set(e); n.delete(c.telefono); return n; });
+    setEditando(null);
+    setEliminados((e) => new Set(e).add(c.telefono));
+    des.programar({
+      mensaje: c.totalReservas > 0
+        ? `Contacto eliminado, con sus ${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'}`
+        : 'Contacto eliminado',
+      ms: 8000,
+      errorTexto: 'No se pudo eliminar',
+      ejecutar: () => api.adminEliminarContacto({ telefono: c.telefono }),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
 
   async function cargar() {
@@ -1403,7 +1409,8 @@ function ContactosPanel() {
   useEffect(() => { cargar(); }, []);
 
   const filtro = texto.trim().toLowerCase();
-  const lista = (contactos || []).filter(
+  const todos = (contactos || []).filter((c) => !eliminados.has(c.telefono));
+  const lista = todos.filter(
     (c) => !filtro || `${c.equipo || ''} ${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
   );
 
@@ -1424,7 +1431,8 @@ function ContactosPanel() {
       )}
 
       <input
-        style={{ width: '100%', padding: 10, borderRadius: 8, border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
+        className="buscador"
+        type="search"
         placeholder="Buscar por equipo, nombre o teléfono"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}
@@ -1434,7 +1442,7 @@ function ContactosPanel() {
       {error && <p className="error-msg">{error}</p>}
       {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
-        <p style={{ fontSize: 13, fontWeight: 600 }}>{lista.length === contactos.length ? `${contactos.length} contactos` : `${lista.length} de ${contactos.length} contactos`}</p>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{lista.length === todos.length ? `${todos.length} contactos` : `${lista.length} de ${todos.length} contactos`}</p>
       )}
 
       {lista.map((c) => {
@@ -1459,21 +1467,26 @@ function ContactosPanel() {
           );
         }
         return (
-          <div key={clave} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600, fontSize: 14 }}>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
-              <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
-              <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
-              {c.manual && <span style={{ fontWeight: 500, fontSize: 11, color: 'var(--p-mut)' }}>(agregado a mano)</span>}
+          <div key={clave} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+            <div className="contacto-cab">
+              <span className="contacto-equipo">{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
+              {c.manual && <span className="contacto-tag">agregado a mano</span>}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
-              {c.equipo ? `${c.nombre} · ` : ''}{c.telefono}{c.email ? ` · ${c.email}` : ''}
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
-              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${String(c.ultimaReserva).split('-').reverse().join('/')}`}
+            {c.equipo && <div className="contacto-nombre">{c.nombre}</div>}
+            <div className="contacto-dato">{c.telefono}{c.email ? ` · ${c.email}` : ''}</div>
+            <div className="contacto-hist" style={{ marginBottom: c.comentario ? 2 : 8 }}>
+              {c.totalReservas === 0 ? (
+                <span>Sin reservas todavía</span>
+              ) : (
+                <>
+                  <span>Fue <b>{c.confirmadas}</b> {c.confirmadas === 1 ? 'vez' : 'veces'}</span>
+                  {c.canceladas > 0 && <span className="contacto-cancel">{c.canceladas} cancelada{c.canceladas === 1 ? '' : 's'}</span>}
+                  <span>última: {String(c.ultimaReserva).split('-').reverse().join('/')}</span>
+                </>
+              )}
             </div>
             {c.comentario && (
-              <div style={{ fontSize: 12, color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
             )}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {c.telefonoWa && (
@@ -1568,7 +1581,7 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
   }
 
   return (
-    <div style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 10 }}>
+    <div style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 10 }}>
       <div className="field">
         <label>Equipo (opcional)</label>
         <input value={equipo} onChange={(e) => setEquipo(e.target.value)} placeholder="Ej: Los Pibes FC" />
@@ -1598,13 +1611,13 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
         </button>
       </div>
       {onEliminar && (
-        <BotonConfirmar
-          label={eliminarLabel || 'Eliminar contacto'}
-          confirmLabel={eliminarConfirm || 'Confirmar: eliminar'}
+        <button
           className="btn btn-ghost"
           style={{ width: '100%', marginTop: 8, color: 'var(--p-bad)', borderColor: 'var(--p-bad)' }}
-          onConfirm={onEliminar}
-        />
+          onClick={onEliminar}
+        >
+          {eliminarLabel || 'Eliminar contacto'}
+        </button>
       )}
     </div>
   );
@@ -1667,14 +1680,21 @@ function BloqueosPanel() {
     }
   }
 
-  async function quitar(id) {
-    try {
-      await api.adminQuitarBloqueo(id);
-      cargar();
-    } catch (e) {
-      alert('No se pudo quitar: ' + e.message);
-    }
+  const des = useDeshacer();
+  const [ocultos, setOcultos] = useState(() => new Set());
+  function quitar(b) {
+    const volver = () => setOcultos((o) => { const n = new Set(o); n.delete(b.id); return n; });
+    setOcultos((o) => new Set(o).add(b.id));
+    des.programar({
+      mensaje: 'Bloqueo quitado',
+      errorTexto: 'No se pudo quitar',
+      ejecutar: () => api.adminQuitarBloqueo(b.id),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
+  const visibles = bloqueos.filter((b) => !ocultos.has(b.id));
 
   return (
     <div className="stat-card">
@@ -1724,18 +1744,18 @@ function BloqueosPanel() {
       </button>
 
       <div style={{ marginTop: 14 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
           Bloqueos de este día {cargando ? '' : `(${bloqueos.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
-        {!cargando && bloqueos.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
-        {bloqueos.map((b) => (
-          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+        {!cargando && visibles.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
+        {visibles.map((b) => (
+          <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
-              {b.motivo && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{b.motivo}</div>}
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
+              {b.motivo && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{b.motivo}</div>}
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(b.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(b)}>
               Quitar
             </button>
           </div>
@@ -1790,14 +1810,21 @@ function AperturasEspecialesPanel() {
     }
   }
 
-  async function quitar(id) {
-    try {
-      await api.adminQuitarApertura(id);
-      cargar();
-    } catch (e) {
-      alert('No se pudo quitar: ' + e.message);
-    }
+  const des = useDeshacer();
+  const [ocultos, setOcultos] = useState(() => new Set());
+  function quitar(a) {
+    const volver = () => setOcultos((o) => { const n = new Set(o); n.delete(a.id); return n; });
+    setOcultos((o) => new Set(o).add(a.id));
+    des.programar({
+      mensaje: 'Día especial quitado',
+      errorTexto: 'No se pudo quitar',
+      ejecutar: () => api.adminQuitarApertura(a.id),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
+  const visibles = aperturas.filter((a) => !ocultos.has(a.id));
 
   return (
     <div className="stat-card">
@@ -1807,7 +1834,7 @@ function AperturasEspecialesPanel() {
         <label>Qué día abrir</label>
         <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
         {!diaValido && (
-          <p style={{ fontSize: 12, color: 'var(--p-mut)', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '4px 0 0' }}>
             Por ahora solo se puede abrir un lunes o un viernes.
           </p>
         )}
@@ -1825,18 +1852,18 @@ function AperturasEspecialesPanel() {
       </button>
 
       <div style={{ marginTop: 14 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
-          Próximas aperturas {cargando ? '' : `(${aperturas.length})`}
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
+          Próximas aperturas {cargando ? '' : `(${visibles.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
-        {!cargando && aperturas.length === 0 && <p className="agenda-vacio">No hay días especiales abiertos.</p>}
-        {aperturas.map((a) => (
-          <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+        {!cargando && visibles.length === 0 && <p className="agenda-vacio">No hay días especiales abiertos.</p>}
+        {visibles.map((a) => (
+          <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{fechaLargaCompleta(a.reservation_date)}</div>
-              {a.nota && <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{a.nota}</div>}
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, textTransform: 'capitalize' }}>{fechaLargaCompleta(a.reservation_date)}</div>
+              {a.nota && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{a.nota}</div>}
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => quitar(a.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(a)}>
               Quitar
             </button>
           </div>
@@ -1920,32 +1947,32 @@ function RecordatoriosFijos() {
       {lista && lista.length === 0 && <p className="agenda-vacio">No hay turnos fijos en los próximos 7 días.</p>}
       {Object.entries(porDia).map(([dia, filas]) => (
         <div key={dia} style={{ marginBottom: 10 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, margin: '6px 0' }}>{etiquetaDia(dia)}</p>
+          <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 700, margin: '6px 0' }}>{etiquetaDia(dia)}</p>
           {filas.map((r) => {
             const enviado = !!r.recordatorio_enviado_at;
             const link = r.telefonoWa
               ? `https://wa.me/${r.telefonoWa}?text=${encodeURIComponent(mensajeRecordatorioFijo(r, hoy))}`
               : null;
             return (
-              <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+              <div key={r.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>
+                  <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
                     {r.client_name}{r.team_name ? ` · ${nombreEquipo(r.team_name)}` : ''}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>
+                  <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>
                     {NOMBRE_CANCHA[r.court] || r.court} · {hhmm(r.start_time)} a {hhmm(r.end_time)} hs
                   </div>
                 </div>
                 {link ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
                     {enviado && (
-                      <button type="button" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 11 }} onClick={() => marcar(r.id, false)} title="Marcar como no enviado">
+                      <button type="button" className="btn btn-ghost" style={{ padding: '4px 8px', fontSize: 'var(--pt-micro)' }} onClick={() => marcar(r.id, false)} title="Marcar como no enviado">
                         Deshacer
                       </button>
                     )}
                     <a
                       className={enviado ? 'btn btn-ghost' : 'btn btn-primary'}
-                      style={{ padding: '6px 12px', fontSize: 13, textDecoration: 'none' }}
+                      style={{ padding: '6px 12px', fontSize: 'var(--pt-chico)', textDecoration: 'none' }}
                       href={link}
                       target="_blank"
                       rel="noreferrer"
@@ -1955,7 +1982,7 @@ function RecordatoriosFijos() {
                     </a>
                   </div>
                 ) : (
-                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>Sin teléfono</span>
+                  <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>Sin teléfono</span>
                 )}
               </div>
             );
@@ -2052,14 +2079,21 @@ function TurnosFijosPanel() {
     }
   }
 
-  async function baja(id) {
-    try {
-      await api.adminBajaTurnoFijo(id);
-      cargar();
-    } catch (e) {
-      alert('No se pudo dar de baja: ' + e.message);
-    }
+  const des = useDeshacer();
+  const [ocultos, setOcultos] = useState(() => new Set());
+  function baja(f) {
+    const volver = () => setOcultos((o) => { const n = new Set(o); n.delete(f.id); return n; });
+    setOcultos((o) => new Set(o).add(f.id));
+    des.programar({
+      mensaje: `Turno fijo de ${f.team_name ? nombreEquipo(f.team_name) : f.client_name} dado de baja`,
+      errorTexto: 'No se pudo dar de baja',
+      ejecutar: () => api.adminBajaTurnoFijo(f.id),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
+  const visibles = (fijos || []).filter((f) => !ocultos.has(f.id));
 
   return (
     <>
@@ -2164,21 +2198,21 @@ function TurnosFijosPanel() {
       </button>
 
       <div style={{ marginTop: 14 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, margin: '0 0 6px' }}>
-          Fijos activos {cargando ? '' : `(${(fijos || []).length})`}
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
+          Fijos activos {cargando ? '' : `(${visibles.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
-        {!cargando && fijos && fijos.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
-        {(fijos || []).map((f) => (
-          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 8, background: 'var(--p-fila)', marginBottom: 6 }}>
+        {!cargando && fijos && visibles.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
+        {visibles.map((f) => (
+          <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
                 {f.client_name}{f.team_name ? ` · ${nombreEquipo(f.team_name)}` : ''}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
-              <div style={{ fontSize: 11, color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => baja(f.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => baja(f)}>
               Dar de baja
             </button>
           </div>
@@ -2231,7 +2265,7 @@ function SuspensionPanel() {
   return (
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia</h3>
-      <p style={{ fontSize: 13, color: 'var(--p-mut)', marginTop: 0 }}>
+      <p style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', marginTop: 0 }}>
         Cancela las reservas del día y arma el aviso por WhatsApp para cada cliente.
       </p>
 
@@ -2255,7 +2289,7 @@ function SuspensionPanel() {
                 <div key={r.id} className="agenda-slot" style={{ cursor: 'default' }}>
                   <div className="agenda-slot-hora">{r.turn || hhmm(r.start_time)}</div>
                   <div className="agenda-slot-cliente">{NOMBRE_CANCHA[r.court]} · {r.client_name}</div>
-                  <span style={{ fontSize: 12, color: 'var(--p-mut)' }}>{r.client_phone}</span>
+                  <span style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{r.client_phone}</span>
                 </div>
               ))}
               <BotonConfirmar
@@ -2277,11 +2311,11 @@ function SuspensionPanel() {
             Enviá el aviso a cada uno:
           </p>
           {clientes.map((c) => (
-            <div key={c.code} style={{ padding: 10, borderRadius: 8, background: 'var(--p-fila)', marginBottom: 8 }}>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
+            <div key={c.code} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
                 {c.nombre} — {NOMBRE_CANCHA[c.court]} {hhmm(c.start_time)}
               </div>
-              <div style={{ fontSize: 12, color: 'var(--p-mut)', marginBottom: 6 }}>
+              <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 6 }}>
                 {c.telefono ? `+${c.telefono}` : `${c.telefonoOriginal} (no se pudo armar el número, revisalo)`}
               </div>
               {c.linkWhatsapp ? (
@@ -2296,7 +2330,7 @@ function SuspensionPanel() {
                   {enviados[c.code] ? '✓ Enviado (abrir de nuevo)' : 'Enviar WhatsApp'}
                 </a>
               ) : (
-                <p style={{ fontSize: 12, color: 'var(--p-bad)' }}>Número inválido — contactá al cliente a mano.</p>
+                <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)' }}>Número inválido — contactá al cliente a mano.</p>
               )}
             </div>
           ))}
@@ -2307,6 +2341,237 @@ function SuspensionPanel() {
 }
 
 // Lee ?tab= y ?code= de la URL (para los links de los emails).
+// ---------- Pendientes: confirmar o cancelar desde la misma tarjeta ----------
+// Después de confirmar, la tarjeta queda a la vista con el botón para avisarle por
+// WhatsApp (aunque la reserva ya no esté en la lista de pendientes del servidor).
+function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
+  const [ocupado, setOcupado] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function confirmar() {
+    setOcupado(true);
+    setError(null);
+    try {
+      await onConfirmar(p);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  const titulo = p.team_name ? `${nombreEquipo(p.team_name)} · ${p.client_name}` : p.client_name;
+  return (
+    <div className={`pend-card${hecha ? ` pend-card--${hecha.estado}` : ''}`}>
+      <div className="pend-info">
+        <b>{titulo}</b>
+        <span>{NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)}</span>
+      </div>
+      {error && <p className="error-msg">{error}</p>}
+      {hecha?.estado === 'confirmada' && (
+        <div className="pend-hecho">
+          <span className="pend-ok">✓ Confirmado</span>
+          {hecha.link && (
+            <a className="btn btn-primary btn-sm" href={hecha.link} target="_blank" rel="noreferrer">Avisarle por WhatsApp</a>
+          )}
+        </div>
+      )}
+      {hecha?.estado === 'cancelando' && <div className="pend-hecho"><span className="pend-baja">Se cancela en unos segundos…</span></div>}
+      {hecha?.estado === 'cancelada' && <div className="pend-hecho"><span className="pend-baja">Turno cancelado</span></div>}
+      {!hecha && (
+        <div className="pend-acciones">
+          <button className="btn btn-primary" disabled={ocupado} onClick={confirmar}>
+            {ocupado ? 'Confirmando…' : 'Confirmar'}
+          </button>
+          <button className="btn btn-ghost" disabled={ocupado} onClick={() => onCancelar(p)}>Cancelar</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PendientesLista({ pendientes, onCambio }) {
+  const des = useDeshacer();
+  const [hechas, setHechas] = useState({}); // code -> { p, estado: 'confirmada' | 'cancelando' | 'cancelada', link }
+
+  const sacar = (code) => setHechas((h) => { const n = { ...h }; delete n[code]; return n; });
+
+  async function confirmar(p) {
+    const r = await api.adminConfirmar(p.code);
+    setHechas((h) => ({ ...h, [p.code]: { p, estado: 'confirmada', link: r.linkWhatsappConfirmacion } }));
+    onCambio?.();
+  }
+
+  // Cancelar: se ve hecho al instante, pero recién se manda al servidor si no se toca "Deshacer".
+  function cancelar(p) {
+    setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelando' } }));
+    des.programar({
+      mensaje: `Turno de ${p.team_name ? nombreEquipo(p.team_name) : p.client_name} cancelado`,
+      errorTexto: 'No se pudo cancelar',
+      ejecutar: () => api.adminCancelar(p.code),
+      alConfirmar: () => {
+        setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelada' } }));
+        onCambio?.();
+      },
+      alDeshacer: () => sacar(p.code),
+      alFallar: () => sacar(p.code),
+    });
+  }
+
+  // las ya resueltas siguen a la vista (con su resultado) hasta salir de la pantalla
+  const lista = [
+    ...pendientes,
+    ...Object.values(hechas).map((h) => h.p).filter((p) => !pendientes.some((x) => x.code === p.code)),
+  ].sort((a, b) => `${a.reservation_date}${a.start_time}`.localeCompare(`${b.reservation_date}${b.start_time}`));
+
+  if (lista.length === 0) return <p className="agenda-vacio">No hay reservas para confirmar.</p>;
+  return (
+    <div className="pend-lista">
+      {lista.map((p) => (
+        <PendienteCard key={p.code} p={p} hecha={hechas[p.code]} onConfirmar={confirmar} onCancelar={cancelar} />
+      ))}
+    </div>
+  );
+}
+
+// ---------- Hoy: lo del día en una sola pantalla ----------
+function HoyPanel({ pendientes, onCambio, irA }) {
+  const hoy = hoyISO();
+  const fecha = esDiaHabilitado(hoy) ? hoy : proximoDiaHabilitado(hoy);
+  const esHoy = fecha === hoy;
+  const [agenda, setAgenda] = useState(null);
+  const [recordatorios, setRecordatorios] = useState(null);
+  const [esperaDias, setEsperaDias] = useState([]); // [{ fecha, libres, espera }] de los próximos días de juego
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let vivo = true;
+    // el día que se muestra + los próximos días de juego (hasta 4): ahí es donde la gente espera un turno
+    const dias = [fecha];
+    for (let n = 1; n <= 14 && dias.length < 4; n++) {
+      const f = sumarDias(fecha, n);
+      if (esDiaHabilitado(f)) dias.push(f);
+    }
+    Promise.all([api.adminAgenda(fecha), api.adminRecordatoriosFijos(2), ...dias.slice(1).map((d) => api.adminAgenda(d).catch(() => null))])
+      .then(([a, r, ...otras]) => {
+        if (!vivo) return;
+        setAgenda(a);
+        const libresDe = (ag) => ag.futbol.C1.filter((x, i) => x.status === 'libre' || ag.futbol.C2[i].status === 'libre').length;
+        setEsperaDias(
+          [a, ...otras]
+            .map((ag, i) => ag && { fecha: dias[i], libres: libresDe(ag), espera: ag.espera || [] })
+            .filter((d) => d && d.espera.length > 0)
+        );
+        // solo los de hoy y mañana que todavía no se mandaron
+        const manana = sumarDias(r.hoy || hoy, 1);
+        setRecordatorios(r.recordatorios.filter((x) => !x.recordatorio_enviado_at && [r.hoy || hoy, manana].includes(x.reservation_date)));
+      })
+      .catch((e) => vivo && setError(e.message));
+    return () => { vivo = false; };
+  }, [fecha, hoy]);
+
+  const turnos = agenda ? agenda.futbol.C1.map((s, i) => ({ s1: s, s2: agenda.futbol.C2[i] })) : [];
+  const ocupados = agenda ? [...agenda.futbol.C1, ...agenda.futbol.C2].filter((s) => s.reserva).length : 0;
+  const quien = (r) => (r.team_name ? nombreEquipo(r.team_name) : r.client_name);
+  const Celda = ({ s }) => (
+    <span className={`hoy-celda ${s.reserva ? (s.reserva.status === 'pendiente' ? 'pend' : 'ocupada') : s.status}`}>
+      {s.reserva ? quien(s.reserva) : s.status === 'bloqueado' ? 'Bloqueado' : 'Libre'}
+    </span>
+  );
+
+  return (
+    <div className="hoy">
+      <div className="hoy-cab">
+        <h2>{esHoy ? 'Hoy' : 'Hoy no se juega'}</h2>
+        <p>
+          {esHoy
+            ? fechaLinda(fecha)
+            : `Próximo día de juego: ${fecha === sumarDias(hoy, 1) ? 'mañana, ' : ''}${fechaLargaCompleta(fecha)}`}
+        </p>
+      </div>
+
+      <section className="stat-card">
+        <h3 className="hoy-titulo">
+          Para confirmar
+          {pendientes.length > 0 && <span className="agenda-contador">{pendientes.length}</span>}
+        </h3>
+        <PendientesLista pendientes={pendientes} onCambio={onCambio} />
+      </section>
+
+      {error && <p className="error-msg">{error}</p>}
+      {!agenda && !error && <p className="hoy-cargando">Cargando el día…</p>}
+
+      {agenda && (
+        <section className="stat-card">
+          <h3 className="hoy-titulo">
+            {esHoy ? 'Turnos de hoy' : `Turnos del ${fechaLargaCompleta(fecha).split(' ').slice(0, 2).join(' ')}`}
+            <span className="hoy-resumen">{ocupados} de 6 de fútbol{agenda.padel.length ? ` · ${agenda.padel.length} de pádel` : ''}</span>
+          </h3>
+          <div className="hoy-grilla">
+            <span />
+            <span className="hoy-col">Cancha 1</span>
+            <span className="hoy-col">Cancha 2</span>
+            {turnos.map(({ s1, s2 }) => (
+              <div className="hoy-fila" key={s1.turn}>
+                <span className="hoy-hora">{hhmm(s1.start)}</span>
+                <Celda s={s1} />
+                <Celda s={s2} />
+              </div>
+            ))}
+          </div>
+          {agenda.padel.length > 0 && (
+            <ul className="hoy-padel">
+              {agenda.padel.map((r) => (
+                <li key={r.code}><span className="hoy-hora">{hhmm(r.start_time)}</span> Pádel · {quien(r)}</li>
+              ))}
+            </ul>
+          )}
+          <button className="btn btn-ghost btn-sm hoy-mas" onClick={() => irA('agenda')}>Ver la agenda completa</button>
+        </section>
+      )}
+
+      {esperaDias.length > 0 && (
+        <section className="stat-card">
+          <h3 className="hoy-titulo">
+            Quieren que les avisen
+            <span className="agenda-contador">{esperaDias.reduce((n, d) => n + d.espera.length, 0)}</span>
+          </h3>
+          {esperaDias.map((d) => (
+            <div key={d.fecha} className="hoy-espera-dia">
+              <div className="hoy-espera-cab">
+                <b>{fechaLinda(d.fecha)}</b>
+                <span className={d.libres ? 'hoy-libres' : ''}>{d.libres ? `${d.libres} turno${d.libres === 1 ? '' : 's'} libre${d.libres === 1 ? '' : 's'}` : 'sin turnos libres'}</span>
+              </div>
+              <ul className="hoy-lista">
+                {d.espera.map((e) => (
+                  <li key={e.id}>
+                    <span>{e.client_name}</span>
+                    {e.linkWhatsapp && <a className="btn btn-ghost btn-sm" href={e.linkWhatsapp} target="_blank" rel="noreferrer">Avisar</a>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {recordatorios?.length > 0 && (
+        <section className="stat-card">
+          <h3 className="hoy-titulo">Recordatorios por mandar <span className="agenda-contador">{recordatorios.length}</span></h3>
+          <ul className="hoy-lista">
+            {recordatorios.map((r) => (
+              <li key={r.id}>
+                <span>{quien(r)} · {r.reservation_date === hoy ? 'hoy' : 'mañana'} {hhmm(r.start_time)}</span>
+              </li>
+            ))}
+          </ul>
+          <button className="btn btn-ghost btn-sm hoy-mas" onClick={() => irA('fijos')}>Mandarlos desde Turnos fijos</button>
+        </section>
+      )}
+    </div>
+  );
+}
+
 function paramsUrl() {
   try {
     const p = new URLSearchParams(window.location.search);
@@ -2316,9 +2581,12 @@ function paramsUrl() {
   }
 }
 
-export default function AdminPanel() {
+function AdminPanelInterno() {
   const inicial = paramsUrl();
-  const [tab, setTab] = useState(['buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : 'buscar');
+  const desHecho = useDeshacer();
+  const [tab, setTab] = useState(
+    ['hoy', 'buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : inicial.code ? 'buscar' : 'hoy'
+  );
   const [codigo, setCodigo] = useState('');
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
@@ -2343,6 +2611,7 @@ export default function AdminPanel() {
   }, [menu]);
 
   function irA(id) {
+    desHecho.confirmarTodo(); // lo que estaba esperando en un aviso se manda ya, antes de cambiar de pantalla
     setTab(id);
     setMenu(false);
     window.scrollTo({ top: 0 });
@@ -2366,6 +2635,13 @@ export default function AdminPanel() {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  async function cargarCsv(desde, hasta) {
+    const token = await tokenAdmin();
+    const res = await fetch(`${API_URL}/admin/export/csv?desde=${desde}&hasta=${hasta}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error('el servidor no pudo leer las reservas');
+    return res.text();
   }
 
   async function cargarStats() {
@@ -2429,6 +2705,7 @@ export default function AdminPanel() {
   }
 
   const NAV = [
+    { id: 'hoy', label: 'Hoy', ico: <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /> },
     { id: 'buscar', label: 'Confirmar', tag: pendientes.length || null, ico: <path d="M9 11l3 3 6-6M4 4h16v16H4z" /> },
     { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
     { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
@@ -2468,6 +2745,7 @@ export default function AdminPanel() {
       </aside>
 
       <main className="pmain">
+      {tab === 'hoy' && <HoyPanel pendientes={pendientes} onCambio={cargarPendientes} irA={irA} />}
       {tab === 'agenda' && <AgendaPanel />}
       {tab === 'suspender' && (
         <>
@@ -2501,19 +2779,19 @@ export default function AdminPanel() {
 
           {resultado && (
             <div className="stat-card">
-              <p style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700 }}>
+              <p style={{ margin: '0 0 4px', fontSize: 'var(--pt-lead)', fontWeight: 700 }}>
                 {resultado.reserva.client_name}
                 {resultado.reserva.team_name && (
                   <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (${resultado.reserva.category})` : ''}</span>
                 )}
               </p>
-              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>
+              <p style={{ margin: '4px 0', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>
                 {NOMBRE_CANCHA[resultado.reserva.court]} · {fechaLinda(resultado.reserva.reservation_date)} · {hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs
               </p>
-              <p style={{ margin: '4px 0', fontSize: 13, color: 'var(--p-mut)' }}>{resultado.reserva.client_phone}</p>
+              <p style={{ margin: '4px 0', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>{resultado.reserva.client_phone}</p>
 
               {resultado.vencioPorSistema && (
-                <p style={{ fontSize: 12, color: 'var(--p-oro)', marginTop: 4 }}>
+                <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-oro)', marginTop: 4 }}>
                   Este turno se liberó solo. Si sigue libre, al confirmar se reactiva.
                 </p>
               )}
@@ -2551,27 +2829,23 @@ export default function AdminPanel() {
               Pendientes de confirmación
               {pendientes.length > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes.length}</span>}
             </h3>
-            {pendientes.length === 0 && <p className="agenda-vacio">No hay reservas pendientes.</p>}
-            {pendientes.map((p) => (
-              <button
-                key={p.id}
-                className="pendiente-item"
-                onClick={() => { buscar(p.code); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              >
-                <div style={{ fontWeight: 700, fontSize: 15 }}>{p.team_name ? `${nombreEquipo(p.team_name)} · ${p.client_name}` : p.client_name}</div>
-                <div style={{ fontSize: 13, color: 'var(--p-oro)' }}>
-                  {NOMBRE_CANCHA[p.court] || p.court} · {fechaLinda(p.reservation_date)} · {hhmm(p.start_time)} a {hhmm(p.end_time)} hs
-                </div>
-              </button>
-            ))}
+            <PendientesLista pendientes={pendientes} onCambio={cargarPendientes} />
           </div>
         </>
       )}
 
+      {tab === 'stats' && <EstadisticasDecidir cargarCsv={cargarCsv} />}
       {tab === 'stats' && stats && (
         <>
-          <div className="stat-card" style={{ margin: '12px 20px 0' }}>
-            <h3 style={{ marginTop: 0 }}>Próximos {stats.rangoDias} días</h3>
+          <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>
+            <summary>
+              <span className="resumen-bloque">
+                <b>Próximos {stats.rangoDias} días</b>
+                <small>
+                  {stats.ventana.confirmadas} confirmada{stats.ventana.confirmadas === 1 ? '' : 's'} · {stats.ventana.pendientes} pendiente{stats.ventana.pendientes === 1 ? '' : 's'} · {stats.ventana.ocupacionFutbolPct}% de ocupación
+                </small>
+              </span>
+            </summary>
             <div className="stat-grid">
               <Cifra titulo="Confirmadas" valor={stats.ventana.confirmadas} />
               <Cifra titulo="Pendientes" valor={stats.ventana.pendientes} />
@@ -2585,7 +2859,7 @@ export default function AdminPanel() {
               <Cifra titulo="Cancha 2" valor={stats.ventana.reservasPorCancha.C2} />
               <Cifra titulo="Pádel" valor={stats.ventana.reservasPorCancha.PAD} />
             </div>
-          </div>
+          </details>
 
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>
@@ -2595,16 +2869,16 @@ export default function AdminPanel() {
               <Cifra titulo="Cancelaciones" valor={stats.historico30.canceladas} sub={`${stats.historico30.tasaCancelacionPct}% del total`} />
             </div>
             <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Reservas por día</div>
+              <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, marginBottom: 6 }}>Reservas por día</div>
               {stats.historico30.porDiaSemana.map((d) => {
                 const max = Math.max(1, ...stats.historico30.porDiaSemana.map((x) => x.reservas));
                 return (
                   <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, width: 70, color: 'var(--p-mut)' }}>{d.dia}</span>
-                    <div style={{ flex: 1, background: 'var(--p-fila)', borderRadius: 4, height: 16 }}>
+                    <span style={{ fontSize: 'var(--pt-micro)', width: 70, color: 'var(--p-mut)' }}>{d.dia}</span>
+                    <div style={{ flex: 1, background: 'var(--p-fila)', borderRadius: 'var(--pr-s)', height: 16 }}>
                       <div style={{ width: `${(d.reservas / max) * 100}%`, background: 'var(--p-oro)', height: '100%', borderRadius: 4, minWidth: d.reservas ? 4 : 0 }} />
                     </div>
-                    <span style={{ fontSize: 12, width: 20, textAlign: 'right' }}>{d.reservas}</span>
+                    <span style={{ fontSize: 'var(--pt-micro)', width: 20, textAlign: 'right' }}>{d.reservas}</span>
                   </div>
                 );
               })}
@@ -2619,5 +2893,13 @@ export default function AdminPanel() {
       {tab === 'stats' && <EstadoSistema />}
       </main>
     </div>
+  );
+}
+
+export default function AdminPanel() {
+  return (
+    <DeshacerProvider>
+      <AdminPanelInterno />
+    </DeshacerProvider>
   );
 }

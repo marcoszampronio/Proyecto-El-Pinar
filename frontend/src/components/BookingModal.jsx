@@ -220,17 +220,23 @@ export default function BookingModal({ slotInfo, onClose }) {
                       placeholder="Ej: Los Pibes FC"
                     />
                   </div>
+                  {/* solo 3 opciones: botones a la vista en vez de un desplegable (un toque, sin abrir nada) */}
                   <div className={'field' + (errs.category ? ' field--error' : '')}>
-                    <label>Categoría</label>
-                    <select
-                      value={form.category}
-                      onChange={(e) => actualizar('category', e.target.value)}
-                    >
-                      <option value="">Seleccioná una categoría</option>
+                    <label id="cat-label">Categoría</label>
+                    <div className="segmentado" role="radiogroup" aria-labelledby="cat-label">
                       {CATEGORIAS.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <button
+                          key={c}
+                          type="button"
+                          role="radio"
+                          aria-checked={form.category === c}
+                          className={'segmentado-op' + (form.category === c ? ' on' : '')}
+                          onClick={() => actualizar('category', c)}
+                        >
+                          {c}
+                        </button>
                       ))}
-                    </select>
+                    </div>
                   </div>
                 </div>
               )}
@@ -267,27 +273,48 @@ export default function BookingModal({ slotInfo, onClose }) {
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
-        <h3 className="modal-titulo">¡Ya casi!</h3>
-        <p style={{ fontSize: 14, marginBottom: 12 }}>
-          Tu turno está guardado. Mandanos el WhatsApp para dejarlo reservado.
-        </p>
-
-        <div className="resumen-reserva">
-          <div className="resumen-titulo">Tu reserva</div>
-          <p><strong>{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</strong></p>
-          <p>{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</p>
-          <p>{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)} hs</p>
+        {/* jerarquía: confirmación arriba, el turno en el mismo formato ticket del
+            formulario, y UNA sola acción principal (WhatsApp); "Cerrar" queda secundario */}
+        <div className="ya-casi-cab">
+          <span className="ya-casi-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+          </span>
+          <h3 className="modal-titulo">¡Ya casi!</h3>
+          <p className="modal-sub">Tu turno está guardado. Mandanos el WhatsApp para dejarlo reservado.</p>
         </div>
 
-        <p style={{ fontSize: 13, color: 'var(--s-oro)', margin: '0 0 16px' }}>
-          Si no apretás “Enviar WhatsApp” en {resultado.holdMinutos || 10} minutos, el turno se libera para otras personas.
+        <div className="resumen-turno">
+          <div className="resumen-item">
+            <span className="resumen-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="16" y1="3" x2="16" y2="7"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              Fecha
+            </span>
+            <span className="resumen-valor">{(() => { const f = fechaLargaCompleta(resultado.reserva.reservation_date); return f.charAt(0).toUpperCase() + f.slice(1); })()}</span>
+          </div>
+          <div className="resumen-item">
+            <span className="resumen-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15.5 14"></polyline></svg>
+              Horario
+            </span>
+            <span className="resumen-valor">{hhmm(resultado.reserva.start_time)} a {hhmm(resultado.reserva.end_time)}</span>
+          </div>
+          <div className="resumen-item">
+            <span className="resumen-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20 C4 15 8 15 8 11 C8 8 6 7 6 4"></path><path d="M12 20 C12 14 17 15 17 10 C17 6 14 6 14 3"></path></svg>
+              Cancha
+            </span>
+            <span className="resumen-valor">{NOMBRE_CANCHA[resultado.reserva.court] || resultado.reserva.court}</span>
+          </div>
+        </div>
+
+        <p className="ya-casi-aviso">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 1.5M9 2h6"></path></svg>
+          <span>Tenés <strong>{resultado.holdMinutos || 10} minutos</strong> para mandar el WhatsApp. Si no, el turno se libera.</span>
         </p>
 
-        <div className="modal-actions">
-          <button className="btn btn-ghost" onClick={onClose}>Cerrar</button>
+        <div className="ya-casi-acciones">
           <a
-            className="btn btn-primary"
-            style={{ textDecoration: 'none', textAlign: 'center' }}
+            className="btn btn-wa btn-grande"
             href={linkWhatsapp}
             target="_blank"
             rel="noreferrer"
@@ -302,8 +329,10 @@ export default function BookingModal({ slotInfo, onClose }) {
                 .catch(() => {});
             }}
           >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3a.5.5 0 0 0 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.5-.3z" /></svg>
             Enviar WhatsApp
           </a>
+          <button className="btn-texto" onClick={onClose}>Cerrar</button>
         </div>
       </div>
     </div>

@@ -2465,3 +2465,19 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .aviso { animation: avisoEntra 220ms cubic-bezier(.2, .8, .2, 1); }
   @keyframes avisoEntra { from { opacity: 0; transform: translateY(12px); } }
 }
+
+/* ---------- Contactos: jerarquía de la tarjeta ---------- */
+.contacto-cab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.contacto-equipo { font-size: var(--pt-lead); font-weight: 700; color: var(--p-txt); letter-spacing: -0.01em; line-height: 1.2; }
+.contacto-tag { font-size: var(--pt-micro); color: var(--p-mut); border: 1px solid var(--p-linea); border-radius: var(--pr-s); padding: 1px 7px; }
+.contacto-nombre { font-size: var(--pt-cuerpo); font-weight: 500; color: var(--p-txt); margin-top: 2px; }
+.contacto-dato { font-size: var(--pt-chico); color: var(--p-mut); overflow-wrap: anywhere; }
+.contacto-hist { display: flex; gap: 4px 14px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--p-linea); font-size: var(--pt-chico); color: var(--p-mut); }
+.contacto-hist b { color: var(--p-ok); font-size: var(--pt-cuerpo); }
+.contacto-cancel { color: var(--p-bad); }
+
+/* ---------- Hoy: lista de espera por día ---------- */
+.hoy-espera-dia + .hoy-espera-dia { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--p-linea); }
+.hoy-espera-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: var(--p-txt); }
+.hoy-espera-cab span { font-size: var(--pt-chico); color: var(--p-mut); }
+.hoy-espera-cab .hoy-libres { color: var(--p-ok); font-weight: 600; }

@@ -1467,17 +1467,22 @@ function ContactosPanel() {
         }
         return (
           <div key={clave} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <span style={{ fontWeight: 600, fontSize: 'var(--pt-chico)' }}>{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
-              <span className="cnt cnt-verde" title="Turnos confirmados">✓ {c.confirmadas}</span>
-              <span className="cnt cnt-rojo" title="Turnos cancelados">✕ {c.canceladas}</span>
-              {c.manual && <span style={{ fontWeight: 500, fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>(agregado a mano)</span>}
+            <div className="contacto-cab">
+              <span className="contacto-equipo">{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
+              {c.manual && <span className="contacto-tag">agregado a mano</span>}
             </div>
-            <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>
-              {c.equipo ? `${c.nombre} · ` : ''}{c.telefono}{c.email ? ` · ${c.email}` : ''}
-            </div>
-            <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: c.comentario ? 2 : 6 }}>
-              {c.totalReservas === 0 ? 'Sin reservas todavía' : `${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'} en total · última: ${String(c.ultimaReserva).split('-').reverse().join('/')}`}
+            {c.equipo && <div className="contacto-nombre">{c.nombre}</div>}
+            <div className="contacto-dato">{c.telefono}{c.email ? ` · ${c.email}` : ''}</div>
+            <div className="contacto-hist" style={{ marginBottom: c.comentario ? 2 : 8 }}>
+              {c.totalReservas === 0 ? (
+                <span>Sin reservas todavía</span>
+              ) : (
+                <>
+                  <span>Fue <b>{c.confirmadas}</b> {c.confirmadas === 1 ? 'vez' : 'veces'}</span>
+                  {c.canceladas > 0 && <span className="contacto-cancel">{c.canceladas} cancelada{c.canceladas === 1 ? '' : 's'}</span>}
+                  <span>última: {String(c.ultimaReserva).split('-').reverse().join('/')}</span>
+                </>
+              )}
             </div>
             {c.comentario && (
               <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-txt)', fontStyle: 'italic', marginBottom: 6 }}>💬 {c.comentario}</div>
@@ -2435,14 +2440,27 @@ function HoyPanel({ pendientes, onCambio, irA }) {
   const esHoy = fecha === hoy;
   const [agenda, setAgenda] = useState(null);
   const [recordatorios, setRecordatorios] = useState(null);
+  const [esperaDias, setEsperaDias] = useState([]); // [{ fecha, libres, espera }] de los próximos días de juego
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let vivo = true;
-    Promise.all([api.adminAgenda(fecha), api.adminRecordatoriosFijos(2)])
-      .then(([a, r]) => {
+    // el día que se muestra + los próximos días de juego (hasta 4): ahí es donde la gente espera un turno
+    const dias = [fecha];
+    for (let n = 1; n <= 14 && dias.length < 4; n++) {
+      const f = sumarDias(fecha, n);
+      if (esDiaHabilitado(f)) dias.push(f);
+    }
+    Promise.all([api.adminAgenda(fecha), api.adminRecordatoriosFijos(2), ...dias.slice(1).map((d) => api.adminAgenda(d).catch(() => null))])
+      .then(([a, r, ...otras]) => {
         if (!vivo) return;
         setAgenda(a);
+        const libresDe = (ag) => ag.futbol.C1.filter((x, i) => x.status === 'libre' || ag.futbol.C2[i].status === 'libre').length;
+        setEsperaDias(
+          [a, ...otras]
+            .map((ag, i) => ag && { fecha: dias[i], libres: libresDe(ag), espera: ag.espera || [] })
+            .filter((d) => d && d.espera.length > 0)
+        );
         // solo los de hoy y mañana que todavía no se mandaron
         const manana = sumarDias(r.hoy || hoy, 1);
         setRecordatorios(r.recordatorios.filter((x) => !x.recordatorio_enviado_at && [r.hoy || hoy, manana].includes(x.reservation_date)));
@@ -2507,17 +2525,28 @@ function HoyPanel({ pendientes, onCambio, irA }) {
         </section>
       )}
 
-      {agenda?.espera?.length > 0 && (
+      {esperaDias.length > 0 && (
         <section className="stat-card">
-          <h3 className="hoy-titulo">Lista de espera <span className="agenda-contador">{agenda.espera.length}</span></h3>
-          <ul className="hoy-lista">
-            {agenda.espera.map((e) => (
-              <li key={e.id}>
-                <span>{e.client_name}</span>
-                {e.linkWhatsapp && <a className="btn btn-ghost btn-sm" href={e.linkWhatsapp} target="_blank" rel="noreferrer">Avisar</a>}
-              </li>
-            ))}
-          </ul>
+          <h3 className="hoy-titulo">
+            Quieren que les avisen
+            <span className="agenda-contador">{esperaDias.reduce((n, d) => n + d.espera.length, 0)}</span>
+          </h3>
+          {esperaDias.map((d) => (
+            <div key={d.fecha} className="hoy-espera-dia">
+              <div className="hoy-espera-cab">
+                <b>{fechaLinda(d.fecha)}</b>
+                <span className={d.libres ? 'hoy-libres' : ''}>{d.libres ? `${d.libres} turno${d.libres === 1 ? '' : 's'} libre${d.libres === 1 ? '' : 's'}` : 'sin turnos libres'}</span>
+              </div>
+              <ul className="hoy-lista">
+                {d.espera.map((e) => (
+                  <li key={e.id}>
+                    <span>{e.client_name}</span>
+                    {e.linkWhatsapp && <a className="btn btn-ghost btn-sm" href={e.linkWhatsapp} target="_blank" rel="noreferrer">Avisar</a>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
       )}
 

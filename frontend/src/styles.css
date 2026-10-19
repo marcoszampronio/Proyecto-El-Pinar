@@ -2425,3 +2425,13 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* panel: campos con 16 px (Safari en iPhone hace zoom al tocar un campo con menos) */
 .panel input, .panel select, .panel textarea, .panel .tel-fijo { font-size: var(--pt-cuerpo); }
+
+/* buscador del panel: mismo aspecto que el resto de los campos */
+.panel .buscador {
+  width: 100%; margin-bottom: 10px; padding: 12px 14px; border-radius: var(--pr);
+  border: 1.5px solid var(--p-linea); background: var(--p-bg); color: var(--p-txt);
+  font-family: inherit; transition: border-color 150ms cubic-bezier(.4, 0, .2, 1), box-shadow 150ms cubic-bezier(.4, 0, .2, 1);
+}
+.panel .buscador::placeholder { color: var(--p-mut); }
+.panel .buscador:hover { border-color: var(--p-oro); }
+.panel .buscador:focus { outline: none; border-color: var(--p-oro); box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.28); }

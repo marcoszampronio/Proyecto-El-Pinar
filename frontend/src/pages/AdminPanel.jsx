@@ -1424,7 +1424,8 @@ function ContactosPanel() {
       )}
 
       <input
-        style={{ width: '100%', padding: 10, borderRadius: 'var(--pr)', border: '1.5px solid var(--p-linea)', marginBottom: 8 }}
+        className="buscador"
+        type="search"
         placeholder="Buscar por equipo, nombre o teléfono"
         value={texto}
         onChange={(e) => setTexto(e.target.value)}

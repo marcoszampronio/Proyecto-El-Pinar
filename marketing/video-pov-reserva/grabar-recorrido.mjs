@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 
 const OUT = '/tmp/claude-0/-home-user-Proyecto-El-Pinar/c0e3ac52-382c-5198-926a-ed0e80585669/scratchpad/pov';
-const W = 620, H = 1197;
+const W = 540, H = 1170;
 
 const browser = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -54,6 +54,7 @@ await page.route('**/api/**', async (route) => {
   const url = route.request().url();
   const method = route.request().method();
   if (url.includes('dias-especiales')) return route.fulfill({ json: { fechas: [] } });
+  if (url.includes('/rivals')) return route.fulfill({ json: [] });
   if (url.includes('/availability/futbol')) {
     return route.fulfill({ json: { court: 'C1', date: '2026-10-21', turnos: Object.entries(TURNOS).map(([turn, [start, end]]) => ({ turn, start, end, status: 'libre' })) } });
   }
@@ -112,14 +113,14 @@ await sleep(1600);
 mark('landing');
 
 // 1) Scroll hacia abajo hasta la sección de reservas
-await smoothScroll(520, 1900); await sleep(450);
-await smoothScroll(1385, 2300); await sleep(900);
+await smoothScroll(480, 1800); await sleep(400);
+const yBoard = await page.evaluate(() => document.querySelector('#reservar').getBoundingClientRect().top + window.scrollY);
+await smoothScroll(yBoard, 2300); await sleep(900);
 mark('board');
 
 // 2) Fútbol 11 -> próxima semana -> miércoles -> turno
 await tap(page.locator('.cancha-card').first());
 mark('deporte');
-await tap(page.locator('.fechas-flecha--lado').last(), { after: 700 });
 const dias = page.locator('.dia-btn:not(.no-habilitado)');
 await tap(dias.nth(1), { after: 800 });
 mark('dia');
@@ -134,8 +135,8 @@ mark('nombre');
 await tap(page.locator('.modal input[placeholder="343"]'), { ms: 500 }); await page.keyboard.type('343', { delay: 110 });
 await tap(page.locator('.modal .tel-num'), { ms: 450 }); await page.keyboard.type('5134744', { delay: 95 }); await sleep(250);
 mark('telefono');
-await tap(page.locator('.modal input[placeholder="Para recibir la confirmación"]'), { ms: 500 });
-await page.keyboard.type('juan.perez@gmail.com', { delay: 70 }); await sleep(500);
+const emailInp = page.locator('.modal input[placeholder="Para recibir la confirmación"]');
+if (await emailInp.count()) { await tap(emailInp, { ms: 500 }); await page.keyboard.type('juan.perez@gmail.com', { delay: 70 }); await sleep(500); }
 mark('email');
 
 // 4) Continuar (scroll suave dentro del modal si hace falta)

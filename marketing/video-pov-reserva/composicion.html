@@ -43,16 +43,16 @@
 
       /* ---------- celular ---------- */
       #phone {
-        position: absolute; left: 150px; top: 305px; width: 780px; height: 1488px;
-        border-radius: 74px; background: #0a1420; z-index: 4; opacity: 0;
+        position: absolute; left: 200px; top: 322px; width: 680px; height: 1450px;
+        border-radius: 68px; background: #0a1420; z-index: 4; opacity: 0;
         box-shadow: 0 40px 90px rgba(0,0,0,0.55), 0 0 0 2px rgba(242,193,78,0.28);
       }
-      #screen { position: absolute; left: 10px; top: 10px; width: 760px; height: 1468px; border-radius: 64px; overflow: hidden; background: #0d2234; }
-      #screen video { position: absolute; inset: 0; width: 760px; height: 1468px; object-fit: cover; }
+      #screen { position: absolute; left: 10px; top: 10px; width: 660px; height: 1430px; border-radius: 58px; overflow: hidden; background: #0d2234; }
+      #screen video { position: absolute; inset: 0; width: 660px; height: 1430px; object-fit: cover; }
       .glare { position: absolute; inset: 0; z-index: 8; pointer-events: none; background: linear-gradient(115deg, rgba(255,255,255,0.09) 0%, transparent 16%, transparent 84%, rgba(255,255,255,0.04) 100%); }
 
       /* ---------- chat ---------- */
-      #chat { position: absolute; left: 0; top: 0; width: 540px; height: 1043.5px; transform: scale(1.4074); transform-origin: 0 0; opacity: 0; z-index: 6; background: #0B141A; font-family: 'Satoshi', sans-serif; }
+      #chat { position: absolute; left: 0; top: 0; width: 540px; height: 1170px; transform: scale(1.2222); transform-origin: 0 0; opacity: 0; z-index: 6; background: #0B141A; font-family: 'Satoshi', sans-serif; }
       #chat .head { position: absolute; left: 0; right: 0; top: 0; height: 118px; background: #1F2C34; display: flex; align-items: flex-end; padding: 0 20px 16px; gap: 14px; }
       #chat .av { width: 52px; height: 52px; border-radius: 50%; background: #0F2436; border: 2px solid #F2C14E; display: flex; align-items: center; justify-content: center; }
       #chat .nm { color: #E9EDEF; font-weight: 700; font-size: 22px; line-height: 1.1; }
@@ -83,7 +83,7 @@
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="pov" data-start="0" data-duration="50" data-width="1080" data-height="1920">
+    <div id="root" data-composition-id="pov" data-start="0" data-duration="44" data-width="1080" data-height="1920">
 
       <div class="pinemark"><svg viewBox="0 0 40 52"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg></div>
 
@@ -105,7 +105,7 @@
       <!-- celular -->
       <div id="phone">
         <div id="screen">
-          <video id="pov" src="assets/pov.mp4" data-start="3.6" data-duration="33.5" data-track-index="2" muted playsinline></video>
+          <video id="pov" src="assets/pov.mp4" data-start="3.6" data-duration="27.4" data-track-index="2" muted playsinline></video>
 
           <div id="chat">
             <div class="head">
@@ -132,7 +132,7 @@
       </div>
 
       <!-- cierre -->
-      <div id="outro" class="clip" data-start="43.4" data-duration="6.6" data-track-index="0">
+      <div id="outro" class="clip" data-start="37.4" data-duration="6.6" data-track-index="0">
         <div class="glow" id="o-glow"></div>
         <div class="sweep" id="o-sweep"></div>
         <div class="box">
@@ -145,14 +145,14 @@
       </div>
 
       <div class="grain"></div>
-      <audio id="bgm" data-start="0" data-duration="50" data-track-index="1" data-volume="1" src="assets/music/track.mp3"></audio>
+      <audio id="bgm" data-start="0" data-duration="44" data-track-index="1" data-volume="1" src="assets/music/track.mp3"></audio>
     </div>
 
     <script>
       const tl = gsap.timeline({ paused: true });
 
       tl.set('#bgm', { volume: 0.5 }, 0);
-      tl.to('#bgm', { volume: 0, duration: 0.8 }, 49.2);
+      tl.to('#bgm', { volume: 0, duration: 0.8 }, 43.2);
 
       // ===== intro (0 - 3.6) =====
       gsap.set('#intro', { opacity: 0 });
@@ -165,12 +165,12 @@
       // ===== celular (3.0) =====
       gsap.set('#phone', { opacity: 0, y: 90 });
       tl.to('#phone', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 2.9);
-      tl.to('#phone', { opacity: 0, y: 40, duration: 0.6, ease: 'power2.in' }, 43.0);
+      tl.to('#phone', { opacity: 0, y: 40, duration: 0.6, ease: 'power2.in' }, 37.2);
 
       // ===== pasos =====
       gsap.set(['#c1', '#c2', '#c3', '#c4'], { opacity: 0, y: 14 });
       gsap.set('#dots', { opacity: 0 });
-      const steps = [['#c1', 3.9, 10.6, '#d1'], ['#c2', 10.6, 20.4, '#d2'], ['#c3', 20.4, 34.4, '#d3'], ['#c4', 34.4, 43.0, '#d4']];
+      const steps = [['#c1', 3.9, 10.5, '#d1'], ['#c2', 10.5, 18.2, '#d2'], ['#c3', 18.2, 28.5, '#d3'], ['#c4', 28.5, 37.2, '#d4']];
       steps.forEach(([id, a, b, dot]) => {
         tl.to(id, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, a);
         tl.to(id, { opacity: 0, y: -10, duration: 0.3, ease: 'power2.in' }, b - 0.3);
@@ -178,44 +178,44 @@
         tl.to(dot, { width: 14, background: 'rgba(243,238,225,0.25)', duration: 0.3 }, b - 0.2);
       });
       tl.to('#dots', { opacity: 1, duration: 0.4 }, 3.9);
-      tl.to('#dots', { opacity: 0, duration: 0.4 }, 42.8);
+      tl.to('#dots', { opacity: 0, duration: 0.4 }, 36.9);
 
-      // ===== chat de WhatsApp (36.95 - 43) =====
+      // ===== chat de WhatsApp (30.85 - 37.2) =====
       gsap.set('#chat', { opacity: 0 });
-      gsap.set('#ccur', { opacity: 0, x: 300, y: 640 });
-      gsap.set('#cfx', { opacity: 0, scale: 0.5, x: 497, y: 992 });
+      gsap.set('#ccur', { opacity: 0, x: 300, y: 700 });
+      gsap.set('#cfx', { opacity: 0, scale: 0.5, x: 497, y: 1119 });
       gsap.set('#b-out', { opacity: 0, y: 20 });
       gsap.set('#b-in', { opacity: 0, y: 20 });
-      tl.to('#chat', { opacity: 1, duration: 0.45 }, 36.95);
-      tl.to('#ccur', { opacity: 1, duration: 0.2 }, 38.0);
-      tl.to('#ccur', { x: 497, y: 992, duration: 1.0, ease: 'power2.inOut' }, 38.0);
-      tl.to('#ccur', { scale: 0.82, duration: 0.09 }, 39.3);
-      tl.to('#cfx', { opacity: 1, duration: 0.01 }, 39.3);
-      tl.to('#cfx', { opacity: 0, scale: 3.2, duration: 0.5, ease: 'power2.out' }, 39.31);
-      tl.to('#ccur', { scale: 1, duration: 0.12 }, 39.42);
-      tl.to('#ccur', { opacity: 0, duration: 0.3 }, 40.4);
-      tl.to('#draft', { opacity: 0, duration: 0.25 }, 39.45);
-      tl.set('#draft', { display: 'none' }, 39.75);
-      tl.set('#ph', { display: 'inline' }, 39.75);
-      tl.to('#b-out', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 39.6);
-      tl.to('#ck', { opacity: 1, duration: 0.3 }, 40.5);
-      tl.to('#b-in', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 41.5);
+      tl.to('#chat', { opacity: 1, duration: 0.45 }, 30.85);
+      tl.to('#ccur', { opacity: 1, duration: 0.2 }, 31.9);
+      tl.to('#ccur', { x: 497, y: 1119, duration: 1.0, ease: 'power2.inOut' }, 31.9);
+      tl.to('#ccur', { scale: 0.82, duration: 0.09 }, 33.2);
+      tl.to('#cfx', { opacity: 1, duration: 0.01 }, 33.2);
+      tl.to('#cfx', { opacity: 0, scale: 3.2, duration: 0.5, ease: 'power2.out' }, 33.21);
+      tl.to('#ccur', { scale: 1, duration: 0.12 }, 33.32);
+      tl.to('#ccur', { opacity: 0, duration: 0.3 }, 34.3);
+      tl.to('#draft', { opacity: 0, duration: 0.25 }, 33.35);
+      tl.set('#draft', { display: 'none' }, 33.65);
+      tl.set('#ph', { display: 'inline' }, 33.65);
+      tl.to('#b-out', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 33.5);
+      tl.to('#ck', { opacity: 1, duration: 0.3 }, 34.4);
+      tl.to('#b-in', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 35.4);
 
-      // ===== cierre (43.4 - 50) =====
+      // ===== cierre (37.4 - 44) =====
       gsap.set('#outro', { opacity: 0 });
       gsap.set(['#o-t', '#o-pino', '#o-nombre', '#o-cta', '#o-sub'], { opacity: 0, y: 16 });
       gsap.set('#o-glow', { opacity: 0, scale: 0.6 });
       gsap.set('#o-sweep', { opacity: 0, x: 0 });
-      tl.to('#outro', { opacity: 1, duration: 0.01 }, 43.4);
-      tl.to('#o-t', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 43.7);
-      tl.to('#o-glow', { opacity: 0.8, scale: 1, duration: 1.2, ease: 'power3.out' }, 44.2);
-      tl.to('#o-sweep', { opacity: 1, duration: 0.15 }, 44.5);
-      tl.to('#o-sweep', { x: '260%', duration: 0.8, ease: 'power2.inOut' }, 44.5);
-      tl.to('#o-sweep', { opacity: 0, duration: 0.2 }, 45.2);
-      tl.to('#o-pino', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 45.4);
-      tl.to('#o-nombre', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 45.65);
-      tl.to('#o-cta', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' }, 46.0);
-      tl.to('#o-sub', { opacity: 0.9, y: 0, duration: 0.4, ease: 'power2.out' }, 46.4);
+      tl.to('#outro', { opacity: 1, duration: 0.01 }, 37.4);
+      tl.to('#o-t', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 37.7);
+      tl.to('#o-glow', { opacity: 0.8, scale: 1, duration: 1.2, ease: 'power3.out' }, 38.2);
+      tl.to('#o-sweep', { opacity: 1, duration: 0.15 }, 38.5);
+      tl.to('#o-sweep', { x: '260%', duration: 0.8, ease: 'power2.inOut' }, 38.5);
+      tl.to('#o-sweep', { opacity: 0, duration: 0.2 }, 39.2);
+      tl.to('#o-pino', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 39.4);
+      tl.to('#o-nombre', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 39.65);
+      tl.to('#o-cta', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' }, 40.0);
+      tl.to('#o-sub', { opacity: 0.9, y: 0, duration: 0.4, ease: 'power2.out' }, 40.4);
 
       window.__timelines['pov'] = tl;
       tl.seek(0);

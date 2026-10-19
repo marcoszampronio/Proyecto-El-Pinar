@@ -5,6 +5,7 @@ import { nombreEquipo } from '../lib/equipo';
 import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
+import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -2632,6 +2633,13 @@ function AdminPanelInterno() {
     }
   }
 
+  async function cargarCsv(desde, hasta) {
+    const token = await tokenAdmin();
+    const res = await fetch(`${API_URL}/admin/export/csv?desde=${desde}&hasta=${hasta}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error('el servidor no pudo leer las reservas');
+    return res.text();
+  }
+
   async function cargarStats() {
     try {
       const data = await api.adminStats(7);
@@ -2822,6 +2830,7 @@ function AdminPanelInterno() {
         </>
       )}
 
+      {tab === 'stats' && <EstadisticasDecidir cargarCsv={cargarCsv} />}
       {tab === 'stats' && stats && (
         <>
           <div className="stat-card" style={{ margin: '12px 20px 0' }}>

@@ -2405,7 +2405,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   transition: border-color 150ms cubic-bezier(.4, 0, .2, 1), opacity 150ms cubic-bezier(.4, 0, .2, 1);
 }
 .pend-card--confirmada { border-left-color: var(--p-ok); }
-.pend-card--cancelada { border-left-color: var(--p-mut); opacity: 0.7; }
+.pend-card--cancelada, .pend-card--cancelando { border-left-color: var(--p-mut); opacity: 0.7; }
 .pend-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pend-info b { font-size: var(--pt-cuerpo); color: var(--p-txt); }
 .pend-info span { font-size: var(--pt-chico); color: var(--p-oro); }
@@ -2435,3 +2435,33 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .panel .buscador::placeholder { color: var(--p-mut); }
 .panel .buscador:hover { border-color: var(--p-oro); }
 .panel .buscador:focus { outline: none; border-color: var(--p-oro); box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.28); }
+
+/* ---------- avisos con "Deshacer" ---------- */
+.avisos {
+  position: fixed; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 60;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none;
+}
+.aviso {
+  position: relative; overflow: hidden; pointer-events: auto;
+  display: flex; align-items: center; gap: 14px; width: 100%; max-width: 460px;
+  padding: 12px 14px 15px 16px; border-radius: var(--pr); background: var(--p-alto); color: var(--p-txt);
+  border: 1px solid var(--p-linea); box-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.7);
+}
+.aviso--error { background: #4A2A2A; border-color: var(--p-bad); }
+.aviso-txt { flex: 1; min-width: 0; font-size: var(--pt-chico); line-height: 1.35; }
+.aviso-btn {
+  flex: none; min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--pr-s); cursor: pointer;
+  background: transparent; color: var(--p-oro); font-family: inherit; font-size: var(--pt-chico); font-weight: 700;
+  letter-spacing: 0.02em; text-transform: uppercase;
+}
+.aviso-btn:hover { background: rgba(242, 193, 78, 0.14); }
+.aviso-btn:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
+.aviso-barra {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--p-oro); transform-origin: left;
+  animation-name: avisoCuenta; animation-timing-function: linear; animation-fill-mode: forwards;
+}
+@keyframes avisoCuenta { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .aviso { animation: avisoEntra 220ms cubic-bezier(.2, .8, .2, 1); }
+  @keyframes avisoEntra { from { opacity: 0; transform: translateY(12px); } }
+}

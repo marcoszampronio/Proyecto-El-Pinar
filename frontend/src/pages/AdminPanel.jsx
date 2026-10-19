@@ -4,6 +4,7 @@ import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
 import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
+import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -1318,6 +1319,8 @@ function ContactosPanel() {
   const [editando, setEditando] = useState(null); // clave del contacto en edición
   const [guardando, setGuardando] = useState(false);
   const [libresTxt, setLibresTxt] = useState(null); // turnos libres de los próximos días, para el aviso
+  const des = useDeshacer();
+  const [eliminados, setEliminados] = useState(() => new Set()); // ocultos mientras corre el Deshacer
 
   // Turnos de fútbol libres de los próximos días abiertos (hasta 4), con los mismos horarios que ve Mateo.
   useEffect(() => {
@@ -1372,19 +1375,21 @@ function ContactosPanel() {
     }
   }
 
-  async function eliminarContacto(c) {
-    try {
-      const r = await api.adminEliminarContacto({ telefono: c.telefono });
-      setEditando(null);
-      setAviso(
-        r.reservasBorradas
-          ? `Contacto eliminado (y ${r.reservasBorradas} reserva${r.reservasBorradas === 1 ? '' : 's'}).`
-          : 'Contacto eliminado.'
-      );
-      cargar();
-    } catch (e) {
-      alert('No se pudo eliminar: ' + e.message);
-    }
+  function eliminarContacto(c) {
+    const volver = () => setEliminados((e) => { const n = new Set(e); n.delete(c.telefono); return n; });
+    setEditando(null);
+    setEliminados((e) => new Set(e).add(c.telefono));
+    des.programar({
+      mensaje: c.totalReservas > 0
+        ? `Contacto eliminado, con sus ${c.totalReservas} reserva${c.totalReservas === 1 ? '' : 's'}`
+        : 'Contacto eliminado',
+      ms: 8000,
+      errorTexto: 'No se pudo eliminar',
+      ejecutar: () => api.adminEliminarContacto({ telefono: c.telefono }),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
 
   async function cargar() {
@@ -1403,7 +1408,8 @@ function ContactosPanel() {
   useEffect(() => { cargar(); }, []);
 
   const filtro = texto.trim().toLowerCase();
-  const lista = (contactos || []).filter(
+  const todos = (contactos || []).filter((c) => !eliminados.has(c.telefono));
+  const lista = todos.filter(
     (c) => !filtro || `${c.equipo || ''} ${c.nombre} ${c.telefono} ${c.email || ''} ${c.comentario || ''}`.toLowerCase().includes(filtro)
   );
 
@@ -1435,7 +1441,7 @@ function ContactosPanel() {
       {error && <p className="error-msg">{error}</p>}
       {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
       {contactos && (
-        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{lista.length === contactos.length ? `${contactos.length} contactos` : `${lista.length} de ${contactos.length} contactos`}</p>
+        <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{lista.length === todos.length ? `${todos.length} contactos` : `${lista.length} de ${todos.length} contactos`}</p>
       )}
 
       {lista.map((c) => {
@@ -1599,13 +1605,13 @@ function ContactoForm({ inicial, onGuardar, onCancelar, onEliminar, eliminarLabe
         </button>
       </div>
       {onEliminar && (
-        <BotonConfirmar
-          label={eliminarLabel || 'Eliminar contacto'}
-          confirmLabel={eliminarConfirm || 'Confirmar: eliminar'}
+        <button
           className="btn btn-ghost"
           style={{ width: '100%', marginTop: 8, color: 'var(--p-bad)', borderColor: 'var(--p-bad)' }}
-          onConfirm={onEliminar}
-        />
+          onClick={onEliminar}
+        >
+          {eliminarLabel || 'Eliminar contacto'}
+        </button>
       )}
     </div>
   );
@@ -1668,14 +1674,21 @@ function BloqueosPanel() {
     }
   }
 
-  async function quitar(id) {
-    try {
-      await api.adminQuitarBloqueo(id);
-      cargar();
-    } catch (e) {
-      alert('No se pudo quitar: ' + e.message);
-    }
+  const des = useDeshacer();
+  const [ocultos, setOcultos] = useState(() => new Set());
+  function quitar(b) {
+    const volver = () => setOcultos((o) => { const n = new Set(o); n.delete(b.id); return n; });
+    setOcultos((o) => new Set(o).add(b.id));
+    des.programar({
+      mensaje: 'Bloqueo quitado',
+      errorTexto: 'No se pudo quitar',
+      ejecutar: () => api.adminQuitarBloqueo(b.id),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
+  const visibles = bloqueos.filter((b) => !ocultos.has(b.id));
 
   return (
     <div className="stat-card">
@@ -1729,14 +1742,14 @@ function BloqueosPanel() {
           Bloqueos de este día {cargando ? '' : `(${bloqueos.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
-        {!cargando && bloqueos.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
-        {bloqueos.map((b) => (
+        {!cargando && visibles.length === 0 && <p className="agenda-vacio">No hay bloqueos este día.</p>}
+        {visibles.map((b) => (
           <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{descripcionBloqueo(b)}</div>
               {b.motivo && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{b.motivo}</div>}
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(b.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(b)}>
               Quitar
             </button>
           </div>
@@ -1791,14 +1804,21 @@ function AperturasEspecialesPanel() {
     }
   }
 
-  async function quitar(id) {
-    try {
-      await api.adminQuitarApertura(id);
-      cargar();
-    } catch (e) {
-      alert('No se pudo quitar: ' + e.message);
-    }
+  const des = useDeshacer();
+  const [ocultos, setOcultos] = useState(() => new Set());
+  function quitar(a) {
+    const volver = () => setOcultos((o) => { const n = new Set(o); n.delete(a.id); return n; });
+    setOcultos((o) => new Set(o).add(a.id));
+    des.programar({
+      mensaje: 'Día especial quitado',
+      errorTexto: 'No se pudo quitar',
+      ejecutar: () => api.adminQuitarApertura(a.id),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
+  const visibles = aperturas.filter((a) => !ocultos.has(a.id));
 
   return (
     <div className="stat-card">
@@ -1827,17 +1847,17 @@ function AperturasEspecialesPanel() {
 
       <div style={{ marginTop: 14 }}>
         <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
-          Próximas aperturas {cargando ? '' : `(${aperturas.length})`}
+          Próximas aperturas {cargando ? '' : `(${visibles.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
-        {!cargando && aperturas.length === 0 && <p className="agenda-vacio">No hay días especiales abiertos.</p>}
-        {aperturas.map((a) => (
+        {!cargando && visibles.length === 0 && <p className="agenda-vacio">No hay días especiales abiertos.</p>}
+        {visibles.map((a) => (
           <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, textTransform: 'capitalize' }}>{fechaLargaCompleta(a.reservation_date)}</div>
               {a.nota && <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{a.nota}</div>}
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(a.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => quitar(a)}>
               Quitar
             </button>
           </div>
@@ -2053,14 +2073,21 @@ function TurnosFijosPanel() {
     }
   }
 
-  async function baja(id) {
-    try {
-      await api.adminBajaTurnoFijo(id);
-      cargar();
-    } catch (e) {
-      alert('No se pudo dar de baja: ' + e.message);
-    }
+  const des = useDeshacer();
+  const [ocultos, setOcultos] = useState(() => new Set());
+  function baja(f) {
+    const volver = () => setOcultos((o) => { const n = new Set(o); n.delete(f.id); return n; });
+    setOcultos((o) => new Set(o).add(f.id));
+    des.programar({
+      mensaje: `Turno fijo de ${f.team_name ? nombreEquipo(f.team_name) : f.client_name} dado de baja`,
+      errorTexto: 'No se pudo dar de baja',
+      ejecutar: () => api.adminBajaTurnoFijo(f.id),
+      alConfirmar: () => cargar(),
+      alDeshacer: volver,
+      alFallar: volver,
+    });
   }
+  const visibles = (fijos || []).filter((f) => !ocultos.has(f.id));
 
   return (
     <>
@@ -2166,11 +2193,11 @@ function TurnosFijosPanel() {
 
       <div style={{ marginTop: 14 }}>
         <p style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, margin: '0 0 6px' }}>
-          Fijos activos {cargando ? '' : `(${(fijos || []).length})`}
+          Fijos activos {cargando ? '' : `(${visibles.length})`}
         </p>
         {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
-        {!cargando && fijos && fijos.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
-        {(fijos || []).map((f) => (
+        {!cargando && fijos && visibles.length === 0 && <p className="agenda-vacio">No hay turnos fijos cargados.</p>}
+        {visibles.map((f) => (
           <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 6 }}>
             <div>
               <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>
@@ -2179,7 +2206,7 @@ function TurnosFijosPanel() {
               <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{descripcionTurnoFijo(f)}</div>
               <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{f.client_phone}{f.hasta ? ` · hasta el ${f.hasta.split('-').reverse().join('/')}` : ''}</div>
             </div>
-            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => baja(f.id)}>
+            <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 'var(--pt-micro)' }} onClick={() => baja(f)}>
               Dar de baja
             </button>
           </div>
@@ -2312,18 +2339,18 @@ function SuspensionPanel() {
 // Después de confirmar, la tarjeta queda a la vista con el botón para avisarle por
 // WhatsApp (aunque la reserva ya no esté en la lista de pendientes del servidor).
 function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
-  const [ocupado, setOcupado] = useState(null); // 'confirmando' | 'cancelando'
+  const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState(null);
 
-  async function correr(tipo, fn) {
-    setOcupado(tipo);
+  async function confirmar() {
+    setOcupado(true);
     setError(null);
     try {
-      await fn(p);
+      await onConfirmar(p);
     } catch (e) {
       setError(e.message);
     } finally {
-      setOcupado(null);
+      setOcupado(false);
     }
   }
 
@@ -2343,19 +2370,14 @@ function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
           )}
         </div>
       )}
+      {hecha?.estado === 'cancelando' && <div className="pend-hecho"><span className="pend-baja">Se cancela en unos segundos…</span></div>}
       {hecha?.estado === 'cancelada' && <div className="pend-hecho"><span className="pend-baja">Turno cancelado</span></div>}
       {!hecha && (
         <div className="pend-acciones">
-          <button className="btn btn-primary" disabled={!!ocupado} onClick={() => correr('confirmando', onConfirmar)}>
-            {ocupado === 'confirmando' ? 'Confirmando…' : 'Confirmar'}
+          <button className="btn btn-primary" disabled={ocupado} onClick={confirmar}>
+            {ocupado ? 'Confirmando…' : 'Confirmar'}
           </button>
-          <BotonConfirmar
-            label="Cancelar"
-            confirmLabel="¿Cancelar? Tocá de nuevo"
-            className="btn btn-ghost"
-            disabled={!!ocupado}
-            onConfirm={() => correr('cancelando', onCancelar)}
-          />
+          <button className="btn btn-ghost" disabled={ocupado} onClick={() => onCancelar(p)}>Cancelar</button>
         </div>
       )}
     </div>
@@ -2363,17 +2385,31 @@ function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
 }
 
 function PendientesLista({ pendientes, onCambio }) {
-  const [hechas, setHechas] = useState({}); // code -> { p, estado, link }
+  const des = useDeshacer();
+  const [hechas, setHechas] = useState({}); // code -> { p, estado: 'confirmada' | 'cancelando' | 'cancelada', link }
+
+  const sacar = (code) => setHechas((h) => { const n = { ...h }; delete n[code]; return n; });
 
   async function confirmar(p) {
     const r = await api.adminConfirmar(p.code);
     setHechas((h) => ({ ...h, [p.code]: { p, estado: 'confirmada', link: r.linkWhatsappConfirmacion } }));
     onCambio?.();
   }
-  async function cancelar(p) {
-    await api.adminCancelar(p.code);
-    setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelada' } }));
-    onCambio?.();
+
+  // Cancelar: se ve hecho al instante, pero recién se manda al servidor si no se toca "Deshacer".
+  function cancelar(p) {
+    setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelando' } }));
+    des.programar({
+      mensaje: `Turno de ${p.team_name ? nombreEquipo(p.team_name) : p.client_name} cancelado`,
+      errorTexto: 'No se pudo cancelar',
+      ejecutar: () => api.adminCancelar(p.code),
+      alConfirmar: () => {
+        setHechas((h) => ({ ...h, [p.code]: { p, estado: 'cancelada' } }));
+        onCambio?.();
+      },
+      alDeshacer: () => sacar(p.code),
+      alFallar: () => sacar(p.code),
+    });
   }
 
   // las ya resueltas siguen a la vista (con su resultado) hasta salir de la pantalla
@@ -2511,8 +2547,9 @@ function paramsUrl() {
   }
 }
 
-export default function AdminPanel() {
+function AdminPanelInterno() {
   const inicial = paramsUrl();
+  const desHecho = useDeshacer();
   const [tab, setTab] = useState(
     ['hoy', 'buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : inicial.code ? 'buscar' : 'hoy'
   );
@@ -2540,6 +2577,7 @@ export default function AdminPanel() {
   }, [menu]);
 
   function irA(id) {
+    desHecho.confirmarTodo(); // lo que estaba esperando en un aviso se manda ya, antes de cambiar de pantalla
     setTab(id);
     setMenu(false);
     window.scrollTo({ top: 0 });
@@ -2806,5 +2844,13 @@ export default function AdminPanel() {
       {tab === 'stats' && <EstadoSistema />}
       </main>
     </div>
+  );
+}
+
+export default function AdminPanel() {
+  return (
+    <DeshacerProvider>
+      <AdminPanelInterno />
+    </DeshacerProvider>
   );
 }

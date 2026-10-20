@@ -512,6 +512,54 @@ function Semaforo({ ok, label, detalle }) {
   );
 }
 
+// Quién hizo qué en el panel (confirmar, cancelar, agendar, bloquear...).
+function Movimientos() {
+  const [lista, setLista] = useState(null);
+  const [error, setError] = useState(null);
+  const [persona, setPersona] = useState('');
+
+  useEffect(() => {
+    api.adminMovimientos(30).then((r) => setLista(r.movimientos)).catch((e) => setError(e.message));
+  }, []);
+
+  const personas = lista ? [...new Set(lista.map((m) => m.admin_email).filter(Boolean))] : [];
+  const visibles = (lista || []).filter((m) => !persona || m.admin_email === persona);
+  const cuando = (iso) => new Date(iso).toLocaleString('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
+  }).replace(',', '');
+  const corto = (mail) => (mail || 'sistema').split('@')[0];
+
+  return (
+    <div className="stat-card" style={{ margin: '12px 20px 0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <h3 style={{ margin: 0 }}>Movimientos</h3>
+        {personas.length > 1 && (
+          <select value={persona} onChange={(e) => setPersona(e.target.value)} aria-label="Filtrar por persona">
+            <option value="">Todos</option>
+            {personas.map((p) => <option key={p} value={p}>{corto(p)}</option>)}
+          </select>
+        )}
+      </div>
+      <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '4px 0 8px' }}>
+        Últimos 30 días. Quién confirmó, canceló o agendó cada turno.
+      </p>
+      {error && <p className="error-msg">{error}</p>}
+      {!lista && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
+      {lista && visibles.length === 0 && (
+        <p style={{ color: 'var(--p-mut)', fontSize: 'var(--pt-chico)' }}>Todavía no hay movimientos. Se empiezan a registrar desde hoy.</p>
+      )}
+      <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+        {visibles.map((m) => (
+          <div key={m.id} style={{ padding: '7px 0', borderTop: '1px solid var(--p-linea)' }}>
+            <div style={{ fontSize: 'var(--pt-chico)' }}>{m.detalle}</div>
+            <div style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' }}>{cuando(m.created_at)} · {m.admin_email || 'sistema'}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function EstadoSistema() {
   const [d, setD] = useState(null);
   const [error, setError] = useState(null);
@@ -749,7 +797,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       </div>
       <div className="agenda-detalle-cliente">
         {reserva.team_name ? `${nombreEquipo(reserva.team_name)} · ${reserva.client_name}` : reserva.client_name}
-        {reserva.looking_for_rival && reserva.category ? ` (${reserva.category})` : ''}
+        {reserva.looking_for_rival && reserva.category ? ` (Cat: ${reserva.category})` : ''}
       </div>
       <div className="agenda-detalle-meta">
         Tel: {reserva.client_phone}{reserva.client_email ? ` · ${reserva.client_email}` : ''}
@@ -2811,7 +2859,7 @@ function AdminPanelInterno() {
               <p style={{ margin: '0 0 4px', fontSize: 'var(--pt-lead)', fontWeight: 700 }}>
                 {resultado.reserva.client_name}
                 {resultado.reserva.team_name && (
-                  <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (${resultado.reserva.category})` : ''}</span>
+                  <span style={{ color: 'var(--p-oro)' }}>{' · '}{nombreEquipo(resultado.reserva.team_name)}{resultado.reserva.category ? ` (Cat: ${resultado.reserva.category})` : ''}</span>
                 )}
               </p>
               <p style={{ margin: '4px 0', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>
@@ -2919,6 +2967,7 @@ function AdminPanelInterno() {
       )}
 
       {tab === 'stats' && !stats && <ExportPanel />}
+      {tab === 'stats' && <Movimientos />}
       {tab === 'stats' && <EstadoSistema />}
       </main>
     </div>

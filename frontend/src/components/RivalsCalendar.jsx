@@ -133,7 +133,7 @@ function RivalCard({ r, hora }) {
       {hora && <span className="rival-cel-hora">{hora} hs</span>}
       <span className="rival-cel-nom">
         <span className="rival-cel-eq">{nombreEquipo(r.team_name) || 'EQUIPO'}</span>
-        {r.category && <span className="rival-cel-cat">{r.category}</span>}
+        {r.category && <span className="rival-cel-cat">Cat: {r.category}</span>}
       </span>
       <span className="rival-cel-meta">{r.canchaNombre || r.court}</span>
       {r.linkWhatsapp ? (

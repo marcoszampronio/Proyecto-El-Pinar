@@ -14,6 +14,7 @@ import {
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
+import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 import {
   listarAperturasEspeciales,
@@ -44,7 +45,7 @@ function armarMensajeConfirmacion(reserva) {
 function armarMensajeSuspension(reserva) {
   const cancha = NOMBRE_CANCHA_WA[reserva.court] || reserva.court;
   return (
-    `Hola ${primerNombre(reserva.client_name)}! Con la lluvia no vamos a poder jugar 🌧️ ` +
+    `Hola ${primerNombre(reserva.client_name)}! Con la lluvia no vamos a poder jugar. ` +
     `Tu turno del ${fechaCorta(reserva.reservation_date)} (${cancha}, ${hora(reserva.start_time)}) queda suspendido. ` +
     `¿Lo pasamos para otro día?`
   );
@@ -97,7 +98,7 @@ function armarMensajeEspera(e, libres = []) {
     ? `Se liberó lugar para el ${cuando} a las ${unir(libres)}`
     : `Se liberó un turno de fútbol para el ${cuando}`;
   return (
-    `Hola ${primerNombre(e.client_name)}! ${que} 🙌 ` +
+    `Hola ${primerNombre(e.client_name)}! ${que}. ` +
     `¿Lo querés? Respondenos y te lo reservamos.`
   );
 }
@@ -249,6 +250,10 @@ router.post('/suspender/:date', async (req, res) => {
     };
   });
 
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'suspendio', fecha: date,
+    detalle: `Suspendió el día ${fechaCorta(date)} por lluvia (${afectadas.length} ${afectadas.length === 1 ? 'turno cancelado' : 'turnos cancelados'})`,
+  });
   res.json({ date, canceladas: afectadas.length, clientes });
 });
 
@@ -339,6 +344,10 @@ router.post('/confirm/:code', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'confirmo', code: actualizada.code, fecha: actualizada.reservation_date,
+    detalle: `Confirmó el turno de ${descripcionTurno(actualizada)}`,
+  });
   const tel = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(actualizada);
 
@@ -373,6 +382,10 @@ router.post('/cancel/:code', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'cancelo', code: actualizada.code, fecha: actualizada.reservation_date,
+    detalle: `Canceló el turno de ${descripcionTurno(actualizada)}`,
+  });
   // Igual que al confirmar: se devuelve el WhatsApp ya armado para avisarle al cliente.
   const telCliente = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeCancelacion = armarMensajeCancelacionTurno(actualizada);
@@ -471,6 +484,10 @@ router.post('/manual', async (req, res) => {
   // Igual que /confirm: dejamos listo el WhatsApp para avisarle al cliente que Mateo
   // le agendó y confirmó el turno. (Los mails son solo para Mateo, no para clientes.)
 
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'agendo', code: data.code, fecha: data.reservation_date,
+    detalle: `Agendó a mano el turno de ${descripcionTurno(data)}`,
+  });
   const tel = normalizarTelefonoAR(data.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(data);
 
@@ -516,6 +533,10 @@ router.post('/rival/:code', async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'rival', code: data.code, fecha: data.reservation_date,
+    detalle: `${activar ? 'Marcó "busca rival"' : 'Sacó "busca rival"'} en el turno de ${descripcionTurno(data)}`,
+  });
   res.json({ reserva: data });
 });
 
@@ -553,14 +574,39 @@ router.post('/bloqueos', async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ error: error.message });
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'bloqueo', fecha: date,
+    detalle: `Bloqueó ${court ? (turn ? `${court === 'C1' ? 'Cancha 1' : 'Cancha 2'} (turno ${turn})` : (court === 'PAD' ? 'Pádel' : court === 'FUT' ? 'Fútbol' : court === 'C1' ? 'Cancha 1' : 'Cancha 2')) : 'todo el día'} el ${fechaCorta(date)}${motivo ? ` · ${motivo}` : ''}`,
+  });
   res.json({ bloqueo: data });
 });
 
 // DELETE /api/admin/bloqueos/:id - saca un bloqueo (vuelve a estar disponible).
 router.delete('/bloqueos/:id', async (req, res) => {
+  const { data: previo } = await supabaseAdmin.from('bloqueos').select('*').eq('id', req.params.id).maybeSingle();
   const { error } = await supabaseAdmin.from('bloqueos').delete().eq('id', req.params.id);
   if (error) return res.status(500).json({ error: error.message });
+  if (previo) {
+    await registrarMovimiento({
+      email: req.adminEmail, accion: 'desbloqueo', fecha: previo.reservation_date,
+      detalle: `Sacó un bloqueo del ${fechaCorta(previo.reservation_date)}${previo.motivo ? ` · ${previo.motivo}` : ''}`,
+    });
+  }
   res.json({ ok: true });
+});
+
+// GET /api/admin/movimientos?dias=14 - quién hizo qué en el panel (más nuevo primero).
+router.get('/movimientos', async (req, res) => {
+  const dias = Math.min(Math.max(parseInt(req.query.dias, 10) || 14, 1), 90);
+  const desde = new Date(Date.now() - dias * 86400000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from('movimientos')
+    .select('id, created_at, admin_email, accion, detalle, reservation_code')
+    .gte('created_at', desde)
+    .order('created_at', { ascending: false })
+    .limit(300);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ movimientos: data });
 });
 
 // GET /api/admin/aperturas-especiales?desde&hasta - lo inverso de un bloqueo:

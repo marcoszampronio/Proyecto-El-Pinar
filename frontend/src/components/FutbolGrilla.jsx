@@ -69,7 +69,7 @@ export default function FutbolGrilla({ c1, c2, fecha, rivales, onReservar, onVer
                       <span className="gp-rival-top">Reservado</span>
                       <span className="gp-rival-mid">
                         <span className="gp-rival-eq">{nombreEquipo(rival.team_name)}</span>
-                        {rival.category && <span className="gp-rival-cat">{rival.category}</span>}
+                        {rival.category && <span className="gp-rival-cat">Cat: {rival.category}</span>}
                       </span>
                       <span className="gp-rival-sub"><span className="gp-pelota" aria-hidden="true">⚽</span> Busca rival</span>
                     </>

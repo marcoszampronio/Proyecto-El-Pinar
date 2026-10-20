@@ -2222,6 +2222,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .estado-sistema summary:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 4px; border-radius: var(--pr-s); }
 
 @media (max-width: 820px) {
+  /* una sola columna: la barra de arriba mide lo suyo y el contenido se lleva el resto (sin esto, con poco contenido la barra se estiraba) */
+  .panel { grid-template-rows: auto 1fr; min-height: 100dvh; }
   .ptop {
     display: flex; align-items: center; gap: 12px;
     position: sticky; top: 0; z-index: 30;

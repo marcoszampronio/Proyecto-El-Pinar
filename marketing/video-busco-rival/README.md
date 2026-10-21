@@ -12,3 +12,8 @@ WhatsApp, "¡MATCH!" · cierre "Rival para tu partido, en 2 toques." + "Link en 
 Para renderizar: carpeta HyperFrames con `index.html` (= `composicion.html`), `assets/grain.png`,
 `vendor/gsap.min.js` y `vendor/fonts/` (DM Serif Display, Satoshi), y `npx hyperframes render -o rival.mp4`.
 Los cursores se posicionan leyendo el layout (`P(el)`), así que si se cambia el diseño de las tarjetas el cursor las sigue solo.
+
+## Versiones
+- **Larga (27 s)**: `composicion.html`.
+- **Stories (15 s)**: `composicion-stories.html`. Más corta (sin sticker de chat extra, tipeo y tiempos más rápidos) y con el celular más chico y los textos corridos a la zona segura (Instagram tapa ~250 px arriba y ~340 px abajo).
+- Las dos usan fondo azul pino (`#0F2436` → `#14304A`) con grilla fina; titulares en crema con la palabra clave en caja dorada.

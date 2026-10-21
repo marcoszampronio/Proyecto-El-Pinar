@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: 'DMSerif'; src: url('vendor/fonts/DMSerifDisplay-Regular.woff2') format('woff2'); }
+      @font-face { font-family: 'Satoshi'; font-weight: 400; src: url('vendor/fonts/Satoshi-Regular.woff2') format('woff2'); }
+      @font-face { font-family: 'Satoshi'; font-weight: 500; src: url('vendor/fonts/Satoshi-Medium.woff2') format('woff2'); }
+      @font-face { font-family: 'Satoshi'; font-weight: 700; src: url('vendor/fonts/Satoshi-Bold.woff2') format('woff2'); }
+
+      :root { --navy: #0F2436; --marino: #1D3E5A; --oro: #F2C14E; --crema: #F3EEE1; --verde: #5BAE6B; --coral: #E4604F; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); font-family: 'Satoshi', sans-serif; }
+      #root {
+        width: 100%; height: 100%; position: relative; overflow: hidden; background-color: var(--crema);
+        background-image: linear-gradient(rgba(15,36,54,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(15,36,54,0.055) 1px, transparent 1px);
+        background-size: 54px 54px;
+      }
+      .grain { position: absolute; inset: -2%; z-index: 60; pointer-events: none; background-image: url('assets/grain.png'); background-size: 256px 256px; opacity: 0.045; mix-blend-mode: overlay; }
+
+      .h { font-weight: 700; color: var(--navy); letter-spacing: -0.025em; line-height: 1.08; }
+      .kw { display: inline-block; background: var(--oro); border: 5px solid var(--navy); border-radius: 18px; padding: 0 22px 6px; transform: rotate(-1.6deg); box-shadow: 7px 7px 0 var(--navy); }
+      .kw.rojo { background: var(--coral); color: #fff; }
+      .cap { position: absolute; left: 0; right: 0; top: 112px; text-align: center; padding: 0 60px; opacity: 0; z-index: 6; }
+      .cap .h { font-size: 96px; }
+      .sticker { position: absolute; z-index: 9; background: var(--navy); color: var(--crema); font-weight: 700; font-size: 34px; letter-spacing: 0.12em; padding: 14px 28px; border-radius: 14px; box-shadow: 6px 6px 0 var(--oro); opacity: 0; left: 120px; top: 392px; transform: rotate(-6deg); }
+      .sticker b { color: var(--oro); }
+
+      /* celular */
+      #phone { position: absolute; left: 196px; top: 450px; width: 688px; height: 1418px; z-index: 4; background: var(--navy); border-radius: 84px; box-shadow: 18px 18px 0 var(--oro), 0 0 0 3px var(--navy); }
+      #screen { position: absolute; left: 14px; top: 14px; width: 660px; height: 1390px; border-radius: 70px; overflow: hidden; background: #0F2436; }
+      #status { position: absolute; left: 0; top: 0; width: 660px; height: 40px; z-index: 8; background: #0F2436; color: #F3EEE1; font-weight: 700; font-size: 20px; }
+      #status .t { position: absolute; left: 58px; top: 9px; }
+      #status .r { position: absolute; right: 52px; top: 12px; display: flex; gap: 8px; align-items: center; }
+      #status .bat { width: 32px; height: 15px; border: 2px solid #F3EEE1; border-radius: 5px; padding: 1.5px; }
+      #status .bat i { display: block; width: 75%; height: 100%; background: #F3EEE1; border-radius: 2px; }
+      #island { position: absolute; left: 50%; top: 9px; width: 120px; height: 30px; margin-left: -60px; background: #000; border-radius: 20px; z-index: 9; }
+      .sc { position: absolute; left: 0; top: 40px; width: 660px; height: 1350px; overflow: hidden; background: #0F2436; color: var(--crema); }
+
+      /* chat */
+      #sc-chat { background: #0B1B2A; z-index: 2; }
+      .ch-head { height: 120px; background: #13293D; display: flex; align-items: center; gap: 18px; padding: 0 28px; border-bottom: 2px solid rgba(255,255,255,0.06); }
+      .ch-av { width: 70px; height: 70px; border-radius: 50%; background: var(--oro); color: var(--navy); font-weight: 700; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+      .ch-nm { font-weight: 700; font-size: 34px; }
+      .ch-st { font-size: 21px; color: #8FA6BA; margin-top: 2px; }
+      .ch-msgs { padding: 34px 28px; display: flex; flex-direction: column; gap: 24px; }
+      .bub { max-width: 470px; padding: 18px 24px 20px; border-radius: 26px; font-size: 31px; line-height: 1.28; background: #1D3E5A; opacity: 0; }
+      .bub .who { font-size: 22px; font-weight: 700; color: var(--oro); margin-bottom: 4px; }
+      .bub.out { align-self: flex-end; background: #1E6B47; border-bottom-right-radius: 8px; }
+      .bub.in { border-bottom-left-radius: 8px; }
+      .ch-in { position: absolute; left: 24px; right: 24px; bottom: 40px; height: 84px; border-radius: 42px; background: #13293D; color: #6F8499; font-size: 28px; display: flex; align-items: center; padding: 0 34px; }
+      #stamp { position: absolute; left: 50%; top: 800px; margin-left: -250px; width: 500px; text-align: center; border: 9px solid var(--coral); color: var(--coral); border-radius: 20px; padding: 12px 10px 16px; font-weight: 700; font-size: 62px; line-height: 1.05; letter-spacing: 0.04em; background: rgba(11,27,42,0.88); opacity: 0; z-index: 5; }
+
+      /* mascota */
+      #sc-mas { z-index: 3; opacity: 0; display: flex; align-items: center; justify-content: center; }
+      #mas { position: absolute; left: 150px; top: 520px; width: 360px; height: 432px; }
+      #globo { position: absolute; left: 90px; top: 340px; background: var(--crema); color: var(--navy); font-weight: 700; font-size: 48px; padding: 20px 36px 24px; border-radius: 34px; border: 5px solid var(--oro); opacity: 0; white-space: nowrap; }
+      #globo::after { content: ''; position: absolute; left: 150px; bottom: -22px; width: 34px; height: 34px; background: var(--crema); border-right: 5px solid var(--oro); border-bottom: 5px solid var(--oro); transform: rotate(45deg); }
+      #halo { position: absolute; left: 130px; top: 500px; width: 400px; height: 400px; border-radius: 50%; background: radial-gradient(circle, rgba(242,193,78,0.28), transparent 68%); }
+
+      /* reserva */
+      #sc-book { z-index: 4; opacity: 0; padding: 34px 38px; }
+      .bk-t { font-family: 'DMSerif', Georgia, serif; font-size: 58px; line-height: 1.05; }
+      .bk-s { font-size: 24px; color: #8FA6BA; margin-top: 8px; }
+      .resumen { margin-top: 26px; border: 2px solid rgba(255,255,255,0.12); background: #16324a; border-radius: 22px; padding: 20px 26px; display: grid; gap: 14px; font-size: 26px; }
+      .resumen div { display: flex; justify-content: space-between; }
+      .resumen span { color: #8FA6BA; } .resumen b { font-weight: 700; }
+      .tog-row { margin-top: 34px; display: flex; align-items: center; justify-content: space-between; background: #16324a; border-radius: 24px; padding: 28px 30px; border: 2px solid rgba(255,255,255,0.1); }
+      .tog-row .tx b { display: block; font-size: 32px; } .tog-row .tx span { font-size: 21px; color: #8FA6BA; }
+      #tog { width: 104px; height: 58px; border-radius: 29px; background: #35506A; position: relative; flex: 0 0 auto; }
+      #knob { position: absolute; left: 6px; top: 6px; width: 46px; height: 46px; border-radius: 50%; background: #fff; }
+      #panel { margin-top: 26px; opacity: 0; }
+      .lbl { font-size: 22px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8FA6BA; margin-bottom: 10px; }
+      .inp { height: 84px; border-radius: 18px; background: #0F2436; border: 3px solid rgba(255,255,255,0.14); display: flex; align-items: center; padding: 0 26px; font-size: 34px; font-weight: 500; }
+      #inp.foco { border-color: var(--oro); }
+      #typed span { opacity: 0; }
+      .chips { display: flex; gap: 16px; }
+      .chip { flex: 1; text-align: center; padding: 18px 0; border-radius: 18px; border: 3px solid rgba(255,255,255,0.14); font-size: 30px; font-weight: 700; color: #C9D6E2; }
+      .acts { position: absolute; left: 38px; right: 38px; bottom: 44px; display: flex; gap: 20px; }
+      .btn { flex: 1; text-align: center; border-radius: 999px; padding: 26px 0; font-weight: 700; font-size: 32px; }
+      .btn.ghost { border: 3px solid rgba(255,255,255,0.22); color: #C9D6E2; }
+      .btn.pri { background: var(--oro); color: var(--navy); }
+
+      /* grilla de rivales */
+      #sc-grid { z-index: 5; opacity: 0; padding: 40px 24px; }
+      .gr-eyb { font-weight: 700; font-size: 22px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--oro); }
+      .gr-t { font-family: 'DMSerif', Georgia, serif; font-size: 56px; line-height: 1.05; margin-top: 8px; }
+      .gr-nav { margin-top: 22px; display: flex; align-items: center; justify-content: center; gap: 24px; font-weight: 700; font-size: 28px; }
+      .gr-nav i { width: 54px; height: 54px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 30px; }
+      .grid { margin-top: 26px; display: grid; grid-template-columns: 76px 1fr 1fr 1fr; gap: 12px; }
+      .gd { text-align: center; color: var(--crema); font-size: 20px; text-transform: uppercase; } .gd strong { display: block; font-size: 34px; }
+      .gh { display: flex; align-items: center; font-weight: 700; font-size: 24px; color: #8FA6BA; }
+      .gc { height: 250px; border: 2px dashed rgba(255,255,255,0.13); border-radius: 20px; position: relative; }
+      .cardx { position: absolute; inset: 0; background: var(--crema); color: var(--navy); border-radius: 20px; padding: 14px 12px 12px; display: flex; flex-direction: column; gap: 4px; opacity: 0; }
+      .cardx .eq { font-weight: 700; font-size: 25px; line-height: 1.05; text-transform: uppercase; }
+      .cardx .ct { font-size: 18px; color: #6A5A33; font-weight: 700; }
+      .cardx .cn { font-size: 18px; color: #5A6B7A; }
+      .cardx .me { margin-top: auto; background: var(--verde); color: #08240f; font-weight: 700; font-size: 18px; border-radius: 999px; text-align: center; padding: 9px 0 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+      .cardx.nuevo { border: 5px solid var(--oro); box-shadow: 0 0 0 0 rgba(242,193,78,0.6); }
+      .tag-n { position: absolute; top: -16px; right: -6px; background: var(--oro); color: var(--navy); border: 3px solid var(--navy); border-radius: 10px; padding: 3px 10px; font-size: 17px; font-weight: 700; letter-spacing: 0.08em; opacity: 0; z-index: 2; transform: rotate(5deg); }
+      /* modal */
+      #ov { position: absolute; inset: 0; background: rgba(6,15,24,0.72); opacity: 0; z-index: 4; }
+      #mod { position: absolute; left: 50px; right: 50px; top: 300px; background: #16324a; border-top: 5px solid var(--oro); border-radius: 30px; padding: 40px 38px 38px; z-index: 5; opacity: 0; box-shadow: 0 30px 60px rgba(0,0,0,0.4); }
+      #mod .mt { font-family: 'DMSerif', Georgia, serif; font-size: 62px; line-height: 1; }
+      #mod .ms { font-size: 26px; color: #8FA6BA; margin-top: 8px; }
+      #mod .resumen { margin-top: 24px; }
+      #mod .rt { font-size: 21px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--oro); font-weight: 700; }
+      #btn-wa { margin-top: 28px; background: var(--verde); color: #08240f; border-radius: 999px; font-weight: 700; font-size: 31px; padding: 26px 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 12px; }
+      #btn-cerrar { margin-top: 16px; text-align: center; border: 3px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 22px 0; font-size: 28px; font-weight: 700; color: #C9D6E2; }
+
+      /* cursor */
+      #cur { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -3px 0 0 -5px; z-index: 12; pointer-events: none; opacity: 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+      #rip { position: absolute; left: 0; top: 0; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.95); z-index: 11; pointer-events: none; opacity: 0; }
+
+      /* match + confetti */
+      #match { position: absolute; left: 50%; top: 1570px; margin-left: -300px; width: 600px; text-align: center; z-index: 20; opacity: 0; }
+      #match .kw { font-size: 130px; font-weight: 700; color: var(--navy); background: var(--verde); letter-spacing: 0.02em; }
+      .cf { position: absolute; left: 540px; top: 1640px; width: 22px; height: 22px; z-index: 19; opacity: 0; border-radius: 4px; }
+
+      /* cierre */
+      #outro { position: absolute; inset: 0; z-index: 8; opacity: 0; }
+      #outro .box { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 60px; }
+      #outro .h { font-size: 118px; }
+      .marca { display: flex; align-items: center; gap: 22px; margin-top: 76px; }
+      .marca svg { width: 62px; height: 80px; color: var(--navy); }
+      .marca span { font-family: 'DMSerif', Georgia, serif; font-size: 82px; color: var(--navy); }
+      .cta { margin-top: 54px; background: var(--oro); color: var(--navy); border: 5px solid var(--navy); border-radius: 999px; font-weight: 700; font-size: 46px; padding: 26px 62px; box-shadow: 9px 9px 0 var(--navy); }
+      .sub { margin-top: 42px; font-weight: 500; font-size: 32px; color: var(--marino); letter-spacing: 0.04em; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="rival" data-start="0" data-duration="27" data-width="1080" data-height="1920">
+
+      <!-- titulares -->
+      <div id="c1" class="cap"><div class="h">¿Se cayó<br/>el <span class="kw rojo">rival</span>?</div></div>
+      <div id="c2" class="cap"><div class="h">Resolvelo<br/>en <span class="kw">2 toques</span></div></div>
+      <div id="c3" class="cap"><div class="h">Marcá <span class="kw">Busco</span><br/><span class="kw" style="margin-top:12px">rival</span> al reservar</div></div>
+      <div id="c4" class="cap"><div class="h">Tu equipo<br/><span class="kw">aparece</span> en la grilla</div></div>
+      <div id="c5" class="cap"><div class="h">Otro equipo<br/>te <span class="kw">escribe</span></div></div>
+      <div id="s3" class="sticker">PASO <b>1</b></div>
+      <div id="s4" class="sticker">PASO <b>2</b></div>
+      <div id="s5" class="sticker">PASO <b>3</b></div>
+
+      <!-- celular -->
+      <div id="phone">
+        <div id="screen">
+
+          <!-- escena 1: el grupo de WhatsApp -->
+          <div id="sc-chat" class="sc">
+            <div class="ch-head"><div class="ch-av">LP</div><div><div class="ch-nm">Los Pibes FC</div><div class="ch-st">Mati, Nico, Carlos, vos y 11 más</div></div></div>
+            <div class="ch-msgs">
+              <div id="m1" class="bub in"><div class="who">Mati</div>¿Alguien consiguió rival para el jueves?</div>
+              <div id="m2" class="bub in"><div class="who">Nico</div>Los de Barrio Sur se bajaron</div>
+              <div id="m3" class="bub out">Ya probé con 5 equipos, nadie contesta</div>
+              <div id="m4" class="bub in"><div class="who">Carlos</div>Entonces se suspende el partido...</div>
+            </div>
+            <div class="ch-in">Mensaje</div>
+            <div id="stamp">PARTIDO<br/>SUSPENDIDO</div>
+          </div>
+
+          <!-- escena 2: la mascota -->
+          <div id="sc-mas" class="sc">
+            <div id="halo"></div>
+            <div id="globo">¿Buscás rival?</div>
+            <svg id="mas" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+              <rect x="38" y="96" width="9" height="18" rx="4" fill="#2b2b2b"/><rect x="53" y="96" width="9" height="18" rx="4" fill="#2b2b2b"/>
+              <ellipse cx="40" cy="115" rx="8" ry="4" fill="#111"/><ellipse cx="60" cy="115" rx="8" ry="4" fill="#111"/>
+              <rect x="30" y="70" width="40" height="30" rx="8" fill="#fff"/>
+              <rect x="34" y="70" width="6" height="30" fill="#6cb6e6"/><rect x="47" y="70" width="6" height="30" fill="#6cb6e6"/><rect x="60" y="70" width="6" height="30" fill="#6cb6e6"/>
+              <rect x="22" y="72" width="10" height="20" rx="5" fill="#f0c9a0"/>
+              <rect x="68" y="60" width="10" height="20" rx="5" fill="#f0c9a0" transform="rotate(20 73 70)"/>
+              <text x="50" y="92" text-anchor="middle" font-size="15" font-weight="800" fill="#123C6E" font-family="Arial, sans-serif">10</text>
+              <circle cx="50" cy="40" r="32" fill="#f6d0a8"/>
+              <path d="M20 38 Q22 8 50 8 Q78 8 80 38 Q70 22 50 22 Q30 22 20 38 Z" fill="#3a2a1c"/>
+              <circle cx="19" cy="42" r="5" fill="#f0c9a0"/><circle cx="81" cy="42" r="5" fill="#f0c9a0"/>
+              <circle cx="40" cy="42" r="4" fill="#222"/><circle cx="60" cy="42" r="4" fill="#222"/>
+              <path d="M36 56 Q50 70 64 56 Q60 64 50 66 Q40 64 36 56 Z" fill="#3a2a1c"/>
+              <path d="M42 56 Q50 62 58 56" stroke="#7a4a2a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <circle cx="82" cy="100" r="9" fill="#fff" stroke="#123C6E" stroke-width="1.5"/>
+              <path d="M82 93 l4 5 -2 6 -4 0 -2 -6 z" fill="#123C6E"/>
+            </svg>
+          </div>
+
+          <!-- escena 3: la reserva -->
+          <div id="sc-book" class="sc">
+            <div class="bk-t">Solicitar turno</div>
+            <div class="bk-s">Cancha 2 · Jueves 22 de octubre · 21:30 a 22:30 hs</div>
+            <div class="resumen">
+              <div><span>Fecha</span><b>Jueves 22 de octubre</b></div>
+              <div><span>Horario</span><b>21:30 a 22:30</b></div>
+              <div><span>Cancha</span><b>Cancha 2 · Fútbol 11</b></div>
+            </div>
+            <div class="tog-row">
+              <div class="tx"><b>Estoy buscando rival</b><span>Tu equipo aparece en “Busco rival”</span></div>
+              <div id="tog"><div id="knob"></div></div>
+            </div>
+            <div id="panel">
+              <div class="lbl">Nombre del equipo</div>
+              <div id="inp" class="inp"><span id="typed"></span></div>
+              <div class="lbl" style="margin-top:22px">Categoría</div>
+              <div class="chips"><div id="chM30" class="chip">M30</div><div class="chip">M40</div><div class="chip">Libre</div></div>
+            </div>
+            <div class="acts"><div class="btn ghost">Cancelar</div><div id="btn-cont" class="btn pri">Continuar</div></div>
+          </div>
+
+          <!-- escena 4: la grilla de rivales -->
+          <div id="sc-grid" class="sc">
+            <div class="gr-eyb">Busco rival</div>
+            <div class="gr-t">Equipos que buscan rival</div>
+            <div class="gr-nav"><i>‹</i><span>20 al 22 de oct</span><i>›</i></div>
+            <div class="grid">
+              <div></div>
+              <div class="gd">Mar<strong>20</strong></div><div class="gd">Mié<strong>21</strong></div><div class="gd">Jue<strong>22</strong></div>
+
+              <div class="gh">20:30</div>
+              <div class="gc"></div>
+              <div class="gc"><div id="k2" class="cardx"><div class="eq">Deportivo Pinar</div><div class="ct">Cat: M40</div><div class="cn">Cancha 2</div><div class="me">Me interesa</div></div></div>
+              <div class="gc"><div id="k4" class="cardx"><div class="eq">Furia FC</div><div class="ct">Cat: Libre</div><div class="cn">Cancha 1</div><div class="me">Me interesa</div></div></div>
+
+              <div class="gh">21:30</div>
+              <div class="gc"><div id="k1" class="cardx"><div class="eq">Los Gallos</div><div class="ct">Cat: Libre</div><div class="cn">Cancha 1</div><div class="me">Me interesa</div></div></div>
+              <div class="gc"></div>
+              <div class="gc"><div id="k5" class="cardx nuevo"><div class="eq">Los Pibes FC</div><div class="ct">Cat: M30</div><div class="cn">Cancha 2</div><div id="btn-me" class="me">Me interesa</div></div><div id="tagn" class="tag-n">NUEVO</div></div>
+
+              <div class="gh">22:30</div>
+              <div class="gc"></div>
+              <div class="gc"><div id="k3" class="cardx"><div class="eq">Atlético Sur</div><div class="ct">Cat: M30</div><div class="cn">Cancha 1</div><div class="me">Me interesa</div></div></div>
+              <div class="gc"></div>
+            </div>
+            <div id="ov"></div>
+            <div id="mod">
+              <div class="mt">Los Pibes FC</div>
+              <div class="ms">Categoría M30</div>
+              <div class="resumen">
+                <div class="rt" style="display:block">Reservaron y buscan rival</div>
+                <div><span>Cancha</span><b>Cancha 2</b></div>
+                <div><span>Fecha</span><b>Jueves 22 de octubre</b></div>
+                <div><span>Horario</span><b>21:30 a 22:30 hs</b></div>
+              </div>
+              <div id="btn-wa"><svg width="34" height="34" viewBox="0 0 24 24" fill="#08240f"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.2 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5.2.6.8 2 .9 2.2.1.1.1.3 0 .5-.1.2-.1.3-.3.5l-.4.5c-.1.2-.3.3-.1.6.2.3.7 1.2 1.5 1.9 1 .9 1.9 1.2 2.2 1.3.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>Escribiles por WhatsApp</div>
+              <div id="btn-cerrar">Cerrar</div>
+            </div>
+          </div>
+
+          <div id="status"><span class="t">9:41</span>
+            <span class="r">
+              <svg width="30" height="18" viewBox="0 0 30 18" fill="#F3EEE1"><rect x="0" y="12" width="5" height="6" rx="1"/><rect x="8" y="8" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="14" rx="1"/><rect x="24" y="0" width="5" height="18" rx="1"/></svg>
+              <span class="bat"><i></i></span>
+            </span>
+          </div>
+          <div id="island"></div>
+          <div id="rip"></div>
+          <svg id="cur" viewBox="0 0 24 24"><path d="M4 2.5 L4 19.5 L8.4 15.6 L11.3 22 L14.2 20.7 L11.4 14.4 L17.2 14.4 Z" fill="white" stroke="#0F2436" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div id="match"><span class="kw">¡MATCH!</span></div>
+      <div id="cfs"></div>
+
+      <!-- cierre -->
+      <div id="outro">
+        <div class="box">
+          <div id="o-t" class="h">Rival para tu<br/>partido, <span class="kw">en 2 toques.</span></div>
+          <div id="o-marca" class="marca">
+            <svg viewBox="0 0 40 52"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg>
+            <span>El Pinar</span>
+          </div>
+          <div id="o-cta" class="cta">Buscá rival en la página</div>
+          <div id="o-sub" class="sub">Link en la bio</div>
+        </div>
+      </div>
+
+      <div class="grain"></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' };
+      const $ = (s) => document.querySelector(s);
+
+      // posición (en px de la pantalla del celular) del centro de un elemento; no depende de transforms
+      const screen = $('#screen');
+      const P = (el) => {
+        let x = el.offsetWidth / 2, y = el.offsetHeight / 2, e = el;
+        while (e && e !== screen) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+        return { x, y };
+      };
+
+      // tipeo letra por letra (seek-safe)
+      const typed = $('#typed');
+      'Los Pibes FC'.split('').forEach((ch) => { const s = document.createElement('span'); s.textContent = ch === ' ' ? ' ' : ch; typed.appendChild(s); });
+
+      // confetti
+      const cfs = $('#cfs');
+      const cols = ['#F2C14E', '#5BAE6B', '#0F2436', '#E4604F', '#1D3E5A'];
+      for (let i = 0; i < 26; i++) { const d = document.createElement('div'); d.className = 'cf'; d.style.background = cols[i % cols.length]; if (i % 3 === 0) d.style.borderRadius = '50%'; cfs.appendChild(d); }
+
+      // ---- cursor ----
+      gsap.set('#cur', { x: 470, y: 1000, opacity: 0 });
+      gsap.set('#rip', { x: 0, y: 0, opacity: 0 });
+      const tap = (t, el) => {
+        const p = P(el);
+        tl.set('#rip', { x: p.x, y: p.y + 40 }, t);
+        tl.to('#cur', { scale: 0.8, duration: 0.08, transformOrigin: '5px 3px' }, t);
+        tl.fromTo('#rip', { scale: 0.4, opacity: 1 }, { scale: 3, opacity: 0, duration: 0.5, ease: 'power2.out' }, t);
+        tl.to('#cur', { scale: 1, duration: 0.12 }, t + 0.1);
+      };
+      const go = (t, el, d = 0.7, dx = 0, dy = 0) => { const p = P(el); tl.to('#cur', { x: p.x + dx, y: p.y + 40 + dy, duration: d, ease: 'power2.inOut' }, t); };
+
+      // ---- celular entra ----
+      gsap.set('#phone', { y: 1500 });
+      tl.to('#phone', { y: 0, duration: 0.95, ease: 'power3.out' }, 0.2);
+
+      // ---- 1) problema ----
+      gsap.set('#c1', { opacity: 0, y: 30 });
+      tl.to('#c1', { ...IN }, 0.5);
+      [['#m1', 1.4], ['#m2', 2.3], ['#m3', 3.1], ['#m4', 3.9]].forEach(([id, t]) => {
+        gsap.set(id, { y: 30, scale: 0.92, transformOrigin: '0% 100%' });
+        tl.to(id, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: 'back.out(1.8)' }, t);
+      });
+      gsap.set('#stamp', { scale: 2.2, rotation: -14 });
+      tl.to('#stamp', { opacity: 1, scale: 1, rotation: -9, duration: 0.28, ease: 'power4.in' }, 4.6);
+      tl.to('#phone', { x: 10, duration: 0.05, yoyo: true, repeat: 5, ease: 'none' }, 4.88);
+      tl.to('#phone', { x: 0, duration: 0.05 }, 5.2);
+      tl.to('#c1', { opacity: 0, y: -24, duration: 0.3, ease: 'power2.in' }, 5.6);
+
+      // ---- 2) mascota ----
+      gsap.set('#c2', { opacity: 0, y: 30 });
+      gsap.set('#mas', { y: -700, rotation: -8 });
+      gsap.set('#globo', { scale: 0.4, transformOrigin: '30% 100%' });
+      tl.to('#sc-chat', { opacity: 0, duration: 0.3 }, 5.75);
+      tl.set('#sc-mas', { opacity: 1 }, 5.75);
+      tl.to('#c2', { ...IN }, 5.95);
+      tl.to('#mas', { y: 0, rotation: 0, duration: 0.7, ease: 'bounce.out' }, 5.95);
+      tl.to('#globo', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.4)' }, 6.7);
+      tl.to('#mas', { y: -22, duration: 0.18, yoyo: true, repeat: 1, ease: 'power2.out' }, 7.0);
+      tl.to('#c2', { opacity: 0, y: -24, duration: 0.3, ease: 'power2.in' }, 7.7);
+      tl.to('#sc-mas', { opacity: 0, x: 80, duration: 0.35, ease: 'power2.in' }, 7.9);
+
+      // ---- 3) reservar y marcar "busco rival" ----
+      gsap.set('#c3', { opacity: 0, y: 30 }); gsap.set('#s3', { opacity: 0, scale: 0.6 });
+      gsap.set('#sc-book', { x: 60 });
+      tl.to('#sc-book', { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' }, 7.95);
+      tl.to('#c3', { ...IN }, 8.1);
+      tl.to('#s3', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, 8.3);
+      tl.set('#cur', { x: 470, y: 1000 }, 8.0);
+      tl.to('#cur', { opacity: 1, duration: 0.25 }, 8.3);
+      go(8.5, $('#tog'), 0.8);
+      tap(9.4, $('#tog'));
+      tl.to('#tog', { backgroundColor: '#5BAE6B', duration: 0.25 }, 9.45);
+      tl.to('#knob', { x: 46, duration: 0.25, ease: 'power2.out' }, 9.45);
+      gsap.set('#panel', { y: 20 });
+      tl.to('#panel', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 9.6);
+      go(10.0, $('#inp'), 0.55);
+      tap(10.65, $('#inp'));
+      tl.set('#inp', { className: 'inp foco' }, 10.7);
+      typed.querySelectorAll('span').forEach((s, i) => tl.to(s, { opacity: 1, duration: 0.02 }, 10.95 + i * 0.075));
+      go(12.0, $('#chM30'), 0.6);
+      tap(12.65, $('#chM30'));
+      tl.to('#chM30', { backgroundColor: '#F2C14E', color: '#0F2436', borderColor: '#F2C14E', duration: 0.2 }, 12.7);
+      go(13.2, $('#btn-cont'), 0.6);
+      tap(13.85, $('#btn-cont'));
+      tl.to('#btn-cont', { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 }, 13.85);
+      tl.to('#c3', { opacity: 0, y: -24, duration: 0.3, ease: 'power2.in' }, 14.1);
+      tl.to('#s3', { opacity: 0, scale: 0.8, duration: 0.25 }, 14.1);
+
+      // ---- 4) aparece en la grilla ----
+      gsap.set('#c4', { opacity: 0, y: 30 }); gsap.set('#s4', { opacity: 0, scale: 0.6 });
+      gsap.set('#sc-grid', { x: 60 });
+      tl.to('#sc-book', { opacity: 0, x: -60, duration: 0.35, ease: 'power2.in' }, 14.25);
+      tl.to('#sc-grid', { opacity: 1, x: 0, duration: 0.45, ease: 'power3.out' }, 14.4);
+      tl.to('#c4', { ...IN }, 14.5);
+      tl.to('#s4', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, 14.7);
+      tl.to('#cur', { opacity: 0, duration: 0.2 }, 14.3);
+      ['#k1', '#k2', '#k3', '#k4'].forEach((id, i) => {
+        gsap.set(id, { scale: 0.7, transformOrigin: '50% 50%' });
+        tl.to(id, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2)' }, 15.1 + i * 0.28);
+      });
+      gsap.set('#k5', { scale: 0.5 }); gsap.set('#tagn', { scale: 0.4 });
+      tl.to('#k5', { opacity: 1, scale: 1, duration: 0.55, ease: 'back.out(2.6)' }, 16.4);
+      tl.to('#tagn', { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(3)' }, 16.7);
+      tl.fromTo('#k5', { boxShadow: '0 0 0 0 rgba(242,193,78,0.7)' }, { boxShadow: '0 0 0 24px rgba(242,193,78,0)', duration: 0.8, ease: 'power2.out', immediateRender: false }, 16.5);
+      tl.to('#c4', { opacity: 0, y: -24, duration: 0.3, ease: 'power2.in' }, 18.1);
+      tl.to('#s4', { opacity: 0, scale: 0.8, duration: 0.25 }, 18.1);
+
+      // ---- 5) otro equipo te escribe ----
+      gsap.set('#c5', { opacity: 0, y: 30 }); gsap.set('#s5', { opacity: 0, scale: 0.6 });
+      gsap.set('#ov', { opacity: 0 }); gsap.set('#mod', { y: 60, scale: 0.92, transformOrigin: '50% 100%' });
+      tl.to('#c5', { ...IN }, 18.4);
+      tl.to('#s5', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, 18.6);
+      tl.set('#cur', { x: 520, y: 1150 }, 18.4);
+      tl.to('#cur', { opacity: 1, duration: 0.25 }, 18.5);
+      go(18.7, $('#btn-me'), 0.8);
+      tap(19.55, $('#btn-me'));
+      tl.to('#ov', { opacity: 1, duration: 0.3 }, 19.7);
+      tl.to('#mod', { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.6)' }, 19.75);
+      go(20.4, $('#btn-wa'), 0.7);
+      tap(21.15, $('#btn-wa'));
+      tl.to('#btn-wa', { scale: 0.96, duration: 0.1, yoyo: true, repeat: 1 }, 21.15);
+
+      // match + confetti
+      gsap.set('#match', { scale: 0.3, rotation: -8 });
+      tl.to('#match', { opacity: 1, scale: 1, rotation: -5, duration: 0.5, ease: 'back.out(2.6)' }, 21.45);
+      document.querySelectorAll('.cf').forEach((d, i) => {
+        const a = (i / 26) * Math.PI * 2 + (i % 2) * 0.2, r = 260 + (i % 5) * 70;
+        tl.fromTo(d, { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 }, { x: Math.cos(a) * r, y: Math.sin(a) * r * 0.9 + 140, opacity: 0, scale: 0.6, rotation: 360 + i * 20, duration: 1.2, ease: 'power2.out', immediateRender: false }, 21.45);
+      });
+      tl.to('#c5', { opacity: 0, y: -24, duration: 0.3, ease: 'power2.in' }, 23.1);
+      tl.to('#s5', { opacity: 0, scale: 0.8, duration: 0.25 }, 23.1);
+      tl.to('#match', { opacity: 0, scale: 0.9, duration: 0.3 }, 23.2);
+
+      // ---- cierre ----
+      gsap.set('#outro', { opacity: 0 });
+      gsap.set(['#o-t', '#o-marca', '#o-cta', '#o-sub'], { opacity: 0, y: 30 });
+      tl.to('#phone', { y: 1500, duration: 0.7, ease: 'power2.in' }, 23.35);
+      tl.to('#outro', { opacity: 1, duration: 0.01 }, 23.7);
+      tl.to('#o-t', { ...IN, duration: 0.7 }, 23.95);
+      tl.from('#o-t .kw', { rotation: -9, scale: 0.8, duration: 0.5, ease: 'back.out(2)' }, 24.45);
+      tl.to('#o-marca', { ...IN }, 24.95);
+      tl.to('#o-cta', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' }, 25.35);
+      tl.to('#o-sub', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 25.85);
+
+      window.__timelines['rival'] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

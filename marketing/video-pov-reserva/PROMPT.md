@@ -1,6 +1,10 @@
 # Video "Así se reserva" (POV de alguien reservando) — prompt y receta
 
-Versión guardada: **v4** (19 de octubre 2026, sobre el sitio ya rediseñado). Es el video de ~44 s, vertical (1080×1920, para Reels / Stories),
+**Versión actual: v5** (21 de octubre 2026): sin audio, estilo claro de `ESTILO-PROXIMOS-VIDEOS.md` (fondo crema con grilla, celular de marco navy grueso con sombra dorada dura, titulares Satoshi Bold con la palabra clave en caja dorada, stickers "PASO N"), 29 s, sin chat simulado, grabado cuadro por cuadro (30 fps, 2x) para que sea fluido. `grabar-recorrido.mjs` y `composicion.html` son los de v5; lo que sigue describe v4 (referencia histórica), salvo música/chat que v5 ya no usa.
+
+Grabador v5: tiempo virtual de Chrome (CDP `Emulation.setVirtualTimePolicy`), un `Page.captureScreenshot` por cuadro con `clip.y = scrollY` y `scale:2`; los eventos de entrada se despachan con el tiempo en marcha y se vuelve a pausar; se precargan las imágenes del modal. Codificar: `ffmpeg -framerate 30 -i frames/%05d.jpg -vf scale=660:1350:flags=lanczos,unsharp=5:5:0.5:5:5:0 -c:v libx264 -crf 14 -pix_fmt yuv420p -an assets/pov.mp4`.
+
+Versión anterior: **v4** (19 de octubre 2026, sobre el sitio ya rediseñado). Es el video de ~44 s, vertical (1080×1920, para Reels / Stories),
 que simula a una persona entrando al sitio, reservando una cancha y mandando el WhatsApp.
 Gustó mucho; este archivo sirve para rehacerlo o variarlo (otro día, otro texto, otra música).
 

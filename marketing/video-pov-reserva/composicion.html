@@ -6,216 +6,165 @@
     <script src="vendor/gsap.min.js"></script>
     <style>
       @font-face { font-family: 'DMSerif'; src: url('vendor/fonts/DMSerifDisplay-Regular.woff2') format('woff2'); }
-      @font-face { font-family: 'DMSerif'; font-style: italic; src: url('vendor/fonts/DMSerifDisplay-Italic.woff2') format('woff2'); }
       @font-face { font-family: 'Satoshi'; font-weight: 400; src: url('vendor/fonts/Satoshi-Regular.woff2') format('woff2'); }
       @font-face { font-family: 'Satoshi'; font-weight: 500; src: url('vendor/fonts/Satoshi-Medium.woff2') format('woff2'); }
       @font-face { font-family: 'Satoshi'; font-weight: 700; src: url('vendor/fonts/Satoshi-Bold.woff2') format('woff2'); }
 
+      :root { --navy: #0F2436; --marino: #1D3E5A; --oro: #F2C14E; --crema: #F3EEE1; --crema2: #FBF7EE; --verde: #5BAE6B; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #060f18; font-family: 'Satoshi', sans-serif; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); font-family: 'Satoshi', sans-serif; }
       #root {
-        width: 100%; height: 100%; position: relative; overflow: hidden;
-        background:
-          radial-gradient(90% 55% at 50% -5%, rgba(242,193,78,0.10), transparent 60%),
-          linear-gradient(180deg, #060f18 0%, #0a1c2c 55%, #0d2234 100%);
+        width: 100%; height: 100%; position: relative; overflow: hidden; background-color: var(--crema);
+        background-image:
+          linear-gradient(rgba(15,36,54,0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(15,36,54,0.055) 1px, transparent 1px);
+        background-size: 54px 54px;
       }
       .grain {
         position: absolute; inset: -2%; z-index: 50; pointer-events: none;
         background-image: url('assets/grain.png'); background-repeat: repeat; background-size: 256px 256px;
         opacity: 0.045; mix-blend-mode: overlay;
       }
-      .pinemark { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 0; }
-      .pinemark svg { width: 860px; height: 1118px; color: #F2C14E; opacity: 0.055; }
-      .titulo { font-family: 'DMSerif', Georgia, serif; font-weight: 400; color: #F3EEE1; }
-      .it { font-style: italic; color: #F2C14E; }
-      .eyebrow { font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: #F2C14E; font-size: 21px; }
 
-      /* ---------- intro ---------- */
-      #intro { position: absolute; inset: 0; opacity: 0; z-index: 5; }
-      #intro .box { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 80px; }
-
-      /* ---------- captions ---------- */
-      .cap { position: absolute; left: 0; right: 0; top: 66px; text-align: center; padding: 0 70px; opacity: 0; z-index: 6; }
-      .cap .eyebrow { font-size: 22px; }
-      .cap .main { font-family: 'DMSerif', Georgia, serif; color: #F3EEE1; font-size: 56px; line-height: 1.1; margin-top: 12px; }
-      .dots { position: absolute; left: 0; right: 0; top: 252px; display: flex; justify-content: center; gap: 14px; z-index: 6; opacity: 0; }
-      .dots i { display: block; width: 14px; height: 14px; border-radius: 7px; background: rgba(243,238,225,0.25); }
-
-      /* ---------- celular ---------- */
-      #phone {
-        position: absolute; left: 200px; top: 322px; width: 680px; height: 1450px;
-        border-radius: 68px; background: #0a1420; z-index: 4; opacity: 0;
-        box-shadow: 0 40px 90px rgba(0,0,0,0.55), 0 0 0 2px rgba(242,193,78,0.28);
+      /* titulares */
+      .h { font-weight: 700; color: var(--navy); letter-spacing: -0.025em; line-height: 1.08; }
+      .kw {
+        display: inline-block; background: var(--oro); border: 5px solid var(--navy); border-radius: 18px;
+        padding: 0 22px 6px; transform: rotate(-1.6deg); box-shadow: 7px 7px 0 var(--navy);
       }
-      #screen { position: absolute; left: 10px; top: 10px; width: 660px; height: 1430px; border-radius: 58px; overflow: hidden; background: #0d2234; }
-      #screen video { position: absolute; inset: 0; width: 660px; height: 1430px; object-fit: cover; }
-      .glare { position: absolute; inset: 0; z-index: 8; pointer-events: none; background: linear-gradient(115deg, rgba(255,255,255,0.09) 0%, transparent 16%, transparent 84%, rgba(255,255,255,0.04) 100%); }
 
-      /* ---------- chat ---------- */
-      #chat { position: absolute; left: 0; top: 0; width: 540px; height: 1170px; transform: scale(1.2222); transform-origin: 0 0; opacity: 0; z-index: 6; background: #0B141A; font-family: 'Satoshi', sans-serif; }
-      #chat .head { position: absolute; left: 0; right: 0; top: 0; height: 118px; background: #1F2C34; display: flex; align-items: flex-end; padding: 0 20px 16px; gap: 14px; }
-      #chat .av { width: 52px; height: 52px; border-radius: 50%; background: #0F2436; border: 2px solid #F2C14E; display: flex; align-items: center; justify-content: center; }
-      #chat .nm { color: #E9EDEF; font-weight: 700; font-size: 22px; line-height: 1.1; }
-      #chat .st { color: #8696A0; font-size: 15px; margin-top: 3px; }
-      #chat .msgs { position: absolute; left: 0; right: 0; top: 134px; padding: 0 18px; display: flex; flex-direction: column; gap: 12px; }
-      .bub { max-width: 470px; padding: 12px 14px 8px; border-radius: 14px; font-size: 20px; line-height: 1.32; color: #E9EDEF; position: relative; opacity: 0; }
-      .bub.out { align-self: flex-end; background: #005C4B; border-top-right-radius: 4px; }
-      .bub.in { align-self: flex-start; background: #1F2C34; border-top-left-radius: 4px; }
-      .bub .t { display: block; text-align: right; font-size: 13px; color: #8FB0A8; margin-top: 4px; }
-      .bub.in .t { color: #8696A0; }
-      .bub .ck { color: #53BDEB; letter-spacing: -3px; margin-left: 5px; opacity: 0; }
-      #composer { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 14px 22px; background: #0B141A; }
-      #composer .row { display: flex; align-items: flex-end; gap: 10px; }
-      #composer .inp { flex: 1; background: #1F2C34; border-radius: 28px; padding: 16px 20px; color: #E9EDEF; font-size: 20px; line-height: 1.32; min-height: 58px; overflow: hidden; }
-      #composer .inp .ph { color: #8696A0; }
-      #composer .send { width: 58px; height: 58px; border-radius: 50%; background: #00A884; display: flex; align-items: center; justify-content: center; flex: none; position: relative; }
-      .ccur { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -3px 0 0 -5px; opacity: 0; z-index: 20; transform-origin: 5px 3px;
-        background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 24 24'><path d='M4 2.5 L4 19.5 L8.4 15.6 L11.3 22 L14.2 20.7 L11.4 14.4 L17.2 14.4 Z' fill='white' stroke='%23111' stroke-width='1.6' stroke-linejoin='round'/></svg>") no-repeat;
-        filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
-      .cfx { position: absolute; left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 3px solid rgba(255,255,255,.95); box-shadow: 0 0 0 1px rgba(0,0,0,.25); opacity: 0; z-index: 19; }
+      /* intro */
+      #intro { position: absolute; inset: 0; z-index: 5; }
+      #intro .box { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 70px; }
+      #intro .h { font-size: 118px; }
+      .eyebrow { font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--marino); font-size: 24px; }
 
-      /* ---------- cierre ---------- */
-      #outro { position: absolute; inset: 0; opacity: 0; z-index: 7; }
-      #outro .glow { position: absolute; inset: 0; opacity: 0; background: radial-gradient(42% 24% at 50% 54%, rgba(242,193,78,0.4), transparent 72%); transform: scale(0.6); transform-origin: 50% 54%; }
-      #outro .sweep { position: absolute; top: 0; bottom: 0; width: 55%; left: -60%; opacity: 0; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.28) 48%, rgba(242,193,78,0.45) 52%, transparent 80%); mix-blend-mode: screen; }
-      #outro .box { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-      .cta { background: #F2C14E; color: #0F2436; font-weight: 700; font-size: 34px; padding: 26px 64px; border-radius: 999px; }
+      /* titulares de paso */
+      .cap { position: absolute; left: 0; right: 0; top: 112px; text-align: center; padding: 0 60px; opacity: 0; z-index: 6; }
+      .cap .h { font-size: 96px; }
+      .sticker {
+        position: absolute; z-index: 9; background: var(--navy); color: var(--crema); font-weight: 700; font-size: 34px; letter-spacing: 0.12em;
+        padding: 14px 28px; border-radius: 14px; box-shadow: 6px 6px 0 var(--oro); opacity: 0; left: 120px; top: 392px; transform: rotate(-6deg);
+      }
+      .sticker b { color: var(--oro); }
+
+      /* celular */
+      #phone {
+        position: absolute; left: 196px; top: 450px; width: 688px; height: 1418px; z-index: 4;
+        background: var(--navy); border-radius: 84px; box-shadow: 18px 18px 0 var(--oro), 0 0 0 3px var(--navy);
+      }
+      #screen { position: absolute; left: 14px; top: 14px; width: 660px; height: 1390px; border-radius: 70px; overflow: hidden; background: #0F2436; }
+      #status { position: absolute; left: 0; top: 0; width: 660px; height: 40px; z-index: 5; background: #0F2436; color: #F3EEE1; font-weight: 700; font-size: 20px; }
+      #status .t { position: absolute; left: 58px; top: 9px; }
+      #status .r { position: absolute; right: 52px; top: 12px; display: flex; gap: 8px; align-items: center; }
+      #status .bat { width: 32px; height: 15px; border: 2px solid #F3EEE1; border-radius: 5px; padding: 1.5px; }
+      #status .bat i { display: block; width: 75%; height: 100%; background: #F3EEE1; border-radius: 2px; }
+      #island { position: absolute; left: 50%; top: 9px; width: 120px; height: 30px; margin-left: -60px; background: #000; border-radius: 20px; z-index: 6; }
+      #pov { position: absolute; left: 0; top: 40px; width: 660px; height: 1350px; }
+
+      /* cierre */
+      #outro { position: absolute; inset: 0; z-index: 8; opacity: 0; }
+      #outro .box { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 60px; }
+      #outro .h { font-size: 128px; }
+      .marca { display: flex; align-items: center; gap: 22px; margin-top: 80px; }
+      .marca svg { width: 62px; height: 80px; color: var(--navy); }
+      .marca span { font-family: 'DMSerif', Georgia, serif; font-size: 82px; color: var(--navy); }
+      .cta {
+        margin-top: 56px; background: var(--oro); color: var(--navy); border: 5px solid var(--navy); border-radius: 999px; font-weight: 700; font-size: 46px;
+        padding: 26px 64px; box-shadow: 9px 9px 0 var(--navy);
+      }
+      .sub { margin-top: 44px; font-weight: 500; font-size: 32px; color: var(--marino); letter-spacing: 0.04em; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="pov" data-start="0" data-duration="44" data-width="1080" data-height="1920">
-
-      <div class="pinemark"><svg viewBox="0 0 40 52"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg></div>
+    <div id="root" data-composition-id="pov" data-start="0" data-duration="29" data-width="1080" data-height="1920">
 
       <!-- intro -->
-      <div id="intro" class="clip" data-start="0" data-duration="3.6" data-track-index="0">
+      <div id="intro" class="clip" data-start="0" data-duration="2.8" data-track-index="0">
         <div class="box">
           <div id="i-eyb" class="eyebrow">Complejo El Pinar · Paraná</div>
-          <div id="i-t" class="titulo" style="font-size:92px; line-height:1.1; margin-top:30px;">Así se reserva<br/>una cancha<br/><span class="it">en El Pinar.</span></div>
+          <div id="i-t" class="h" style="margin-top:34px;">Así se reserva<br/>una cancha<br/><span id="i-kw" class="kw">en El Pinar</span></div>
         </div>
       </div>
 
       <!-- pasos -->
-      <div id="c1" class="cap"><div class="eyebrow">Paso 1</div><div class="main">Entrás a la página y<br/>bajás hasta Reservar</div></div>
-      <div id="c2" class="cap"><div class="eyebrow">Paso 2</div><div class="main">Elegís cancha,<br/>día y horario</div></div>
-      <div id="c3" class="cap"><div class="eyebrow">Paso 3</div><div class="main">Completás<br/>tus datos</div></div>
-      <div id="c4" class="cap"><div class="eyebrow">Paso 4</div><div class="main">Enviás tu reserva<br/>por WhatsApp</div></div>
-      <div id="dots" class="dots"><i id="d1"></i><i id="d2"></i><i id="d3"></i><i id="d4"></i></div>
+      <div id="c1" class="cap"><div class="h">Entrá y bajá<br/>hasta <span class="kw">Reservar</span></div></div>
+      <div id="c2" class="cap"><div class="h">Elegí <span class="kw">día</span><br/>y horario</div></div>
+      <div id="c3" class="cap"><div class="h">Completá<br/>tus <span class="kw">datos</span></div></div>
+      <div id="c4" class="cap"><div class="h">Enviá por<br/><span class="kw">WhatsApp</span></div></div>
+      <div id="s1" class="sticker">PASO <b>1</b></div>
+      <div id="s2" class="sticker">PASO <b>2</b></div>
+      <div id="s3" class="sticker">PASO <b>3</b></div>
+      <div id="s4" class="sticker">PASO <b>4</b></div>
 
       <!-- celular -->
       <div id="phone">
         <div id="screen">
-          <video id="pov" src="assets/pov.mp4" data-start="3.6" data-duration="27.4" data-track-index="2" muted playsinline></video>
-
-          <div id="chat">
-            <div class="head">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E9EDEF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-              <div class="av"><svg viewBox="0 0 40 52" width="22" height="28" style="color:#F2C14E"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg></div>
-              <div><div class="nm">Complejo El Pinar</div><div class="st">en línea</div></div>
-            </div>
-            <div class="msgs">
-              <div id="b-out" class="bub out">¡Hola! Quiero reservar en El Pinar.<br/><br/>Cancha 2 · Miércoles 21 de octubre · 21:30 a 22:30 hs<br/>A nombre de Juan Pérez<br/><br/>Te transfiero $10.000 al alias elpinar.canchas.mp y te paso el comprobante. ¡Gracias!<span class="t">21:04 <span id="ck" class="ck">✓✓</span></span></div>
-              <div id="b-in" class="bub in">¡Listo, Juan! Tu turno quedó confirmado. Te esperamos en El Pinar.<span class="t">21:05</span></div>
-            </div>
-            <div id="composer">
-              <div class="row">
-                <div id="inp" class="inp"><span id="draft">¡Hola! Quiero reservar en El Pinar.<br/><br/>Cancha 2 · Miércoles 21 de octubre · 21:30 a 22:30 hs<br/>A nombre de Juan Pérez<br/><br/>Te transfiero $10.000 al alias elpinar.canchas.mp y te paso el comprobante. ¡Gracias!</span><span id="ph" class="ph" style="display:none">Mensaje</span></div>
-                <div class="send"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M3 20.5v-6.8l9-1.7-9-1.7V3.5L21.5 12 3 20.5z"/></svg></div>
-              </div>
-            </div>
-            <div id="cfx" class="cfx"></div>
-            <div id="ccur" class="ccur"></div>
+          <video id="povv" src="assets/pov.mp4" style="position:absolute;left:0;top:40px;width:660px;height:1350px" data-start="2.6" data-duration="21.23" data-track-index="2" muted playsinline></video>
+          <div id="status"><span class="t">9:41</span>
+            <span class="r">
+              <svg width="30" height="18" viewBox="0 0 30 18" fill="#F3EEE1"><rect x="0" y="12" width="5" height="6" rx="1"/><rect x="8" y="8" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="14" rx="1"/><rect x="24" y="0" width="5" height="18" rx="1"/></svg>
+              <span class="bat"><i></i></span>
+            </span>
           </div>
-
-          <div class="glare"></div>
+          <div id="island"></div>
         </div>
       </div>
 
       <!-- cierre -->
-      <div id="outro" class="clip" data-start="37.4" data-duration="6.6" data-track-index="0">
-        <div class="glow" id="o-glow"></div>
-        <div class="sweep" id="o-sweep"></div>
+      <div id="outro">
         <div class="box">
-          <div id="o-t" class="titulo" style="font-size:104px; line-height:1.08;">Mirá qué<br/><span class="it">fácil</span> que es.</div>
-          <svg id="o-pino" viewBox="0 0 40 52" style="width:70px; height:91px; color:#F2C14E; margin-top:64px;"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg>
-          <div id="o-nombre" class="titulo" style="font-size:58px; margin-top:12px;">El Pinar</div>
-          <div id="o-cta" class="cta" style="margin-top:44px;">Reservá tu cancha</div>
-          <div id="o-sub" class="eyebrow" style="margin-top:24px;">Link en la bio</div>
+          <div id="o-t" class="h">Mirá qué<br/><span class="kw">fácil</span> que es.</div>
+          <div id="o-marca" class="marca">
+            <svg viewBox="0 0 40 52"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg>
+            <span>El Pinar</span>
+          </div>
+          <div id="o-cta" class="cta">Reservá tu cancha</div>
+          <div id="o-sub" class="sub">Link en la bio</div>
         </div>
       </div>
 
       <div class="grain"></div>
-      <audio id="bgm" data-start="0" data-duration="44" data-track-index="1" data-volume="1" src="assets/music/track.mp3"></audio>
     </div>
 
     <script>
+      window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' };
 
-      tl.set('#bgm', { volume: 0.5 }, 0);
-      tl.to('#bgm', { volume: 0, duration: 0.8 }, 43.2);
+      // intro
+      gsap.set('#i-eyb', { opacity: 0, y: 20 });
+      gsap.set('#i-t', { opacity: 0, y: 40 });
+      tl.to('#i-eyb', { ...IN }, 0.1);
+      tl.to('#i-t', { ...IN, duration: 0.7 }, 0.25);
+      tl.from('#i-kw', { rotation: -8, scale: 0.8, duration: 0.5, ease: 'back.out(2)' }, 0.8);
+      tl.to('#intro', { opacity: 0, y: -50, duration: 0.45, ease: 'power2.in' }, 2.35);
 
-      // ===== intro (0 - 3.6) =====
-      gsap.set('#intro', { opacity: 0 });
-      gsap.set(['#i-eyb', '#i-t'], { opacity: 0, y: 18 });
-      tl.to('#intro', { opacity: 1, duration: 0.01 }, 0);
-      tl.to('#i-eyb', { opacity: 0.9, y: 0, duration: 0.5, ease: 'power2.out' }, 0.2);
-      tl.to('#i-t', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 0.45);
-      tl.to('#intro', { opacity: 0, duration: 0.45 }, 2.95);
+      // celular entra
+      gsap.set('#phone', { y: 1500 });
+      tl.to('#phone', { y: 0, duration: 0.9, ease: 'power3.out' }, 2.1);
 
-      // ===== celular (3.0) =====
-      gsap.set('#phone', { opacity: 0, y: 90 });
-      tl.to('#phone', { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, 2.9);
-      tl.to('#phone', { opacity: 0, y: 40, duration: 0.6, ease: 'power2.in' }, 37.2);
-
-      // ===== pasos =====
-      gsap.set(['#c1', '#c2', '#c3', '#c4'], { opacity: 0, y: 14 });
-      gsap.set('#dots', { opacity: 0 });
-      const steps = [['#c1', 3.9, 10.5, '#d1'], ['#c2', 10.5, 18.2, '#d2'], ['#c3', 18.2, 28.5, '#d3'], ['#c4', 28.5, 37.2, '#d4']];
-      steps.forEach(([id, a, b, dot]) => {
-        tl.to(id, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, a);
-        tl.to(id, { opacity: 0, y: -10, duration: 0.3, ease: 'power2.in' }, b - 0.3);
-        tl.to(dot, { width: 40, background: '#F2C14E', duration: 0.3 }, a);
-        tl.to(dot, { width: 14, background: 'rgba(243,238,225,0.25)', duration: 0.3 }, b - 0.2);
+      // pasos: [id, entra, sale]
+      const pasos = [['1', 2.9, 9.9], ['2', 9.9, 14.6], ['3', 14.6, 22.2], ['4', 22.2, 24.0]];
+      pasos.forEach(([n, a, b]) => {
+        gsap.set('#c' + n, { opacity: 0, y: 30 });
+        gsap.set('#s' + n, { opacity: 0, scale: 0.6 });
+        tl.to('#c' + n, { ...IN }, a);
+        tl.to('#s' + n, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, a + 0.2);
+        tl.to('#c' + n, { opacity: 0, y: -24, duration: 0.3, ease: 'power2.in' }, b - 0.3);
+        tl.to('#s' + n, { opacity: 0, scale: 0.8, duration: 0.25, ease: 'power2.in' }, b - 0.3);
       });
-      tl.to('#dots', { opacity: 1, duration: 0.4 }, 3.9);
-      tl.to('#dots', { opacity: 0, duration: 0.4 }, 36.9);
 
-      // ===== chat de WhatsApp (30.85 - 37.2) =====
-      gsap.set('#chat', { opacity: 0 });
-      gsap.set('#ccur', { opacity: 0, x: 300, y: 700 });
-      gsap.set('#cfx', { opacity: 0, scale: 0.5, x: 497, y: 1119 });
-      gsap.set('#b-out', { opacity: 0, y: 20 });
-      gsap.set('#b-in', { opacity: 0, y: 20 });
-      tl.to('#chat', { opacity: 1, duration: 0.45 }, 30.85);
-      tl.to('#ccur', { opacity: 1, duration: 0.2 }, 31.9);
-      tl.to('#ccur', { x: 497, y: 1119, duration: 1.0, ease: 'power2.inOut' }, 31.9);
-      tl.to('#ccur', { scale: 0.82, duration: 0.09 }, 33.2);
-      tl.to('#cfx', { opacity: 1, duration: 0.01 }, 33.2);
-      tl.to('#cfx', { opacity: 0, scale: 3.2, duration: 0.5, ease: 'power2.out' }, 33.21);
-      tl.to('#ccur', { scale: 1, duration: 0.12 }, 33.32);
-      tl.to('#ccur', { opacity: 0, duration: 0.3 }, 34.3);
-      tl.to('#draft', { opacity: 0, duration: 0.25 }, 33.35);
-      tl.set('#draft', { display: 'none' }, 33.65);
-      tl.set('#ph', { display: 'inline' }, 33.65);
-      tl.to('#b-out', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 33.5);
-      tl.to('#ck', { opacity: 1, duration: 0.3 }, 34.4);
-      tl.to('#b-in', { opacity: 1, y: 0, duration: 0.45, ease: 'power2.out' }, 35.4);
-
-      // ===== cierre (37.4 - 44) =====
+      // cierre
       gsap.set('#outro', { opacity: 0 });
-      gsap.set(['#o-t', '#o-pino', '#o-nombre', '#o-cta', '#o-sub'], { opacity: 0, y: 16 });
-      gsap.set('#o-glow', { opacity: 0, scale: 0.6 });
-      gsap.set('#o-sweep', { opacity: 0, x: 0 });
-      tl.to('#outro', { opacity: 1, duration: 0.01 }, 37.4);
-      tl.to('#o-t', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, 37.7);
-      tl.to('#o-glow', { opacity: 0.8, scale: 1, duration: 1.2, ease: 'power3.out' }, 38.2);
-      tl.to('#o-sweep', { opacity: 1, duration: 0.15 }, 38.5);
-      tl.to('#o-sweep', { x: '260%', duration: 0.8, ease: 'power2.inOut' }, 38.5);
-      tl.to('#o-sweep', { opacity: 0, duration: 0.2 }, 39.2);
-      tl.to('#o-pino', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 39.4);
-      tl.to('#o-nombre', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 39.65);
-      tl.to('#o-cta', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' }, 40.0);
-      tl.to('#o-sub', { opacity: 0.9, y: 0, duration: 0.4, ease: 'power2.out' }, 40.4);
+      gsap.set(['#o-t', '#o-marca', '#o-cta', '#o-sub'], { opacity: 0, y: 30 });
+      tl.to('#phone', { y: 1500, duration: 0.7, ease: 'power2.in' }, 24.0);
+      tl.to('#outro', { opacity: 1, duration: 0.01 }, 24.3);
+      tl.to('#o-t', { ...IN, duration: 0.7 }, 24.6);
+      tl.from('#o-t .kw', { rotation: -9, scale: 0.8, duration: 0.5, ease: 'back.out(2)' }, 25.1);
+      tl.to('#o-marca', { ...IN }, 25.6);
+      tl.to('#o-cta', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.8)' }, 26.0);
+      tl.to('#o-sub', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 26.5);
 
       window.__timelines['pov'] = tl;
       tl.seek(0);

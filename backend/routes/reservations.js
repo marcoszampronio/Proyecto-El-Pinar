@@ -8,7 +8,7 @@ import {
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
-import { normalizarEquipo } from '../lib/equipo.js';
+import { normalizarEquipo, recordarEquipo } from '../lib/equipo.js';
 import { fechaCorta, hora } from '../lib/mensajes.js';
 import { demasiadoTarde, MENSAJE_ANTICIPACION } from '../lib/anticipacion.js';
 import { MINUTOS_HOLD_SIN_WHATSAPP } from '../lib/expirarPendientes.js';
@@ -192,6 +192,7 @@ router.post('/futbol', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
+  if (data.looking_for_rival) await recordarEquipo(data.team_name, data.category);
   respuestaReserva(res, data);
 });
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { requireAdmin } from '../middleware/auth.js';
-import { normalizarEquipo } from '../lib/equipo.js';
+import { normalizarEquipo, equiposParecidos, recordarEquipo } from '../lib/equipo.js';
 import { fechaCorta, primerNombre, hora, unir } from '../lib/mensajes.js';
 import {
   TURNOS_FUTBOL,
@@ -488,6 +488,7 @@ router.post('/manual', async (req, res) => {
     email: req.adminEmail, accion: 'agendo', code: data.code, fecha: data.reservation_date,
     detalle: `Agendó a mano el turno de ${descripcionTurno(data)}`,
   });
+  if (data.looking_for_rival) await recordarEquipo(data.team_name, data.category);
   const tel = normalizarTelefonoAR(data.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(data);
 
@@ -537,6 +538,7 @@ router.post('/rival/:code', async (req, res) => {
     email: req.adminEmail, accion: 'rival', code: data.code, fecha: data.reservation_date,
     detalle: `${activar ? 'Marcó "busca rival"' : 'Sacó "busca rival"'} en el turno de ${descripcionTurno(data)}`,
   });
+  if (activar) await recordarEquipo(data.team_name, data.category);
   res.json({ reserva: data });
 });
 
@@ -782,7 +784,7 @@ router.get('/pending', async (req, res) => {
 // Combina los que salen de las reservas con los que Mateo carga a mano.
 // Sirve para avisos masivos: cada contacto trae su link de WhatsApp listo.
 router.get('/contactos', async (req, res) => {
-  const [{ data, error }, manuales] = await Promise.all([
+  const [{ data, error }, manuales, guardadas] = await Promise.all([
     supabaseAdmin
       .from('reservations')
       .select('client_name, client_phone, client_email, team_name, reservation_date, status, court, created_at')
@@ -791,9 +793,18 @@ router.get('/contactos', async (req, res) => {
       .from('contactos_manuales')
       .select('*')
       .order('created_at', { ascending: false }),
+    supabaseAdmin.from('equipos').select('nombre, categoria'),
   ]);
 
   if (error) return res.status(500).json({ error: error.message });
+
+  // Categoría de cada equipo: la guardada, o la última con la que buscó rival.
+  const categoriaDeEquipo = new Map();
+  for (const r of data) {
+    const n = normalizarEquipo(r.team_name);
+    if (n && r.category && r.looking_for_rival && !categoriaDeEquipo.has(n)) categoriaDeEquipo.set(n, r.category);
+  }
+  for (const g of guardadas.data || []) if (g.categoria) categoriaDeEquipo.set(g.nombre, g.categoria);
 
   // La clave del contacto es SIEMPRE el teléfono normalizado. El mismo número
   // = la misma persona aunque el nombre venga escrito distinto en cada reserva.
@@ -864,11 +875,127 @@ router.get('/contactos', async (req, res) => {
     .map((c) => ({
       ...c,
       canchasUsadas: Array.isArray(c.canchasUsadas) ? c.canchasUsadas : [...c.canchasUsadas],
+      categoriaEquipo: (c.equipo && categoriaDeEquipo.get(c.equipo)) || null,
       puedeEliminar: c.totalReservas === 0 && !!c.manualId,
     }))
     .sort((a, b) => b.confirmadas - a.confirmadas || b.totalReservas - a.totalReservas);
 
   res.json({ total: contactos.length, contactos });
+});
+
+// GET /api/admin/equipos - un equipo = un nombre (normalizado). Agrupa los contactos
+// (varias personas pueden escribir por el mismo equipo), su historial y su categoría.
+router.get('/equipos', async (req, res) => {
+  const [rs, ms, fs, es] = await Promise.all([
+    supabaseAdmin
+      .from('reservations')
+      .select('team_name, category, client_name, client_phone, reservation_date, status, looking_for_rival, created_at')
+      .not('team_name', 'is', null)
+      .order('created_at', { ascending: false }),
+    supabaseAdmin.from('contactos_manuales').select('nombre, telefono, equipo').not('equipo', 'is', null),
+    supabaseAdmin.from('turnos_fijos').select('team_name, client_name, client_phone, activo').not('team_name', 'is', null),
+    supabaseAdmin.from('equipos').select('*'),
+  ]);
+  const fallo = rs.error || ms.error || fs.error || es.error;
+  if (fallo) return res.status(500).json({ error: fallo.message });
+
+  const hoy = hoyART();
+  const claveTel = (tel) => normalizarTelefonoAR(tel) || String(tel || '').replace(/\D/g, '') || null;
+  const equipos = new Map();
+  const equipo = (nombre) => {
+    const n = normalizarEquipo(nombre);
+    if (!n) return null;
+    if (!equipos.has(n)) {
+      equipos.set(n, { nombre: n, categoria: null, categoriaGuardada: false, contactos: new Map(), totalReservas: 0, confirmadas: 0, ultima: null, proxima: null });
+    }
+    return equipos.get(n);
+  };
+  const sumarContacto = (e, nombre, telefono, fecha) => {
+    const clave = claveTel(telefono) || `n:${nombre}`;
+    if (!e.contactos.has(clave)) {
+      e.contactos.set(clave, { nombre, telefono, telefonoWa: normalizarTelefonoAR(telefono), reservas: 0, ultima: null });
+    }
+    const c = e.contactos.get(clave);
+    if (fecha) {
+      c.reservas++;
+      if (!c.ultima || fecha > c.ultima) c.ultima = fecha;
+    }
+  };
+
+  for (const r of rs.data) { // de la más nueva a la más vieja
+    const e = equipo(r.team_name);
+    if (!e) continue;
+    if (!e.categoria && r.category && r.looking_for_rival) e.categoria = r.category;
+    if (r.status === 'cancelada') continue;
+    e.totalReservas++;
+    if (r.status === 'confirmada') e.confirmadas++;
+    sumarContacto(e, r.client_name, r.client_phone, r.reservation_date);
+    if (r.reservation_date <= hoy && (!e.ultima || r.reservation_date > e.ultima)) e.ultima = r.reservation_date;
+    if (r.reservation_date > hoy && (!e.proxima || r.reservation_date < e.proxima)) e.proxima = r.reservation_date;
+  }
+  for (const m of ms.data) {
+    const e = equipo(m.equipo);
+    if (e) sumarContacto(e, m.nombre, m.telefono, null);
+  }
+  for (const f of fs.data) {
+    const e = equipo(f.team_name);
+    if (e) sumarContacto(e, f.client_name, f.client_phone, null);
+  }
+  for (const g of es.data) {
+    const e = equipo(g.nombre);
+    if (e && g.categoria) { e.categoria = g.categoria; e.categoriaGuardada = true; }
+  }
+
+  const lista = [...equipos.values()].map((e) => ({
+    ...e,
+    contactos: [...e.contactos.values()].sort((a, b) => b.reservas - a.reservas),
+  }));
+  for (const e of lista) {
+    e.parecidos = lista.filter((o) => o.nombre !== e.nombre && equiposParecidos(e.nombre, o.nombre)).map((o) => o.nombre);
+  }
+  lista.sort((a, b) => b.totalReservas - a.totalReservas || a.nombre.localeCompare(b.nombre, 'es'));
+  res.json({ equipos: lista });
+});
+
+// PUT /api/admin/equipos { nombre, categoria } - fija la categoría de un equipo.
+router.put('/equipos', async (req, res) => {
+  const nombre = normalizarEquipo(req.body?.nombre);
+  const categoria = ['M30', 'M40', 'Libre'].includes(req.body?.categoria) ? req.body.categoria : null;
+  if (!nombre) return res.status(400).json({ error: 'Falta el nombre del equipo.' });
+  const { error } = await supabaseAdmin.from('equipos').upsert({ nombre, categoria }, { onConflict: 'nombre' });
+  if (error) return res.status(500).json({ error: error.message });
+  await registrarMovimiento({
+    email: req.adminEmail, accion: 'equipo',
+    detalle: categoria ? `Cambió la categoría de ${nombre} a ${categoria}` : `Sacó la categoría de ${nombre}`,
+  });
+  res.json({ ok: true });
+});
+
+// POST /api/admin/equipos/unir { origen, destino } - todo lo del equipo "origen" pasa a "destino"
+// (reservas, turnos fijos y contactos). Sirve para unir nombres escritos distinto o renombrar.
+router.post('/equipos/unir', async (req, res) => {
+  const origen = normalizarEquipo(req.body?.origen);
+  const destino = normalizarEquipo(req.body?.destino);
+  if (!origen || !destino) return res.status(400).json({ error: 'Faltan los nombres de los equipos.' });
+  if (origen === destino) return res.status(400).json({ error: 'Elegí dos equipos distintos.' });
+
+  const cambios = await Promise.all([
+    supabaseAdmin.from('reservations').update({ team_name: destino }).eq('team_name', origen),
+    supabaseAdmin.from('turnos_fijos').update({ team_name: destino }).eq('team_name', origen),
+    supabaseAdmin.from('contactos_manuales').update({ equipo: destino }).eq('equipo', origen),
+  ]);
+  const fallo = cambios.find((c) => c.error);
+  if (fallo) return res.status(500).json({ error: fallo.error.message });
+
+  // La categoría guardada del origen pasa al destino si este no tenía una.
+  const { data: previos } = await supabaseAdmin.from('equipos').select('*').in('nombre', [origen, destino]);
+  const catOrigen = previos?.find((p) => p.nombre === origen)?.categoria;
+  const catDestino = previos?.find((p) => p.nombre === destino)?.categoria;
+  if (catOrigen && !catDestino) await supabaseAdmin.from('equipos').upsert({ nombre: destino, categoria: catOrigen }, { onConflict: 'nombre' });
+  await supabaseAdmin.from('equipos').delete().eq('nombre', origen);
+
+  await registrarMovimiento({ email: req.adminEmail, accion: 'equipo', detalle: `Unió el equipo ${origen} con ${destino}` });
+  res.json({ ok: true });
 });
 
 // POST /api/admin/contactos/eliminar - borra un contacto de la base: la fila

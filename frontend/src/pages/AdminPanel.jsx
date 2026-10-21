@@ -130,8 +130,20 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
     setArea(p.area);
     setNum(p.num);
     if (c.equipo) setTeamName(c.equipo);
+    if (c.categoriaEquipo && !category) setCategory(c.categoriaEquipo);
     setFoco(false);
   }
+
+  // Equipos que ya conocemos: se sugieren al escribir y traen su categoría.
+  const [equipos, setEquipos] = useState([]);
+  useEffect(() => {
+    api.adminEquipos().then((d) => setEquipos(d.equipos || [])).catch(() => {});
+  }, []);
+  const equipoConocido = teamName.trim() ? equipos.find((e) => e.nombre === nombreEquipo(teamName)) : null;
+  useEffect(() => {
+    if (equipoConocido?.categoria && !category) setCategory(equipoConocido.categoria);
+    // eslint-disable-next-line
+  }, [equipoConocido?.nombre]);
 
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
@@ -373,7 +385,15 @@ function ManualBookingModal({ contacto, inicial, onCerrar, onCreado }) {
           <>
             <div className="field">
               <label>Equipo (opcional)</label>
-              <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" />
+              <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Ej: Los Pibes FC" list="equipos-conocidos" autoComplete="off" />
+              <datalist id="equipos-conocidos">
+                {equipos.map((e) => <option key={e.nombre} value={e.nombre} />)}
+              </datalist>
+              {equipoConocido && (
+                <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '4px 0 0' }}>
+                  Equipo conocido{equipoConocido.categoria ? ` · Cat: ${equipoConocido.categoria}` : ''} · {equipoConocido.contactos.length} contacto{equipoConocido.contactos.length === 1 ? '' : 's'}
+                </p>
+              )}
             </div>
             <div className="field-check">
               <label>
@@ -1591,6 +1611,174 @@ function ContactosPanel() {
                 Editar
               </button>
             </div>
+          </div>
+        );
+      })}
+
+      {agendando && (
+        <ManualBookingModal
+          contacto={agendando}
+          onCerrar={() => setAgendando(null)}
+          onCreado={(r) => {
+            setAgendando(null);
+            setAviso(`Turno agendado para ${r.client_name}.`);
+            cargar();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Contactos | Equipos: dos formas de ver la misma gente.
+function ContactosYEquipos() {
+  const [vista, setVista] = useState('contactos');
+  return (
+    <>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button className={`btn ${vista === 'contactos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('contactos')}>Contactos</button>
+        <button className={`btn ${vista === 'equipos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('equipos')}>Equipos</button>
+      </div>
+      {vista === 'contactos' ? <ContactosPanel /> : <EquiposPanel />}
+    </>
+  );
+}
+
+// Un equipo = un nombre. Reúne a todas las personas que escriben por ese equipo.
+function EquiposPanel() {
+  const [equipos, setEquipos] = useState(null);
+  const [error, setError] = useState(null);
+  const [aviso, setAviso] = useState(null);
+  const [texto, setTexto] = useState('');
+  const [abierto, setAbierto] = useState(null);
+  const [agendando, setAgendando] = useState(null);
+  const [renombrando, setRenombrando] = useState(null); // { nombre, nuevo }
+
+  async function cargar() {
+    try {
+      setEquipos((await api.adminEquipos()).equipos);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+  useEffect(() => { cargar(); }, []);
+
+  async function accion(fn, textoOk) {
+    setError(null);
+    setAviso(null);
+    try {
+      await fn();
+      setAviso(textoOk);
+      setRenombrando(null);
+      await cargar();
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  const filtro = texto.trim().toLowerCase();
+  const lista = (equipos || []).filter(
+    (e) => !filtro || `${e.nombre} ${e.contactos.map((c) => `${c.nombre} ${c.telefono}`).join(' ')}`.toLowerCase().includes(filtro)
+  );
+  const fecha = (iso) => String(iso).split('-').reverse().slice(0, 2).join('/');
+
+  return (
+    <div className="stat-card">
+      <h3 style={{ marginTop: 0 }}>Equipos</h3>
+      <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginTop: -6 }}>
+        Cada equipo reúne a todas las personas que escriben por él, aunque reserven desde teléfonos distintos.
+      </p>
+      <input className="buscador" type="search" placeholder="Buscar equipo, nombre o teléfono" value={texto} onChange={(e) => setTexto(e.target.value)} />
+      {!equipos && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando...</p>}
+      {error && <p className="error-msg">{error}</p>}
+      {aviso && <p style={{ color: 'var(--p-ok)', fontWeight: 600 }}>{aviso}</p>}
+      {equipos && equipos.length === 0 && <p style={{ color: 'var(--p-mut)' }}>Todavía no hay equipos cargados.</p>}
+
+      {lista.map((e) => {
+        const esAbierto = abierto === e.nombre;
+        return (
+          <div key={e.nombre} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+            <button
+              type="button"
+              onClick={() => setAbierto(esAbierto ? null : e.nombre)}
+              aria-expanded={esAbierto}
+              style={{ all: 'unset', cursor: 'pointer', display: 'block', width: '100%' }}
+            >
+              <div className="contacto-cab">
+                <span className="contacto-equipo">{e.nombre}</span>
+                {e.categoria && <span className="contacto-tag">Cat: {e.categoria}</span>}
+                {e.parecidos.length > 0 && <span className="contacto-tag" style={{ color: 'var(--p-bad)' }}>¿repetido?</span>}
+              </div>
+              <div className="contacto-hist">
+                <span>{e.contactos.length} contacto{e.contactos.length === 1 ? '' : 's'}</span>
+                <span>Jugó <b>{e.confirmadas}</b> {e.confirmadas === 1 ? 'vez' : 'veces'}</span>
+                {e.proxima ? <span>próxima: {fecha(e.proxima)}</span> : e.ultima ? <span>última: {fecha(e.ultima)}</span> : null}
+              </div>
+            </button>
+
+            {esAbierto && (
+              <div style={{ marginTop: 10 }}>
+                {e.contactos.map((c) => (
+                  <div key={c.telefono || c.nombre} style={{ padding: '8px 0', borderTop: '1px solid var(--p-linea)' }}>
+                    <div className="contacto-nombre">{c.nombre}</div>
+                    <div className="contacto-dato">{c.telefono}{c.reservas ? ` · reservó ${c.reservas} ${c.reservas === 1 ? 'vez' : 'veces'}` : ''}</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
+                      {c.telefonoWa && (
+                        <a className="btn btn-ghost" style={{ textDecoration: 'none', padding: '6px 14px' }} href={`https://wa.me/${c.telefonoWa}`} target="_blank" rel="noreferrer">WhatsApp</a>
+                      )}
+                      <button className="btn btn-primary" style={{ padding: '6px 14px' }} onClick={() => setAgendando({ nombre: c.nombre, telefono: c.telefono, equipo: e.nombre })}>
+                        Agendar turno manual
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="field" style={{ marginTop: 10 }}>
+                  <label>Categoría del equipo</label>
+                  <select
+                    value={e.categoria || ''}
+                    onChange={(ev) => accion(() => api.adminGuardarEquipo({ nombre: e.nombre, categoria: ev.target.value }), 'Categoría guardada.')}
+                  >
+                    <option value="">Sin categoría</option>
+                    {['M30', 'M40', 'Libre'].map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+
+                {e.parecidos.map((p) => (
+                  <div key={p} style={{ marginBottom: 8, fontSize: 'var(--pt-chico)' }}>
+                    <p style={{ margin: '0 0 6px' }}>Se parece a <b>{p}</b>. ¿Es el mismo equipo?</p>
+                    <BotonConfirmar
+                      className="btn btn-ghost"
+                      label={`Unir ${p} en ${e.nombre}`}
+                      confirmLabel="¿Seguro? Se juntan los dos"
+                      onConfirm={() => accion(() => api.adminUnirEquipos({ origen: p, destino: e.nombre }), `${p} ahora es ${e.nombre}.`)}
+                    />
+                  </div>
+                ))}
+
+                {renombrando?.nombre === e.nombre ? (
+                  <div className="field">
+                    <label>Nuevo nombre (si ya existe, se unen)</label>
+                    <input value={renombrando.nuevo} onChange={(ev) => setRenombrando({ nombre: e.nombre, nuevo: ev.target.value })} list="equipos-lista" autoFocus />
+                    <datalist id="equipos-lista">{equipos.filter((o) => o.nombre !== e.nombre).map((o) => <option key={o.nombre} value={o.nombre} />)}</datalist>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      <button className="btn btn-ghost" onClick={() => setRenombrando(null)}>Cancelar</button>
+                      <button
+                        className="btn btn-primary"
+                        disabled={!renombrando.nuevo.trim()}
+                        onClick={() => accion(() => api.adminUnirEquipos({ origen: e.nombre, destino: renombrando.nuevo }), 'Equipo actualizado.')}
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button className="btn btn-ghost" style={{ padding: '6px 14px' }} onClick={() => setRenombrando({ nombre: e.nombre, nuevo: e.nombre })}>
+                    Renombrar o unir con otro equipo
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
@@ -2831,7 +3019,7 @@ function AdminPanelInterno() {
           <AperturasEspecialesPanel />
         </>
       )}
-      {tab === 'contactos' && <ContactosPanel />}
+      {tab === 'contactos' && <ContactosYEquipos />}
       {tab === 'fijos' && <TurnosFijosPanel />}
 
       {tab === 'buscar' && (

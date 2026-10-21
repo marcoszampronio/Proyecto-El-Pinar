@@ -1752,7 +1752,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv-grid > .serv-card--ancha:nth-child(1) { grid-column: span 7; }
 .serv-grid > .serv-card--ancha:nth-child(2) { grid-column: span 5; }
 .serv-grid > .serv-card--ico { grid-column: span 5; }
-.serv-grid > .serv-card--cta { grid-column: span 7; }
+.serv-grid > .serv-card--cta { grid-column: 1 / -1; }
 
 .serv-card {
   background: var(--s-marino); border: 1px solid var(--s-linea-fria);
@@ -1842,7 +1842,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   }
   .serv-card--ico .serv-ico svg { width: 56px; height: 56px; }
   .serv-card--ico .serv-card-body { padding: 12px 2px 4px; }
-  .serv-card--cta { flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; padding: 22px; align-self: start; background: var(--s-marino); border-width: 1px; border-radius: var(--radio-l); }
+  .serv-card--cta { flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; padding: 22px; align-self: stretch; background: var(--s-marino); border-width: 1px; border-radius: var(--radio-l); }
 }
 @media (prefers-reduced-motion: reduce) {
   .serv-card-foto img { transition: opacity 0.2s linear; transform: none !important; }

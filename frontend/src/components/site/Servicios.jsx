@@ -25,8 +25,8 @@ const SERVICIOS = [
     titulo: 'Parrilla',
     texto: 'Para el asado después del partido. El tercer tiempo también se juega.',
     fotos: [
-      { src: '/canchas/parrillas.jpg', alt: 'Parrilla de hormigón con vista a las canchas de Complejo El Pinar, Paraná', pos: 'center 68%' },
       { src: '/canchas/parrilla-circular.jpg', alt: 'Fogón circular de ladrillo frente a la galería de Complejo El Pinar, Paraná', pos: 'center 58%' },
+      { src: '/canchas/parrillas.jpg', alt: 'Parrilla de hormigón con vista a las canchas de Complejo El Pinar, Paraná', pos: 'center 68%' },
     ],
   },
   {
@@ -43,6 +43,7 @@ const SERVICIOS = [
     ],
   },
   {
+    oculto: true, // sin fotos todavía: sacar esta línea para mostrarla de nuevo
     clase: 'serv-card--ico',
     titulo: 'Baños y duchas',
     texto: 'Vestuarios con duchas para cambiarte antes de volver a casa.',
@@ -51,6 +52,9 @@ const SERVICIOS = [
     ),
   },
 ];
+
+// Las instalaciones sin foto se esconden hasta que haya.
+const VISIBLES = SERVICIOS.filter((s) => !s.oculto);
 
 const MQ_MOVIL = '(max-width: 620px)';
 const reducirMovimiento = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -122,8 +126,8 @@ export default function Servicios() {
 
   // En celular: una diapositiva por foto, cada una con el título de su instalación.
   const diapositivas = movil
-    ? SERVICIOS.flatMap((s) => (s.fotos ? s.fotos.map((f) => ({ s, f })) : [{ s }]))
-    : SERVICIOS.map((s) => ({ s }));
+    ? VISIBLES.flatMap((s) => (s.fotos ? s.fotos.map((f) => ({ s, f })) : [{ s }]))
+    : VISIBLES.map((s) => ({ s }));
   const total = diapositivas.length + (movil ? 1 : 0); // + tarjeta de consulta
 
   // El carrusel avanza solo cada tanto; se frena un rato si la persona lo toca y cuando no está a la vista.

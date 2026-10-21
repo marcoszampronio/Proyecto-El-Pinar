@@ -516,7 +516,7 @@ button { font-family: inherit; }
 .mascota-slot {
   position: fixed;
   right: 10px;
-  bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(90px + env(safe-area-inset-bottom, 0px));
   z-index: 16;
 }
 .mascota {
@@ -1274,26 +1274,35 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* --- barra de navegación fija (celular): reemplaza al menú hamburguesa --- */
 .mtab { display: none; }
+/* barra flotante: separada de los bordes, con esquinas redondeadas; la sección activa va en dorado
+   con una rayita arriba (sin fondo de color) */
 @media (max-width: 900px) {
   .mtab {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    position: fixed; inset: auto 0 0 0; z-index: 45;
-    background: color-mix(in srgb, var(--s-pino-900) 92%, transparent);
-    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    border-top: 1px solid var(--s-linea-fria);
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+    position: fixed; inset: auto 10px calc(10px + env(safe-area-inset-bottom, 0px)) 10px; z-index: 45;
+    background: color-mix(in srgb, var(--s-pino-800) 90%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--s-linea-fria); border-radius: var(--radio-l);
+    box-shadow: 0 8px 24px rgba(5, 13, 20, 0.45);
+    padding: 4px;
   }
   .mtab button {
-    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
     background: none; border: none; cursor: pointer;
-    font-family: var(--s-texto); font-size: 0.72rem; font-weight: 700;
-    color: var(--s-cal); padding: 8px 2px 6px; border-radius: var(--radio);
+    font-family: var(--s-texto); font-size: 0.7rem; font-weight: 500;
+    color: var(--s-niebla); padding: 10px 2px 7px; border-radius: var(--radio);
     transition: color var(--rapido) var(--curva), background var(--rapido) var(--curva);
   }
   .mtab button svg { width: 24px; height: 24px; }
-  .mtab button.on { color: var(--s-oro); background: color-mix(in srgb, var(--s-oro) 14%, transparent); }
-  .mtab button:active { background: var(--s-pino-800); }
-  .sitio { padding-bottom: 76px; }
+  .mtab button::before {
+    content: ''; position: absolute; top: 0; left: 50%; width: 18px; height: 3px; margin-left: -9px;
+    border-radius: 0 0 3px 3px; background: var(--s-oro); opacity: 0; transform: scaleX(.4);
+    transition: opacity var(--rapido) var(--curva), transform var(--rapido) var(--curva);
+  }
+  .mtab button.on { color: var(--s-oro); font-weight: 700; }
+  .mtab button.on::before { opacity: 1; transform: none; }
+  .mtab button:active { background: color-mix(in srgb, var(--s-cal) 8%, transparent); }
+  .sitio { padding-bottom: 96px; }
 }
 
 /* --- HERO --- */

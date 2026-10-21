@@ -41,11 +41,10 @@ export const IconRival = ({ s = 21 }) => (
   </svg>
 );
 
+// pino de la marca, en trazo como los demás íconos de la barra
 export const IconComplejo = ({ s = 21 }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="3" y="3.5" width="8" height="8" rx="1.5" />
-    <rect x="13" y="3.5" width="8" height="8" rx="1.5" />
-    <rect x="3" y="12.5" width="8" height="8" rx="1.5" />
-    <rect x="13" y="12.5" width="8" height="8" rx="1.5" />
+    <path d="M12 2.5l4.6 6.5h-2.7L18.5 15h-13L10.1 9H7.4z" />
+    <path d="M12 15v6" />
   </svg>
 );

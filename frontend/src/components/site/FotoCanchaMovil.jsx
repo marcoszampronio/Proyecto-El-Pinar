@@ -7,13 +7,11 @@ const FOTOS = {
     src: '/canchas/futbol-2.jpg',
     alt: 'Cancha de fútbol 11 de césped natural con iluminación en Complejo El Pinar, Paraná',
     pos: 'center 66%',
-    etiqueta: 'Césped natural · 2 canchas',
   },
   padel: {
     src: '/canchas/padel.jpg',
     alt: 'Cancha de pádel con paneles de vidrio al aire libre en Complejo El Pinar, Paraná',
     pos: 'center 50%',
-    etiqueta: 'Paneles de vidrio · entre los pinos',
   },
 };
 
@@ -22,7 +20,6 @@ export default function FotoCanchaMovil({ deporte = 'futbol' }) {
   return (
     <div className="foto-cancha-movil">
       <img src={f.src} alt={f.alt} style={{ objectPosition: f.pos }} loading="lazy" />
-      <span className="foto-cancha-etiqueta">{f.etiqueta}</span>
     </div>
   );
 }

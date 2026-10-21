@@ -1428,16 +1428,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* foto de la cancha 2 bajo "Reservá online", solo celular */
 .foto-cancha-movil { display: none; }
-/* detalle chico: franja baja de foto con una etiqueta discreta en la esquina */
-.foto-cancha-movil { position: relative; }
+/* detalle chico: franja baja de foto, sin texto */
 .foto-cancha-movil img {
   display: block; width: 100%; height: 96px; object-fit: cover; object-position: center 66%;
   border-radius: var(--radio);
-}
-.foto-cancha-etiqueta {
-  position: absolute; left: 8px; bottom: 8px; padding: 3px 10px; border-radius: var(--pill);
-  font-size: 0.72rem; font-weight: 500; color: var(--s-cal);
-  background: rgba(9, 24, 38, 0.66); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
 
 @media (max-width: 940px) {

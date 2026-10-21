@@ -11,24 +11,24 @@ const SERVICIOS = [
   {
     clase: 'serv-card--ancha',
     titulo: 'Canchas de fútbol 11',
-    texto: 'Césped natural bajo iluminación profesional.',
+    texto: 'Césped natural con iluminación profesional',
     fotos: [
       { src: '/canchas/futbol-2.jpg', alt: 'Cancha de fútbol 11 de Complejo El Pinar, Paraná', pos: 'center 60%' },
-      { titulo: 'De noche también', texto: 'Se prenden las luces y el partido sigue.', src: '/canchas/futbol-1.jpg', alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
+      { titulo: 'De noche también', texto: 'Se prenden las luces y el partido sigue', src: '/canchas/futbol-1.jpg', alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
     ],
   },
   {
     clase: 'serv-card--ancha',
     titulo: 'Cancha de pádel',
-    texto: 'Paneles de vidrio y luces para jugar de noche, entre los pinos.',
+    texto: 'Con blindex y luces para jugar de noche, entre los pinos.',
     fotos: [{ src: '/canchas/padel.jpg', alt: 'Cancha de pádel de Complejo El Pinar, Paraná', pos: 'center 50%' }],
   },
   {
     titulo: 'Parrilla',
-    texto: 'Para el asado después del partido. El tercer tiempo también se juega.',
+    texto: 'El tercer tiempo también se juega',
     fotos: [
       { src: '/canchas/parrilla-circular.jpg', alt: 'Fogón circular de ladrillo frente a la galería de Complejo El Pinar, Paraná', pos: 'center 58%' },
-      { titulo: 'Parrillas con vista', texto: 'De hormigón, mirando las canchas.', src: '/canchas/parrillas.jpg', alt: 'Parrilla de hormigón con vista a las canchas de Complejo El Pinar, Paraná', pos: 'center 68%' },
+      { titulo: 'Parrilla', texto: 'Mirando a las canchas', src: '/canchas/parrillas.jpg', alt: 'Parrilla de hormigón con vista a las canchas de Complejo El Pinar, Paraná', pos: 'center 68%' },
     ],
   },
   {
@@ -38,10 +38,10 @@ const SERVICIOS = [
   },
   {
     titulo: 'Quincho',
-    texto: 'Galería techada con mesas y parrilla de ladrillo para quedarte sin apuro.',
+    texto: 'Galería techada con mesas y parrilla',
     fotos: [
       { src: '/canchas/quincho-1.jpg', alt: 'Galería techada con mesas de madera y parrilla de ladrillo en Complejo El Pinar, Paraná', pos: 'center 55%' },
-      { titulo: 'La galería', texto: 'Entre los eucaliptos, al lado de las canchas.', src: '/canchas/quincho-2.jpg', alt: 'Galería del quincho entre los eucaliptos de Complejo El Pinar, Paraná', pos: 'center 70%' },
+      { titulo: 'La galería', texto: 'Entre los pinos, al lado de las canchas.', src: '/canchas/quincho-2.jpg', alt: 'Galería del quincho entre los eucaliptos de Complejo El Pinar, Paraná', pos: 'center 70%' },
     ],
   },
   {

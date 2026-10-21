@@ -804,7 +804,7 @@ router.get('/contactos', async (req, res) => {
     const n = normalizarEquipo(r.team_name);
     if (n && r.category && r.looking_for_rival && !categoriaDeEquipo.has(n)) categoriaDeEquipo.set(n, r.category);
   }
-  for (const g of guardadas.data || []) if (g.categoria) categoriaDeEquipo.set(g.nombre, g.categoria);
+  for (const g of guardadas.data || []) categoriaDeEquipo.set(g.nombre, g.categoria || null);
 
   // La clave del contacto es SIEMPRE el teléfono normalizado. El mismo número
   // = la misma persona aunque el nombre venga escrito distinto en cada reserva.
@@ -944,7 +944,8 @@ router.get('/equipos', async (req, res) => {
   }
   for (const g of es.data) {
     const e = equipo(g.nombre);
-    if (e && g.categoria) { e.categoria = g.categoria; e.categoriaGuardada = true; }
+    // Lo guardado manda, incluso "sin categoría" (null): así Mateo puede dejar un equipo sin categoría.
+    if (e) { e.categoria = g.categoria || null; e.categoriaGuardada = true; }
   }
 
   const lista = [...equipos.values()].map((e) => ({

@@ -10,7 +10,10 @@ const SERVICIOS = [
     clase: 'serv-card--ancha',
     titulo: 'Canchas de fútbol 11',
     texto: 'Césped natural bajo iluminación profesional.',
-    fotos: [{ src: '/canchas/futbol-2.jpg', alt: 'Cancha de fútbol 11 de Complejo El Pinar, Paraná', pos: 'center 60%' }],
+    fotos: [
+      { src: '/canchas/futbol-2.jpg', alt: 'Cancha de fútbol 11 de Complejo El Pinar, Paraná', pos: 'center 60%' },
+      { src: '/canchas/futbol-1.jpg', alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
+    ],
   },
   {
     clase: 'serv-card--ancha',
@@ -119,7 +122,7 @@ export default function Servicios() {
 
   // En celular: una diapositiva por foto, cada una con el título de su instalación.
   const diapositivas = movil
-    ? SERVICIOS.flatMap((s) => (s.fotos ? s.fotos.map((f, k) => ({ s, f, n: k + 1, de: s.fotos.length })) : [{ s }]))
+    ? SERVICIOS.flatMap((s) => (s.fotos ? s.fotos.map((f) => ({ s, f })) : [{ s }]))
     : SERVICIOS.map((s) => ({ s }));
   const total = diapositivas.length + (movil ? 1 : 0); // + tarjeta de consulta
 
@@ -168,7 +171,7 @@ export default function Servicios() {
 
         <div className="serv-carrusel">
           <div className="serv-grid" ref={carrusel}>
-            {diapositivas.map(({ s, f, n, de }) => (
+            {diapositivas.map(({ s, f }) => (
               s.fotos ? (
                 <div className={`serv-card serv-card--foto ${s.clase || ''}`} key={f ? f.src : s.titulo}>
                   {movil ? (
@@ -179,7 +182,7 @@ export default function Servicios() {
                     <FotosTarjeta fotos={s.fotos} />
                   )}
                   <div className="serv-card-body">
-                    <h3>{s.titulo}{movil && de > 1 ? <span className="serv-n"> · {n}/{de}</span> : null}</h3>
+                    <h3>{s.titulo}</h3>
                     <p>{s.texto}</p>
                   </div>
                 </div>

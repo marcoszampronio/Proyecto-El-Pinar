@@ -1789,7 +1789,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv-card-body { padding: 14px 2px 4px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .serv-card h3 { font-size: 1.3rem; }
 .serv-card p { color: var(--s-cal); font-size: 1rem; line-height: 1.5; }
-.serv-n { color: var(--s-niebla); font-family: var(--s-texto, inherit); font-size: 0.8em; font-weight: 400; }
 
 /* baños y duchas: sin foto, una fila liviana con el ícono */
 .serv-ico {
@@ -1797,17 +1796,15 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: color-mix(in srgb, var(--s-oro) 16%, transparent); color: var(--s-oro);
 }
 .serv-ico svg { width: 26px; height: 26px; }
-.serv-card--ico { flex-direction: row; align-items: center; gap: 16px; padding: 16px 20px; }
+.serv-card--ico { flex-direction: row; align-items: center; gap: 16px; padding: 18px 0 0; }
 .serv-card--ico .serv-card-body { padding: 0; }
 
-/* consulta */
+/* baños y consulta en compu: sin tarjeta, solo una línea fina arriba (el botón de WhatsApp es el único color) */
+.serv-card--ico, .serv-card--cta { background: none; border-width: 1px 0 0; border-radius: 0; }
+.serv-card--ico:hover, .serv-card--cta:hover { border-color: var(--s-linea-fria); }
 .serv-card--cta {
-  background: var(--s-oro); border-color: var(--s-oro); color: var(--s-pino-900);
-  flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 24px;
+  flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 0 0;
 }
-.serv-card--cta:hover { border-color: var(--s-oro); }
-.serv-card--cta h3 { color: var(--s-pino-900); }
-.serv-card--cta p { color: color-mix(in srgb, var(--s-pino-900) 72%, transparent); }
 
 /* indicador de posición del carrusel en celular */
 .serv-pasos { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
@@ -1845,7 +1842,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   }
   .serv-card--ico .serv-ico svg { width: 56px; height: 56px; }
   .serv-card--ico .serv-card-body { padding: 12px 2px 4px; }
-  .serv-card--cta { flex-direction: column; align-items: flex-start; justify-content: center; padding: 22px; align-self: center; }
+  .serv-card--cta { flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; padding: 22px; align-self: start; background: var(--s-marino); border-width: 1px; border-radius: var(--radio-l); }
 }
 @media (prefers-reduced-motion: reduce) {
   .serv-card-foto img { transition: opacity 0.2s linear; transform: none !important; }

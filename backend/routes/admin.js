@@ -926,10 +926,11 @@ router.get('/equipos', async (req, res) => {
     const e = equipo(r.team_name);
     if (!e) continue;
     if (!e.categoria && r.category && r.looking_for_rival) e.categoria = r.category;
+    // Quien escribió por el equipo cuenta como contacto aunque haya cancelado.
+    sumarContacto(e, r.client_name, r.client_phone, r.status === 'cancelada' ? null : r.reservation_date);
     if (r.status === 'cancelada') continue;
     e.totalReservas++;
     if (r.status === 'confirmada') e.confirmadas++;
-    sumarContacto(e, r.client_name, r.client_phone, r.reservation_date);
     if (r.reservation_date <= hoy && (!e.ultima || r.reservation_date > e.ultima)) e.ultima = r.reservation_date;
     if (r.reservation_date > hoy && (!e.proxima || r.reservation_date < e.proxima)) e.proxima = r.reservation_date;
   }

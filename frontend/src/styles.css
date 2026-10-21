@@ -1428,17 +1428,17 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* foto de la cancha 2 bajo "Reservá online", solo celular */
 .foto-cancha-movil { display: none; }
-.foto-cancha-movil { position: relative; }
-/* el texto va sobre la foto, abajo, con degradé para que se lea */
-.foto-cancha-texto {
-  position: absolute; inset: auto 0 0 0; margin: 0; padding: 38px 16px 14px;
-  display: flex; flex-direction: column; gap: 2px;
-  background: linear-gradient(to top, rgba(9, 24, 38, 0.88), rgba(9, 24, 38, 0));
-}
-.foto-cancha-texto b { font-size: 1.05rem; font-weight: 700; color: #fff; }
-.foto-cancha-texto span { font-size: 0.85rem; line-height: 1.35; color: var(--s-cal); }
+/* foto limpia + tres datos en pastillas debajo (sin texto encima de la imagen) */
 .foto-cancha-movil img {
-  display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: center 66%;
+  display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: center 66%;
+  border-radius: var(--radio);
+}
+.foto-cancha-datos {
+  display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none;
+}
+.foto-cancha-datos li {
+  padding: 6px 12px; border-radius: var(--pill); font-size: 0.82rem; font-weight: 500;
+  color: var(--s-cal); background: var(--s-pino-800); border: 1px solid var(--borde);
 }
 
 @media (max-width: 940px) {
@@ -1447,8 +1447,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .board-intro { margin-bottom: 0; }
   .clado-wrap { display: none; }     /* la tarjeta de escritorio se oculta */
   .foto-cancha-movil {
-    display: block; margin: 14px 0 0; border-radius: var(--radio); overflow: hidden;
-    border: 1px solid var(--s-linea-fria);
+    display: block; margin: 14px 0 0;
   }
 }
 

@@ -1743,50 +1743,38 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 /* --- SERVICIOS --- */
+/* Mosaico en compu: fútbol y pádel grandes arriba, las tres instalaciones de fotos verticales
+   en fila, y abajo baños + consulta. Cada tarjeta lleva la foto "embutida" (con su propio
+   radio y un margen), así no hay un bloque de foto pegado al borde. */
 .serv { background: var(--s-pino-900); }
-.serv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-@media (max-width: 900px) { .serv-grid { grid-template-columns: repeat(2, 1fr); } }
+.serv-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+.serv-grid > .serv-card { grid-column: span 4; }
+.serv-grid > .serv-card--ancha:nth-child(1) { grid-column: span 7; }
+.serv-grid > .serv-card--ancha:nth-child(2) { grid-column: span 5; }
+.serv-grid > .serv-card--ico { grid-column: span 5; }
+.serv-grid > .serv-card--cta { grid-column: span 7; }
 
-/* en celular: carrusel horizontal con snap en vez de la grilla apilada, para
-   que el usuario deslice las comodidades sin tener que bajar tanto. Sin
-   flechas: el pedacito de la siguiente tarjeta que se asoma ya indica que
-   se puede deslizar. */
-@media (max-width: 620px) {
-  .serv-grid {
-    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-    gap: 14px; padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  }
-  .serv-grid::-webkit-scrollbar { display: none; }
-  .serv-grid { position: relative; }
-  .serv-grid > * { flex: 0 0 85%; scroll-snap-align: start; }
-  /* las fotos de las instalaciones son verticales: en celular se muestran casi cuadradas para no perder la parrilla o las heladeras */
-  .serv-card-foto { aspect-ratio: 1 / 1; }
-}
 .serv-card {
   background: var(--s-marino); border: 1px solid var(--s-linea-fria);
-  border-radius: var(--radio-l); padding: 20px 20px;
-  display: flex; flex-direction: column; gap: 10px;
-  transition: transform var(--rapido) var(--curva), border-color var(--rapido) var(--curva);
+  border-radius: var(--radio-l); padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: border-color var(--rapido) var(--curva);
 }
-.serv-card:hover { transform: translateY(-2px); border-color: var(--borde-oro); }
-.serv-ico {
-  width: 50px; height: 50px; border-radius: var(--radio); display: grid; place-items: center;
-  background: color-mix(in srgb, var(--s-oro) 20%, transparent); color: var(--s-oro-300);
+.serv-card:hover { border-color: var(--borde-oro); }
+.serv-card--foto { padding: 8px; gap: 0; }
+/* la imagen va en absoluto para que su tamaño original no estire la caja */
+.serv-card-foto {
+  position: relative; overflow: hidden; border-radius: calc(var(--radio-l) - 6px);
+  aspect-ratio: 4 / 5; background: var(--s-pino-800);
 }
-.serv-ico svg { width: 26px; height: 26px; }
-.serv-card--foto { padding: 0; gap: 0; overflow: hidden; }
-/* la imagen va en absoluto para que su tamaño original no estire la caja:
-   si no, cada foto mide distinto según su resolución y las tarjetas quedan
-   desparejas (el 4/3 se ignoraba apenas cargaba la foto) */
-.serv-card-foto { aspect-ratio: 4 / 3; position: relative; overflow: hidden; }
+.serv-card--ancha .serv-card-foto { aspect-ratio: auto; height: 320px; }
 .serv-card-foto img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
   opacity: 0; transform: scale(1); transition: opacity 0.7s ease, transform 1.2s var(--curva);
 }
 .serv-card-foto img.on { opacity: 1; }
 /* con el mouse encima la foto se acerca despacio; las fotos extra rotan (ver Servicios.jsx) */
-@media (hover: hover) { .serv-card--foto:hover .serv-card-foto img { transform: scale(1.07); } }
+@media (hover: hover) { .serv-card--foto:hover .serv-card-foto img { transform: scale(1.06); } }
 /* puntitos de las tarjetas con varias fotos (también sirven para tocar y elegir) */
 .serv-puntos { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px; z-index: 1; }
 .serv-puntos button {
@@ -1795,26 +1783,71 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   transition: width var(--rapido) var(--curva), background var(--rapido) var(--curva);
 }
 .serv-puntos button.on { width: 20px; background: var(--s-oro); }
+
+.serv-card-body { padding: 14px 12px 10px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.serv-card h3 { font-size: 1.22rem; }
+.serv-card p { color: var(--s-niebla); font-size: 0.92rem; line-height: 1.5; }
 .serv-n { color: var(--s-niebla); font-family: var(--s-texto, inherit); font-size: 0.8em; font-weight: 400; }
+
+/* baños y duchas: sin foto, una fila liviana con el ícono */
+.serv-ico {
+  flex: none; width: 52px; height: 52px; border-radius: var(--radio); display: grid; place-items: center;
+  background: color-mix(in srgb, var(--s-oro) 16%, transparent); color: var(--s-oro);
+}
+.serv-ico svg { width: 26px; height: 26px; }
+.serv-card--ico { flex-direction: row; align-items: center; gap: 16px; padding: 16px 20px; }
+.serv-card--ico .serv-card-body { padding: 0; }
+
+/* consulta */
+.serv-card--cta {
+  background: var(--s-oro); border-color: var(--s-oro); color: var(--s-pino-900);
+  flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 24px;
+}
+.serv-card--cta:hover { border-color: var(--s-oro); }
+.serv-card--cta h3 { color: var(--s-pino-900); }
+.serv-card--cta p { color: color-mix(in srgb, var(--s-pino-900) 72%, transparent); }
+
 /* indicador de posición del carrusel en celular */
-.serv-pasos { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.serv-pasos { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
 .serv-pasos span { width: 6px; height: 6px; border-radius: 999px; background: var(--s-linea-fria); transition: width var(--rapido) var(--curva), background var(--rapido) var(--curva); }
 .serv-pasos span.on { width: 18px; background: var(--s-oro); }
-/* la tarjeta de consulta ocupa toda la última fila (con 7 tarjetas quedaba sola y angosta) */
-@media (min-width: 621px) {
-  .serv-card--cta { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; }
+
+/* tablet: dos columnas (fútbol entero arriba, el resto de a dos, baños y consulta a lo ancho) */
+@media (max-width: 900px) {
+  .serv-grid { grid-template-columns: repeat(2, 1fr); }
+  .serv-grid > .serv-card,
+  .serv-grid > .serv-card--ancha:nth-child(2) { grid-column: span 1; }
+  .serv-grid > .serv-card--ancha:nth-child(1),
+  .serv-grid > .serv-card--ico,
+  .serv-grid > .serv-card--cta { grid-column: 1 / -1; }
+}
+
+/* celular: carrusel horizontal que pasa solo (ver Servicios.jsx). Todas las diapositivas miden lo
+   mismo (foto vertical 4/5 + título), y se asoma un pedazo de la siguiente para invitar a deslizar. */
+@media (max-width: 620px) {
+  .serv-grid {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+    gap: 12px; padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .serv-grid::-webkit-scrollbar { display: none; }
+  .serv-grid > .serv-card { flex: 0 0 78%; scroll-snap-align: start; }
+  .serv-card-foto, .serv-card--ancha .serv-card-foto { height: auto; aspect-ratio: 5 / 6; }
+  .serv-card-body { padding: 12px 10px 8px; }
+  .serv-card p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  /* baños: misma altura que las demás, con el ícono grande arriba en vez de una foto */
+  .serv-card--ico { flex-direction: column; align-items: stretch; gap: 0; padding: 8px; }
+  .serv-card--ico .serv-ico {
+    width: 100%; height: auto; aspect-ratio: 5 / 6; border-radius: calc(var(--radio-l) - 6px);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--s-oro) 18%, var(--s-pino-800)), var(--s-pino-800));
+  }
+  .serv-card--ico .serv-ico svg { width: 56px; height: 56px; }
+  .serv-card--ico .serv-card-body { padding: 12px 10px 8px; }
+  .serv-card--cta { flex-direction: column; align-items: flex-start; justify-content: center; padding: 22px; align-self: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .serv-card-foto img { transition: opacity 0.2s linear; transform: none !important; }
 }
-/* flex: 1 → el texto rellena el alto sobrante de la tarjeta, así el recuadro
-   de fútbol y el de pádel miden lo mismo aunque un texto sea más corto */
-.serv-card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.serv-card h3 { font-size: 1.22rem; }
-.serv-card p { color: var(--s-niebla); font-size: 0.94rem; line-height: 1.5; }
-.serv-card--cta { background: var(--s-oro); color: var(--s-pino-900); justify-content: space-between; }
-.serv-card--cta h3 { color: var(--s-pino-900); }
-.serv-card--cta p { color: color-mix(in srgb, var(--s-pino-900) 72%, transparent); }
 
 /* --- CÓMO LLEGAR --- */
 .llegar { background: var(--s-pino-800); }

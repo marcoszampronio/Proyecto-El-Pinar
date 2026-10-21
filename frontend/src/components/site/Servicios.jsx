@@ -7,11 +7,13 @@ import { WA_URL } from './config';
 // título de la instalación a la que corresponde.
 const SERVICIOS = [
   {
+    clase: 'serv-card--ancha',
     titulo: 'Canchas de fútbol 11',
     texto: 'Césped natural bajo iluminación profesional.',
     fotos: [{ src: '/canchas/futbol-2.jpg', alt: 'Cancha de fútbol 11 de Complejo El Pinar, Paraná', pos: 'center 60%' }],
   },
   {
+    clase: 'serv-card--ancha',
     titulo: 'Cancha de pádel',
     texto: 'Paneles de vidrio y luces para jugar de noche, entre los pinos.',
     fotos: [{ src: '/canchas/padel.jpg', alt: 'Cancha de pádel de Complejo El Pinar, Paraná', pos: 'center 50%' }],
@@ -38,6 +40,7 @@ const SERVICIOS = [
     ],
   },
   {
+    clase: 'serv-card--ico',
     titulo: 'Baños y duchas',
     texto: 'Vestuarios con duchas para cambiarte antes de volver a casa.',
     icono: (
@@ -167,7 +170,7 @@ export default function Servicios() {
           <div className="serv-grid" ref={carrusel}>
             {diapositivas.map(({ s, f, n, de }) => (
               s.fotos ? (
-                <div className="serv-card serv-card--foto" key={f ? f.src : s.titulo}>
+                <div className={`serv-card serv-card--foto ${s.clase || ''}`} key={f ? f.src : s.titulo}>
                   {movil ? (
                     <div className="serv-card-foto">
                       <img src={f.src} alt={f.alt} loading="lazy" style={{ objectPosition: f.pos }} className="on" />
@@ -181,10 +184,12 @@ export default function Servicios() {
                   </div>
                 </div>
               ) : (
-                <div className="serv-card" key={s.titulo}>
+                <div className={`serv-card ${s.clase || ''}`} key={s.titulo}>
                   <div className="serv-ico">{s.icono}</div>
-                  <h3>{s.titulo}</h3>
-                  <p>{s.texto}</p>
+                  <div className="serv-card-body">
+                    <h3>{s.titulo}</h3>
+                    <p>{s.texto}</p>
+                  </div>
                 </div>
               )
             ))}

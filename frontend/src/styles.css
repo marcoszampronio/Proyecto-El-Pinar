@@ -1758,7 +1758,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
   }
   .serv-grid::-webkit-scrollbar { display: none; }
+  .serv-grid { position: relative; }
   .serv-grid > * { flex: 0 0 85%; scroll-snap-align: start; }
+  /* las fotos de las instalaciones son verticales: en celular se muestran casi cuadradas para no perder la parrilla o las heladeras */
+  .serv-card-foto { aspect-ratio: 1 / 1; }
 }
 .serv-card {
   background: var(--s-marino); border: 1px solid var(--s-linea-fria);
@@ -1777,7 +1780,33 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
    si no, cada foto mide distinto según su resolución y las tarjetas quedan
    desparejas (el 4/3 se ignoraba apenas cargaba la foto) */
 .serv-card-foto { aspect-ratio: 4 / 3; position: relative; overflow: hidden; }
-.serv-card-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.serv-card-foto img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transform: scale(1); transition: opacity 0.7s ease, transform 1.2s var(--curva);
+}
+.serv-card-foto img.on { opacity: 1; }
+/* con el mouse encima la foto se acerca despacio; las fotos extra rotan (ver Servicios.jsx) */
+@media (hover: hover) { .serv-card--foto:hover .serv-card-foto img { transform: scale(1.07); } }
+/* puntitos de las tarjetas con varias fotos (también sirven para tocar y elegir) */
+.serv-puntos { position: absolute; left: 0; right: 0; bottom: 10px; display: flex; justify-content: center; gap: 6px; z-index: 1; }
+.serv-puntos button {
+  width: 8px; height: 8px; padding: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.55); border: 0; box-shadow: 0 0 0 1px rgba(15, 36, 54, 0.35);
+  transition: width var(--rapido) var(--curva), background var(--rapido) var(--curva);
+}
+.serv-puntos button.on { width: 20px; background: var(--s-oro); }
+.serv-n { color: var(--s-niebla); font-family: var(--s-texto, inherit); font-size: 0.8em; font-weight: 400; }
+/* indicador de posición del carrusel en celular */
+.serv-pasos { display: flex; justify-content: center; gap: 6px; margin-top: 12px; }
+.serv-pasos span { width: 6px; height: 6px; border-radius: 999px; background: var(--s-linea-fria); transition: width var(--rapido) var(--curva), background var(--rapido) var(--curva); }
+.serv-pasos span.on { width: 18px; background: var(--s-oro); }
+/* la tarjeta de consulta ocupa toda la última fila (con 7 tarjetas quedaba sola y angosta) */
+@media (min-width: 621px) {
+  .serv-card--cta { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .serv-card-foto img { transition: opacity 0.2s linear; transform: none !important; }
+}
 /* flex: 1 → el texto rellena el alto sobrante de la tarjeta, así el recuadro
    de fútbol y el de pádel miden lo mismo aunque un texto sea más corto */
 .serv-card-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }

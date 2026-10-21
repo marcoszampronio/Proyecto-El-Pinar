@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { WaIcon } from './iconos';
 import { WA_URL } from './config';
 
+// Cada foto puede traer su propio titulo/texto (se usan en el carrusel del celular, donde cada foto es una
+// diapositiva; así no se repite el mismo texto). Si no los trae, vale el de la instalación.
 // Cada instalación puede tener varias fotos. En compu, al pasar el mouse por la tarjeta
 // las fotos van rotando; en celular cada foto es una diapositiva del carrusel, con el
 // título de la instalación a la que corresponde.
@@ -12,7 +14,7 @@ const SERVICIOS = [
     texto: 'Césped natural bajo iluminación profesional.',
     fotos: [
       { src: '/canchas/futbol-2.jpg', alt: 'Cancha de fútbol 11 de Complejo El Pinar, Paraná', pos: 'center 60%' },
-      { src: '/canchas/futbol-1.jpg', alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
+      { titulo: 'De noche también', texto: 'Se prenden las luces y el partido sigue.', src: '/canchas/futbol-1.jpg', alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
     ],
   },
   {
@@ -26,7 +28,7 @@ const SERVICIOS = [
     texto: 'Para el asado después del partido. El tercer tiempo también se juega.',
     fotos: [
       { src: '/canchas/parrilla-circular.jpg', alt: 'Fogón circular de ladrillo frente a la galería de Complejo El Pinar, Paraná', pos: 'center 58%' },
-      { src: '/canchas/parrillas.jpg', alt: 'Parrilla de hormigón con vista a las canchas de Complejo El Pinar, Paraná', pos: 'center 68%' },
+      { titulo: 'Parrillas con vista', texto: 'De hormigón, mirando las canchas.', src: '/canchas/parrillas.jpg', alt: 'Parrilla de hormigón con vista a las canchas de Complejo El Pinar, Paraná', pos: 'center 68%' },
     ],
   },
   {
@@ -39,7 +41,7 @@ const SERVICIOS = [
     texto: 'Galería techada con mesas y parrilla de ladrillo para quedarte sin apuro.',
     fotos: [
       { src: '/canchas/quincho-1.jpg', alt: 'Galería techada con mesas de madera y parrilla de ladrillo en Complejo El Pinar, Paraná', pos: 'center 55%' },
-      { src: '/canchas/quincho-2.jpg', alt: 'Galería del quincho entre los eucaliptos de Complejo El Pinar, Paraná', pos: 'center 70%' },
+      { titulo: 'La galería', texto: 'Entre los eucaliptos, al lado de las canchas.', src: '/canchas/quincho-2.jpg', alt: 'Galería del quincho entre los eucaliptos de Complejo El Pinar, Paraná', pos: 'center 70%' },
     ],
   },
   {
@@ -186,8 +188,8 @@ export default function Servicios() {
                     <FotosTarjeta fotos={s.fotos} />
                   )}
                   <div className="serv-card-body">
-                    <h3>{s.titulo}</h3>
-                    <p>{s.texto}</p>
+                    <h3>{(movil && f.titulo) || s.titulo}</h3>
+                    <p>{(movil && f.texto) || s.texto}</p>
                   </div>
                 </div>
               ) : (

@@ -1761,10 +1761,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   transition: border-color var(--rapido) var(--curva);
 }
 .serv-card:hover { border-color: var(--borde-oro); }
-.serv-card--foto { padding: 8px; gap: 0; }
+/* sin recuadro: la foto sola con esquinas redondeadas y el texto apoyado directo en el fondo */
+.serv-card--foto { padding: 0; gap: 0; background: none; border: 0; border-radius: 0; }
+.serv-card--foto:hover { border-color: transparent; }
 /* la imagen va en absoluto para que su tamaño original no estire la caja */
 .serv-card-foto {
-  position: relative; overflow: hidden; border-radius: calc(var(--radio-l) - 6px);
+  position: relative; overflow: hidden; border-radius: var(--radio-l);
   aspect-ratio: 4 / 5; background: var(--s-pino-800);
 }
 .serv-card--ancha .serv-card-foto { aspect-ratio: auto; height: 320px; }
@@ -1784,9 +1786,9 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .serv-puntos button.on { width: 20px; background: var(--s-oro); }
 
-.serv-card-body { padding: 14px 12px 10px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.serv-card h3 { font-size: 1.22rem; }
-.serv-card p { color: var(--s-niebla); font-size: 0.92rem; line-height: 1.5; }
+.serv-card-body { padding: 14px 2px 4px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.serv-card h3 { font-size: 1.3rem; }
+.serv-card p { color: var(--s-cal); font-size: 1rem; line-height: 1.5; }
 .serv-n { color: var(--s-niebla); font-family: var(--s-texto, inherit); font-size: 0.8em; font-weight: 400; }
 
 /* baños y duchas: sin foto, una fila liviana con el ícono */
@@ -1833,16 +1835,16 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .serv-grid::-webkit-scrollbar { display: none; }
   .serv-grid > .serv-card { flex: 0 0 78%; scroll-snap-align: start; }
   .serv-card-foto, .serv-card--ancha .serv-card-foto { height: auto; aspect-ratio: 5 / 6; }
-  .serv-card-body { padding: 12px 10px 8px; }
+  .serv-card-body { padding: 12px 2px 4px; }
   .serv-card p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   /* baños: misma altura que las demás, con el ícono grande arriba en vez de una foto */
-  .serv-card--ico { flex-direction: column; align-items: stretch; gap: 0; padding: 8px; }
+  .serv-card--ico { flex-direction: column; align-items: stretch; gap: 0; padding: 0; background: none; border: 0; border-radius: 0; }
   .serv-card--ico .serv-ico {
-    width: 100%; height: auto; aspect-ratio: 5 / 6; border-radius: calc(var(--radio-l) - 6px);
+    width: 100%; height: auto; aspect-ratio: 5 / 6; border-radius: var(--radio-l);
     background: linear-gradient(160deg, color-mix(in srgb, var(--s-oro) 18%, var(--s-pino-800)), var(--s-pino-800));
   }
   .serv-card--ico .serv-ico svg { width: 56px; height: 56px; }
-  .serv-card--ico .serv-card-body { padding: 12px 10px 8px; }
+  .serv-card--ico .serv-card-body { padding: 12px 2px 4px; }
   .serv-card--cta { flex-direction: column; align-items: flex-start; justify-content: center; padding: 22px; align-self: center; }
 }
 @media (prefers-reduced-motion: reduce) {

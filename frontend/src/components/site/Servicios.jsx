@@ -45,7 +45,7 @@ const SERVICIOS = [
     ],
   },
   {
-    oculto: true, // sin fotos todavía: sacar esta línea para mostrarla de nuevo
+    soloCompu: true, // sin fotos: en celular no se muestra (el carrusel es de fotos). Para ocultarla también en compu, cambiar por oculto: true
     clase: 'serv-card--ico',
     titulo: 'Baños y duchas',
     texto: 'Vestuarios con duchas para cambiarte antes de volver a casa.',
@@ -55,8 +55,8 @@ const SERVICIOS = [
   },
 ];
 
-// Las instalaciones sin foto se esconden hasta que haya.
-const VISIBLES = SERVICIOS.filter((s) => !s.oculto);
+// Las instalaciones sin foto: `oculto` las saca de todos lados, `soloCompu` las saca solo del celular.
+const visibles = (movil) => SERVICIOS.filter((s) => !s.oculto && !(movil && s.soloCompu));
 
 const MQ_MOVIL = '(max-width: 620px)';
 const reducirMovimiento = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -128,8 +128,8 @@ export default function Servicios() {
 
   // En celular: una diapositiva por foto, cada una con el título de su instalación.
   const diapositivas = movil
-    ? VISIBLES.flatMap((s) => (s.fotos ? s.fotos.map((f) => ({ s, f })) : [{ s }]))
-    : VISIBLES.map((s) => ({ s }));
+    ? visibles(movil).flatMap((s) => (s.fotos ? s.fotos.map((f) => ({ s, f })) : [{ s }]))
+    : visibles(movil).map((s) => ({ s }));
   const total = diapositivas.length + (movil ? 1 : 0); // + tarjeta de consulta
 
   // El carrusel avanza solo cada tanto; se frena un rato si la persona lo toca y cuando no está a la vista.

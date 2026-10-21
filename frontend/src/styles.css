@@ -1751,7 +1751,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv-grid > .serv-card { grid-column: span 4; }
 .serv-grid > .serv-card--ancha:nth-child(1) { grid-column: span 7; }
 .serv-grid > .serv-card--ancha:nth-child(2) { grid-column: span 5; }
-.serv-grid > .serv-card--ico { grid-column: span 5; }
+.serv-grid > .serv-card--ico { grid-column: 1 / -1; }
 .serv-grid > .serv-card--cta { grid-column: 1 / -1; }
 
 .serv-card {
@@ -1798,6 +1798,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .serv-ico svg { width: 26px; height: 26px; }
 .serv-card--ico { flex-direction: row; align-items: center; gap: 16px; padding: 18px 0 0; }
 .serv-card--ico .serv-card-body { padding: 0; }
+@media (min-width: 901px) { .serv-card--ico p { white-space: nowrap; } }
 
 /* baños y consulta en compu: sin tarjeta, solo una línea fina arriba (el botón de WhatsApp es el único color) */
 .serv-card--ico, .serv-card--cta { background: none; border-width: 1px 0 0; border-radius: 0; }

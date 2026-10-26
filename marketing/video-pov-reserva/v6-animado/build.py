@@ -1,0 +1,349 @@
+import sys
+MODE = sys.argv[1]  # 'largo' | 'stories'
+STORY = MODE == 'stories'
+head = open('css_head.txt').read()
+tail = open('css_tail.txt').read()
+
+tail = tail.replace('#match { position: absolute; left: 50%; top: 1570px;', '#match { position: absolute; left: 50%; top: 1280px;').replace('top: 1640px;', 'top: 1350px;') if not STORY else tail
+if STORY:
+    head = head.replace(".cap { position: absolute; left: 0; right: 0; top: 112px;", ".cap { position: absolute; left: 0; right: 0; top: 250px;")
+    head = head.replace(".cap .h { font-size: 96px; }", ".cap .h { font-size: 84px; }")
+    head = head.replace("opacity: 0; left: 120px; top: 392px;", "opacity: 0; left: 150px; top: 506px;")
+    head = head.replace("#phone { position: absolute; left: 196px; top: 450px;", "#phone { position: absolute; left: 196px; top: 575px;")
+    tail = tail.replace("#match { position: absolute; left: 50%; top: 1570px;", "#match { position: absolute; left: 50%; top: 1130px;")
+    tail = tail.replace(".cf { position: absolute; left: 540px; top: 1640px;", ".cf { position: absolute; left: 540px; top: 1200px;")
+    tail = tail.replace("#match .kw { font-size: 130px;", "#match .kw { font-size: 104px;")
+    tail = tail.replace("#outro .h { font-size: 118px; }", "#outro .h { font-size: 112px; }")
+
+css_mid = """
+      /* intro */
+      #intro { position: absolute; inset: 0; z-index: 5; }
+      #intro .box { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 70px; }
+      #intro .h { font-size: 118px; }
+      .eyebrow { font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: #9FB6C9; font-size: 24px; }
+
+      /* escena: portada + tablero (se desplaza) */
+      #sc-land { z-index: 2; }
+      #land { position: absolute; left: 0; top: 0; width: 660px; }
+      .bar { height: 104px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; background: #0F2436; border-bottom: 2px solid rgba(255,255,255,0.07); }
+      .bar .lg { display: flex; align-items: center; gap: 12px; font-family: 'DMSerif', Georgia, serif; font-size: 34px; }
+      .bar .lg svg { width: 26px; height: 34px; color: var(--oro); }
+      .pill { background: var(--oro); color: var(--navy); font-weight: 700; font-size: 24px; border-radius: 999px; padding: 14px 26px; }
+      .hero { position: relative; height: 760px; padding: 150px 36px 0; background: linear-gradient(180deg, #0F2436 0%, #1D3E5A 100%); overflow: hidden; }
+      .hero .eb { font-weight: 700; font-size: 22px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--oro); }
+      .hero .ti { font-family: 'DMSerif', Georgia, serif; font-size: 128px; line-height: 1; margin-top: 22px; }
+      .hero p { font-size: 30px; line-height: 1.4; color: #C9D6E2; margin-top: 22px; max-width: 520px; }
+      .hero .it { font-family: 'DMSerif', Georgia, serif; font-style: italic; color: var(--oro); font-size: 36px; margin-top: 14px; }
+      .hero .bt { display: inline-block; margin-top: 36px; background: var(--oro); color: var(--navy); font-weight: 700; font-size: 30px; border-radius: 999px; padding: 22px 44px; }
+      .hero .pinos { position: absolute; left: 0; bottom: 0; width: 660px; height: 220px; opacity: 0.5; }
+      .board { padding: 46px 30px 80px; background: #0F2436; }
+      .bd-eyb { font-weight: 700; font-size: 22px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--oro); }
+      .bd-t { font-family: 'DMSerif', Georgia, serif; font-size: 54px; line-height: 1.05; margin-top: 8px; }
+      .seg { margin-top: 26px; display: flex; background: #16324a; border-radius: 999px; padding: 6px; font-weight: 700; font-size: 28px; }
+      .seg div { flex: 1; text-align: center; padding: 16px 0; border-radius: 999px; color: #9FB6C9; }
+      .seg .on { background: var(--oro); color: var(--navy); }
+      .dias { margin-top: 24px; display: flex; gap: 14px; justify-content: space-between; }
+      .dia { flex: 1; text-align: center; border: 3px solid rgba(255,255,255,0.14); border-radius: 22px; padding: 16px 0 18px; }
+      .dia span { display: block; font-size: 20px; text-transform: uppercase; color: #9FB6C9; font-weight: 700; }
+      .dia strong { display: block; font-size: 42px; margin-top: 2px; }
+      .dia.sel { background: var(--oro); border-color: var(--oro); color: var(--navy); }
+      .dia.sel span { color: var(--navy); }
+      .tgrid { margin-top: 26px; display: grid; grid-template-columns: 82px 1fr 1fr; gap: 14px; }
+      .tgrid .th { text-align: center; font-weight: 700; font-size: 26px; color: var(--crema); padding-bottom: 4px; }
+      .tgrid .hr { display: flex; align-items: center; font-weight: 700; font-size: 26px; color: #9FB6C9; }
+      .celda { height: 118px; border-radius: 20px; border: 3px solid var(--verde); color: var(--verde); background: rgba(91,174,107,0.10); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 30px; }
+
+      /* reserva */
+      #sc-book { z-index: 4; opacity: 0; padding: 34px 38px; }
+      .bk-t { font-family: 'DMSerif', Georgia, serif; font-size: 58px; line-height: 1.05; }
+      .bk-s { font-size: 24px; color: #9FB6C9; margin-top: 8px; }
+      .resumen { margin-top: 26px; border: 2px solid rgba(255,255,255,0.12); background: #16324a; border-radius: 22px; padding: 20px 26px; display: grid; gap: 14px; font-size: 26px; }
+      .resumen div { display: flex; justify-content: space-between; }
+      .resumen span { color: #9FB6C9; } .resumen b { font-weight: 700; }
+      .lbl { font-size: 22px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #9FB6C9; margin: 30px 0 10px; }
+      .inp { height: 88px; border-radius: 18px; background: #0F2436; border: 3px solid rgba(255,255,255,0.14); display: flex; align-items: center; padding: 0 26px; font-size: 36px; font-weight: 500; }
+      .inp.foco { border-color: var(--oro); }
+      .tel { display: flex; align-items: center; gap: 14px; font-size: 34px; font-weight: 700; color: #9FB6C9; }
+      .tel .inp { padding: 0 22px; }
+      .t-sp span { opacity: 0; }
+      .acts { position: absolute; left: 38px; right: 38px; bottom: 44px; display: flex; gap: 20px; }
+      .btn { flex: 1; text-align: center; border-radius: 999px; padding: 26px 0; font-weight: 700; font-size: 32px; }
+      .btn.ghost { border: 3px solid rgba(255,255,255,0.22); color: #C9D6E2; }
+      .btn.pri { background: var(--oro); color: var(--navy); }
+
+      /* ya casi */
+      #sc-ya { z-index: 5; opacity: 0; padding: 40px 38px; }
+      .ck { width: 96px; height: 96px; border-radius: 50%; background: rgba(91,174,107,0.18); border: 4px solid var(--verde); display: flex; align-items: center; justify-content: center; }
+      .ya-t { font-family: 'DMSerif', Georgia, serif; font-size: 64px; margin-top: 22px; line-height: 1; }
+      .ya-s { font-size: 28px; color: #C9D6E2; margin-top: 14px; line-height: 1.35; }
+      .alias { margin-top: 20px; display: flex; align-items: center; justify-content: space-between; background: #16324a; border: 2px dashed rgba(242,193,78,0.55); border-radius: 20px; padding: 20px 24px; font-size: 32px; font-weight: 700; }
+      .alias i { font-style: normal; font-size: 22px; color: var(--oro); border: 2px solid var(--oro); border-radius: 999px; padding: 8px 18px; }
+      .nota { margin-top: 22px; font-size: 24px; color: #9FB6C9; line-height: 1.35; }
+      #btn-wa { flex: 1.8; white-space: nowrap; font-size: 30px; background: var(--verde); color: #08240f; display: flex; align-items: center; justify-content: center; gap: 12px; }
+"""
+
+body = """
+    <div id="root" data-composition-id="%ID%" data-start="0" data-duration="%DUR%" data-width="1080" data-height="1920">
+
+      %INTRO%
+
+      <div id="c1" class="cap"><div class="h">Entrá y bajá<br/>hasta <span class="kw">Reservar</span></div></div>
+      <div id="c2" class="cap"><div class="h">Elegí <span class="kw">día</span><br/>y horario</div></div>
+      <div id="c3" class="cap"><div class="h">Completá<br/>tus <span class="kw">datos</span></div></div>
+      <div id="c4" class="cap"><div class="h">Enviá por<br/><span class="kw">WhatsApp</span></div></div>
+      <div id="s1" class="sticker">PASO <b>1</b></div>
+      <div id="s2" class="sticker">PASO <b>2</b></div>
+      <div id="s3" class="sticker">PASO <b>3</b></div>
+      <div id="s4" class="sticker">PASO <b>4</b></div>
+
+      <div id="phone">
+        <div id="screen">
+
+          <div id="sc-land" class="sc">
+            <div id="land">
+              <div class="bar"><div class="lg"><svg viewBox="0 0 40 52"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg>El Pinar</div><div class="pill">Reservar turno</div></div>
+              <div class="hero">
+                <div class="eb">Complejo deportivo · Paraná, Entre Ríos</div>
+                <div class="ti">El Pinar</div>
+                <p>Canchas de fútbol 11 con iluminación profesional, pádel con paneles de vidrio y parrilla para el asado post partido.</p>
+                <div class="it">Todo entre pinos.</div>
+                <div class="bt">Reservar turno</div>
+                <svg class="pinos" viewBox="0 0 660 220" preserveAspectRatio="none"><g fill="#0F2436"><path d="M30 220 L70 90 L110 220Z"/><path d="M90 220 L140 50 L190 220Z"/><path d="M170 220 L215 100 L260 220Z"/><path d="M250 220 L305 40 L360 220Z"/><path d="M340 220 L390 95 L440 220Z"/><path d="M420 220 L480 30 L540 220Z"/><path d="M520 220 L570 85 L620 220Z"/><path d="M590 220 L635 110 L680 220Z"/></g></svg>
+              </div>
+              <div class="board">
+                <div class="bd-eyb">Reservá online</div>
+                <div class="bd-t">Elegí tu turno</div>
+                <div class="seg"><div class="on">Fútbol 11</div><div>Pádel</div></div>
+                <div class="dias">
+                  <div class="dia"><span>Mar</span><strong>20</strong></div>
+                  <div class="dia"><span>Mié</span><strong>21</strong></div>
+                  <div id="d22" class="dia"><span>Jue</span><strong>22</strong></div>
+                </div>
+                <div class="tgrid">
+                  <div></div><div class="th">Cancha 1</div><div class="th">Cancha 2</div>
+                  <div class="hr">20:30</div><div class="celda">Libre</div><div class="celda">Libre</div>
+                  <div class="hr">21:30</div><div class="celda">Libre</div><div id="cel" class="celda">Libre</div>
+                  <div class="hr">22:30</div><div class="celda">Libre</div><div class="celda">Libre</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="sc-book" class="sc">
+            <div class="bk-t">Solicitar turno</div>
+            <div class="bk-s">Cancha 2 · Jueves 22 de octubre · 21:30 a 22:30 hs</div>
+            <div class="resumen">
+              <div><span>Fecha</span><b>Jueves 22 de octubre</b></div>
+              <div><span>Horario</span><b>21:30 a 22:30</b></div>
+              <div><span>Cancha</span><b>Cancha 2 · Fútbol 11</b></div>
+            </div>
+            <div class="lbl">Nombre completo</div>
+            <div id="in-n" class="inp"><span id="t-n" class="t-sp"></span></div>
+            <div class="lbl">Teléfono / WhatsApp</div>
+            <div class="tel"><span>+54&nbsp;9</span><div id="in-a" class="inp" style="width:130px"><span id="t-a" class="t-sp"></span></div><span>15</span><div id="in-p" class="inp" style="flex:1"><span id="t-p" class="t-sp"></span></div></div>
+            <div class="acts"><div class="btn ghost">Cancelar</div><div id="btn-cont" class="btn pri">Continuar</div></div>
+          </div>
+
+          <div id="sc-ya" class="sc">
+            <div class="ck"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#5BAE6B" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+            <div class="ya-t">¡Ya casi!</div>
+            <div class="ya-s">Transferí <b>$10.000</b> al alias:</div>
+            <div class="alias"><span>elpinar.canchas.mp</span><i>Copiar</i></div>
+            <div class="resumen" style="margin-top:22px">
+              <div><span>Cancha</span><b>Cancha 2</b></div>
+              <div><span>Fecha</span><b>Jueves 22 de octubre</b></div>
+              <div><span>Horario</span><b>21:30 a 22:30 hs</b></div>
+            </div>
+            <div class="nota">Enviá el comprobante de pago por WhatsApp para confirmar tu turno.</div>
+            <div class="acts"><div class="btn ghost">Cerrar</div><div id="btn-wa" class="btn"><svg width="34" height="34" viewBox="0 0 24 24" fill="#08240f"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.2 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5.2.6.8 2 .9 2.2.1.1.1.3 0 .5-.1.2-.1.3-.3.5l-.4.5c-.1.2-.3.3-.1.6.2.3.7 1.2 1.5 1.9 1 .9 1.9 1.2 2.2 1.3.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>Enviar WhatsApp</div></div>
+          </div>
+
+          <div id="status"><span class="t">9:41</span>
+            <span class="r">
+              <svg width="30" height="18" viewBox="0 0 30 18" fill="#F3EEE1"><rect x="0" y="12" width="5" height="6" rx="1"/><rect x="8" y="8" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="14" rx="1"/><rect x="24" y="0" width="5" height="18" rx="1"/></svg>
+              <span class="bat"><i></i></span>
+            </span>
+          </div>
+          <div id="island"></div>
+          <div id="rip"></div>
+          <svg id="cur" viewBox="0 0 24 24"><path d="M4 2.5 L4 19.5 L8.4 15.6 L11.3 22 L14.2 20.7 L11.4 14.4 L17.2 14.4 Z" fill="white" stroke="#0F2436" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div id="match"><span class="kw">¡LISTO!</span></div>
+      <div id="cfs"></div>
+
+      <div id="outro">
+        <div class="box">
+          <div id="o-t" class="h">Mirá qué<br/><span class="kw">fácil</span> que es.</div>
+          <div id="o-marca" class="marca">
+            <svg viewBox="0 0 40 52"><path d="M20 2 L28 16 L23.5 16 L31 30 L26 30 L34 44 L6 44 L14 30 L9 30 L16.5 16 L12 16 Z" fill="currentColor"/><rect x="17.6" y="43" width="4.8" height="9" fill="currentColor"/></svg>
+            <span>El Pinar</span>
+          </div>
+          <div id="o-cta" class="cta">Reservá tu cancha</div>
+          <div id="o-sub" class="sub">Link en la bio</div>
+        </div>
+      </div>
+
+      <div class="grain"></div>
+    </div>
+"""
+
+intro_html = """<div id="intro" class="clip" data-start="0" data-duration="2.8" data-track-index="0">
+        <div class="box">
+          <div id="i-eyb" class="eyebrow">Complejo El Pinar · Paraná</div>
+          <div id="i-t" class="h" style="margin-top:34px;">Así se reserva<br/>una cancha<br/><span id="i-kw" class="kw">en El Pinar</span></div>
+        </div>
+      </div>"""
+
+# ---- guion ----
+# K: escala de tiempo (Stories más ágil). B: instante en que entra el celular.
+K = 0.74 if STORY else 1.0
+B = 0.1 if STORY else 2.2
+script = """
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' };
+      const $ = (s) => document.querySelector(s);
+      const K = %K%, B = %B%, STORY = %STORY%;
+      const T = (x) => B + x * K;          // x = segundos desde la entrada del celular
+      const D = (d) => d * K;
+
+      const screen = $('#screen');
+      const P = (el) => {
+        let x = el.offsetWidth / 2, y = el.offsetHeight / 2, e = el;
+        while (e && e !== screen) { x += e.offsetLeft; y += e.offsetTop; e = e.offsetParent; }
+        return { x, y };
+      };
+      const letras = (sel, txt) => { const c = $(sel); txt.split('').forEach((ch) => { const s = document.createElement('span'); s.textContent = ch === ' ' ? '\\u00a0' : ch; c.appendChild(s); }); return c.querySelectorAll('span'); };
+      const spN = letras('#t-n', 'Juan Pérez'), spA = letras('#t-a', '343'), spP = letras('#t-p', '5134744');
+
+      const cfs = $('#cfs');
+      const cols = ['#F2C14E', '#5BAE6B', '#F3EEE1', '#E4604F', '#1D3E5A'];
+      for (let i = 0; i < 26; i++) { const d = document.createElement('div'); d.className = 'cf'; d.style.background = cols[i % cols.length]; if (i % 3 === 0) d.style.borderRadius = '50%'; cfs.appendChild(d); }
+
+      // cursor
+      gsap.set('#cur', { x: 470, y: 1000, opacity: 0 });
+      gsap.set('#rip', { x: 0, y: 0, opacity: 0 });
+      const S = 855; // cuánto baja la portada hasta el tablero
+      const tap = (t, el, dy = 0) => {
+        const p = P(el);
+        tl.set('#rip', { x: p.x, y: p.y + 40 + dy }, t);
+        tl.to('#cur', { scale: 0.8, duration: 0.08, transformOrigin: '5px 3px' }, t);
+        tl.fromTo('#rip', { scale: 0.4, opacity: 1 }, { scale: 3, opacity: 0, duration: 0.5, ease: 'power2.out' }, t);
+        tl.to('#cur', { scale: 1, duration: 0.12 }, t + 0.1);
+      };
+      const go = (t, el, d = 0.7, dy = 0) => { const p = P(el); tl.to('#cur', { x: p.x, y: p.y + 40 + dy, duration: d, ease: 'power2.inOut' }, t); };
+      const typeIn = (spans, t0, per) => spans.forEach((s, i) => tl.to(s, { opacity: 1, duration: 0.02 }, t0 + i * per));
+      const cap = (n, a, b) => {
+        gsap.set('#c' + n, { opacity: 0, y: 30 }); gsap.set('#s' + n, { opacity: 0, scale: 0.6 });
+        tl.to('#c' + n, { ...IN }, a);
+        tl.to('#s' + n, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.2)' }, a + 0.2);
+        tl.to('#c' + n, { opacity: 0, y: -24, duration: 0.25, ease: 'power2.in' }, b);
+        tl.to('#s' + n, { opacity: 0, scale: 0.8, duration: 0.22 }, b);
+      };
+
+      %INTRO_JS%
+
+      gsap.set('#phone', { y: 1500%PH_SCALE% });
+      tl.to('#phone', { y: 0, duration: 0.85, ease: 'power3.out' }, B);
+
+      // ---- paso 1: entrar y bajar ----
+      cap(1, T(0.6), T(4.5));
+      gsap.set('#land', { y: 0 });
+      tl.to('#cur', { opacity: 1, duration: 0.25 }, T(1.3));
+      tl.to('#cur', { x: 400, y: 840, duration: D(1.0), ease: 'power2.inOut' }, T(1.3));
+      tl.to('#land', { y: -S, duration: D(2.3), ease: 'power2.inOut' }, T(1.8));
+
+      // ---- paso 2: día y horario ----
+      cap(2, T(4.6), T(7.4));
+      go(T(4.9), $('#d22'), D(0.6), -S);
+      tap(T(5.55), $('#d22'), -S);
+      tl.to('#d22', { backgroundColor: '#F2C14E', borderColor: '#F2C14E', color: '#0F2436', duration: 0.2 }, T(5.6));
+      tl.to('#d22 span', { color: '#0F2436', duration: 0.2 }, T(5.6));
+      go(T(6.1), $('#cel'), D(0.6), -S);
+      tap(T(6.75), $('#cel'), -S);
+      tl.to('#cel', { backgroundColor: '#F2C14E', borderColor: '#F2C14E', color: '#0F2436', duration: 0.2 }, T(6.8));
+
+      // ---- paso 3: datos ----
+      gsap.set('#sc-book', { x: 60 });
+      tl.to('#sc-land', { opacity: 0, x: -60, duration: 0.3, ease: 'power2.in' }, T(7.4));
+      tl.to('#sc-book', { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out' }, T(7.5));
+      cap(3, T(7.7), T(12.0));
+      go(T(7.8), $('#in-n'), D(0.5));
+      tap(T(8.35), $('#in-n'));
+      tl.set('#in-n', { className: 'inp foco' }, T(8.4));
+      typeIn(spN, T(8.55), 0.07 * K);
+      go(T(9.4), $('#in-a'), D(0.45));
+      tap(T(9.85), $('#in-a'));
+      tl.set('#in-n', { className: 'inp' }, T(9.9));
+      tl.set('#in-a', { className: 'inp foco' }, T(9.9));
+      typeIn(spA, T(10.0), 0.08 * K);
+      go(T(10.35), $('#in-p'), D(0.4));
+      tap(T(10.75), $('#in-p'));
+      tl.set('#in-a', { className: 'inp' }, T(10.8));
+      tl.set('#in-p', { className: 'inp foco' }, T(10.8));
+      typeIn(spP, T(10.9), 0.07 * K);
+      go(T(11.5), $('#btn-cont'), D(0.45));
+      tap(T(11.95), $('#btn-cont'));
+      tl.to('#btn-cont', { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 }, T(11.95));
+
+      // ---- paso 4: WhatsApp ----
+      gsap.set('#sc-ya', { x: 60 });
+      tl.to('#sc-book', { opacity: 0, x: -60, duration: 0.3, ease: 'power2.in' }, T(12.2));
+      tl.to('#sc-ya', { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out' }, T(12.3));
+      cap(4, T(12.4), T(15.6));
+      go(T(13.0), $('#btn-wa'), D(0.65));
+      tap(T(13.8), $('#btn-wa'));
+      tl.to('#btn-wa', { scale: 0.96, duration: 0.1, yoyo: true, repeat: 1 }, T(13.8));
+
+      gsap.set('#match', { scale: 0.3, rotation: -8 });
+      tl.to('#match', { opacity: 1, scale: 1, rotation: -5, duration: 0.45, ease: 'back.out(2.6)' }, T(14.0));
+      document.querySelectorAll('.cf').forEach((d, i) => {
+        const a = (i / 26) * Math.PI * 2 + (i % 2) * 0.2, r = 240 + (i % 5) * 60;
+        tl.fromTo(d, { x: 0, y: 0, opacity: 1, scale: 1, rotation: 0 }, { x: Math.cos(a) * r, y: Math.sin(a) * r * 0.9 + 100, opacity: 0, scale: 0.6, rotation: 360 + i * 20, duration: 1.0, ease: 'power2.out', immediateRender: false }, T(14.0));
+      });
+      tl.to('#match', { opacity: 0, scale: 0.9, duration: 0.25 }, T(15.6));
+
+      // ---- cierre ----
+      gsap.set('#outro', { opacity: 0 });
+      gsap.set(['#o-t', '#o-marca', '#o-cta', '#o-sub'], { opacity: 0, y: 30 });
+      tl.to('#phone', { y: 1500, duration: 0.5, ease: 'power2.in' }, T(15.7));
+      tl.to('#outro', { opacity: 1, duration: 0.01 }, T(16.1));
+      tl.to('#o-t', { ...IN, duration: 0.6 }, T(16.15));
+      tl.from('#o-t .kw', { rotation: -9, scale: 0.8, duration: 0.45, ease: 'back.out(2)' }, T(16.5));
+      tl.to('#o-marca', { ...IN, duration: 0.45 }, T(16.9));
+      tl.to('#o-cta', { opacity: 1, y: 0, duration: 0.45, ease: 'back.out(1.8)' }, T(17.2));
+      tl.to('#o-sub', { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }, T(17.6));
+
+      window.__timelines['%ID%'] = tl;
+      tl.seek(0);
+    </script>
+"""
+intro_js = """gsap.set('#i-eyb', { opacity: 0, y: 20 });
+      gsap.set('#i-t', { opacity: 0, y: 40 });
+      tl.to('#i-eyb', { ...IN }, 0.1);
+      tl.to('#i-t', { ...IN, duration: 0.7 }, 0.25);
+      tl.from('#i-kw', { rotation: -8, scale: 0.8, duration: 0.5, ease: 'back.out(2)' }, 0.8);
+      tl.to('#intro', { opacity: 0, y: -50, duration: 0.45, ease: 'power2.in' }, 2.3);"""
+
+ID = 'reserva-stories' if STORY else 'reserva'
+end = (B + 17.6 * K + 1.0)
+DUR = round(end, 1)
+script = script.replace('%K%', str(K)).replace('%B%', str(B)).replace('%STORY%', 'true' if STORY else 'false')
+script = script.replace('%INTRO_JS%', '' if STORY else intro_js)
+script = script.replace('%PH_SCALE%', ", scale: 0.72, transformOrigin: '50% 0%'" if STORY else '')
+script = script.replace('%ID%', ID)
+body = body.replace('%ID%', ID).replace('%DUR%', str(DUR)).replace('%INTRO%', '' if STORY else intro_html)
+
+doc = head + css_mid + tail + """    </style>
+  </head>
+  <body>""" + body + script + """  </body>
+</html>
+"""
+out = 'stories' if STORY else 'largo'
+import os
+os.makedirs(out, exist_ok=True)
+open(out + '/index.html', 'w').write(doc)
+print(out, 'dur', DUR)

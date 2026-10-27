@@ -2306,9 +2306,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .ptop-btn:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
   .ptop-punto {
     position: absolute; top: -7px; right: -7px;
-    min-width: 20px; height: 20px; padding: 0 5px; border-radius: var(--pr-l);
+    min-width: 24px; height: 24px; padding: 0 6px; border-radius: var(--pr-l);
     display: grid; place-items: center;
-    background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-micro); font-weight: 700;
+    background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-chico); font-weight: 700;
+    box-shadow: 0 0 0 2px var(--p-nav);
   }
   .ptop-titulo { font-weight: 700; font-size: var(--pt-lead); color: var(--p-txt); }
 

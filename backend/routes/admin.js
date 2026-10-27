@@ -15,6 +15,7 @@ import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
 import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
+import { enviarPush, pushConfigurado, clavePublicaPush } from '../lib/push.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 import {
   listarAperturasEspeciales,
@@ -881,6 +882,63 @@ router.get('/contactos', async (req, res) => {
     .sort((a, b) => b.confirmadas - a.confirmadas || b.totalReservas - a.totalReservas);
 
   res.json({ total: contactos.length, contactos });
+});
+
+// ---- Avisos push al celular (cada usuario del panel activa los suyos en cada dispositivo) ----
+
+// GET /api/admin/push/estado - ¿están configurados? + clave pública para suscribirse + cuántos dispositivos tiene este usuario.
+router.get('/push/estado', async (req, res) => {
+  const { count } = await supabaseAdmin
+    .from('push_suscripciones')
+    .select('id', { count: 'exact', head: true })
+    .eq('admin_email', req.adminEmail);
+  res.json({ configurado: pushConfigurado, clave: clavePublicaPush, dispositivos: count || 0 });
+});
+
+// POST /api/admin/push/suscribir { endpoint, keys: { p256dh, auth } }
+router.post('/push/suscribir', async (req, res) => {
+  if (!pushConfigurado) return res.status(503).json({ error: 'Los avisos al celular todavía no están configurados en el servidor.' });
+  const { endpoint, keys } = req.body || {};
+  if (typeof endpoint !== 'string' || !/^https:\/\//.test(endpoint) || endpoint.length > 1000 ||
+      typeof keys?.p256dh !== 'string' || typeof keys?.auth !== 'string') {
+    return res.status(400).json({ error: 'Suscripción inválida.' });
+  }
+  const { error } = await supabaseAdmin.from('push_suscripciones').upsert(
+    {
+      admin_email: req.adminEmail,
+      endpoint,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      user_agent: String(req.headers['user-agent'] || '').slice(0, 200),
+    },
+    { onConflict: 'endpoint' }
+  );
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// POST /api/admin/push/baja { endpoint } - saca este dispositivo (solo si es de este usuario).
+router.post('/push/baja', async (req, res) => {
+  const endpoint = req.body?.endpoint;
+  if (typeof endpoint !== 'string') return res.status(400).json({ error: 'Falta el dispositivo.' });
+  const { error } = await supabaseAdmin
+    .from('push_suscripciones')
+    .delete()
+    .eq('endpoint', endpoint)
+    .eq('admin_email', req.adminEmail);
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// POST /api/admin/push/prueba - manda un aviso de prueba a los dispositivos de este usuario.
+router.post('/push/prueba', async (req, res) => {
+  if (!pushConfigurado) return res.status(503).json({ error: 'Los avisos al celular todavía no están configurados en el servidor.' });
+  const r = await enviarPush(
+    { titulo: 'Aviso de prueba', texto: 'Si ves esto, los avisos funcionan.', tag: 'prueba', url: '/panel' },
+    { email: req.adminEmail }
+  );
+  if (r.error) return res.status(500).json({ error: r.error });
+  res.json({ enviados: r.enviados || 0, demorado: !!r.demorado });
 });
 
 // GET /api/admin/equipos - un equipo = un nombre (normalizado). Agrupa los contactos

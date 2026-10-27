@@ -8,6 +8,7 @@ import {
   generarCodigoPadel,
 } from '../lib/codeGenerator.js';
 import { enviarAvisoNuevaReserva } from '../lib/mailer.js';
+import { avisarReservaNueva } from '../lib/push.js';
 import { normalizarEquipo, recordarEquipo } from '../lib/equipo.js';
 import { fechaCorta, hora } from '../lib/mensajes.js';
 import { demasiadoTarde, MENSAJE_ANTICIPACION } from '../lib/anticipacion.js';
@@ -144,6 +145,9 @@ router.post('/whatsapp-enviado', async (req, res) => {
   if (!act) return res.json({ ok: false, vencida: true }); // se liberó justo en este instante
 
   enviarAvisoNuevaReserva(act).catch((e) => console.error('[aviso reserva] error:', e.message));
+  // Aviso al celular de los admins. Se espera (máx. 4 s) en vez de soltarlo, así el envío
+  // termina antes de responder; no le cambia nada a la persona, que no espera esta respuesta.
+  await avisarReservaNueva(act);
   res.json({ ok: true });
 });
 

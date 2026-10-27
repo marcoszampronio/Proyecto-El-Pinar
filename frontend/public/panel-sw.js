@@ -15,6 +15,42 @@ self.addEventListener('activate', (evento) => {
   })());
 });
 
+// ---- Avisos push ----
+// El servidor manda { titulo, texto, tag, url, badge }. Sin datos sensibles: solo cancha, día y hora.
+self.addEventListener('push', (evento) => {
+  let d = {};
+  try { d = evento.data ? evento.data.json() : {}; } catch { /* aviso sin datos */ }
+  evento.waitUntil((async () => {
+    // El número del ícono de la app (reservas por confirmar), donde el sistema lo permite.
+    if (typeof d.badge === 'number' && self.navigator && 'setAppBadge' in self.navigator) {
+      try { await (d.badge > 0 ? self.navigator.setAppBadge(d.badge) : self.navigator.clearAppBadge()); } catch { /* sin soporte */ }
+    }
+    await self.registration.showNotification(d.titulo || 'Reserva nueva', {
+      body: d.texto || '',
+      icon: '/icons/icon-192.png',
+      tag: d.tag || 'reserva',
+      renotify: true,
+      data: { url: d.url || '/panel' },
+    });
+  })());
+});
+
+// Tocar el aviso: abre (o trae al frente) el panel en la pantalla de "Confirmar".
+self.addEventListener('notificationclick', (evento) => {
+  evento.notification.close();
+  const destino = new URL((evento.notification.data && evento.notification.data.url) || '/panel', self.location.origin).href;
+  evento.waitUntil((async () => {
+    const abiertas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const panel = abiertas.find((c) => new URL(c.url).pathname.startsWith('/panel'));
+    if (panel) {
+      await panel.focus();
+      if ('navigate' in panel) { try { await panel.navigate(destino); } catch { /* queda donde estaba */ } }
+      return;
+    }
+    await self.clients.openWindow(destino);
+  })());
+});
+
 self.addEventListener('fetch', (evento) => {
   const pedido = evento.request;
   if (pedido.method !== 'GET') return;

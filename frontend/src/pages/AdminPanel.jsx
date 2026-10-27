@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
+import { estadoPush, activarPush, desactivarPush, probarPush, numeroEnIcono } from '../lib/pushPanel';
 import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
@@ -2695,6 +2696,74 @@ function PendientesLista({ pendientes, onCambio }) {
 }
 
 // ---------- Hoy: lo del día en una sola pantalla ----------
+// Avisos al celular: cada persona los activa en su propio dispositivo.
+function AvisosCelular() {
+  const [estado, setEstado] = useState(null);
+  const [trabajando, setTrabajando] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => { estadoPush().then(setEstado).catch(() => setEstado('no-soportado')); }, []);
+
+  async function correr(fn, ok) {
+    setTrabajando(true); setError(null); setMsg(null);
+    try {
+      const r = await fn();
+      if (typeof r === 'string') setEstado(r);
+      if (ok) setMsg(typeof ok === 'function' ? ok(r) : ok);
+    } catch (e) {
+      setError(e.message || 'No se pudo completar.');
+    } finally {
+      setTrabajando(false);
+    }
+  }
+
+  if (!estado) return null;
+  const aviso = { fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', margin: '4px 0 0', lineHeight: 1.45 };
+
+  if (estado === 'activado') {
+    return (
+      <section className="stat-card" style={{ padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, color: 'var(--p-ok)', marginRight: 'auto' }}>✓ Avisos al celular activados</span>
+          <button className="btn btn-ghost" style={{ padding: '6px 14px' }} disabled={trabajando}
+            onClick={() => correr(probarPush, (r) => (r.enviados ? 'Aviso de prueba enviado: mirá tu celular.' : 'No encontramos dispositivos activados.'))}>
+            Probar
+          </button>
+          <button className="btn btn-ghost" style={{ padding: '6px 14px' }} disabled={trabajando} onClick={() => correr(desactivarPush, 'Avisos desactivados en este dispositivo.')}>
+            Desactivar
+          </button>
+        </div>
+        {msg && <p style={{ ...aviso, color: 'var(--p-ok)' }}>{msg}</p>}
+        {error && <p className="error-msg">{error}</p>}
+      </section>
+    );
+  }
+
+  const textos = {
+    'sin-activar': null,
+    bloqueado: 'Los avisos están bloqueados en este dispositivo. Activalos desde los ajustes del sitio (el candado al lado de la dirección) o, en iPhone, en Ajustes → Notificaciones → El Pinar Panel. Después volvé acá.',
+    'iphone-sin-instalar': 'En iPhone los avisos solo funcionan con el panel instalado: en Safari tocá Compartir → "Agregar a inicio", abrí el panel desde el ícono nuevo y volvé a esta pantalla.',
+    'no-soportado': 'Este navegador no permite avisos al celular. Probá con Chrome en Android, o con el panel instalado en iPhone.',
+    'sin-configurar': 'Los avisos todavía no están activados en el servidor.',
+  };
+
+  return (
+    <section className="stat-card">
+      <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular</h3>
+      <p style={{ ...aviso, margin: 0 }}>Recibí una notificación en este celular cada vez que entra una reserva nueva.</p>
+      {textos[estado] && <p style={{ ...aviso, color: estado === 'bloqueado' ? 'var(--p-bad)' : 'var(--p-mut)' }}>{textos[estado]}</p>}
+      {estado === 'sin-activar' && (
+        <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} disabled={trabajando} onClick={() => correr(activarPush, 'Listo, los avisos quedaron activados.')}>
+          {trabajando ? 'Activando…' : 'Activar avisos'}
+        </button>
+      )}
+      {msg && <p style={{ ...aviso, color: 'var(--p-ok)' }}>{msg}</p>}
+      {error && <p className="error-msg">{error}</p>}
+    </section>
+  );
+}
+
 function HoyPanel({ pendientes, onCambio, irA }) {
   const hoy = hoyISO();
   const fecha = esDiaHabilitado(hoy) ? hoy : proximoDiaHabilitado(hoy);
@@ -2749,6 +2818,8 @@ function HoyPanel({ pendientes, onCambio, irA }) {
             : `Próximo día de juego: ${fecha === sumarDias(hoy, 1) ? 'mañana, ' : ''}${fechaLargaCompleta(fecha)}`}
         </p>
       </div>
+
+      <AvisosCelular />
 
       <section className="stat-card">
         <h3 className="hoy-titulo">
@@ -2887,6 +2958,9 @@ function AdminPanelInterno() {
   useEffect(() => {
     if (tab === 'stats') cargarStats();
   }, [tab]);
+
+  // El número sobre el ícono de la app sigue a las reservas por confirmar.
+  useEffect(() => { numeroEnIcono(pendientes.length); }, [pendientes.length]);
 
   async function cargarPendientes() {
     try {

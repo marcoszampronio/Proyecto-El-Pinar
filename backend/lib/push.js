@@ -7,7 +7,7 @@ import 'dotenv/config';
 const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT } = process.env;
 export const pushConfigurado = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
 if (pushConfigurado) {
-  webpush.setVapidDetails(VAPID_SUBJECT || 'mailto:turnoselpinar@gmail.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  webpush.setVapidDetails(VAPID_SUBJECT || 'mailto:jmarcoszampronio@gmail.com', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 }
 export const clavePublicaPush = VAPID_PUBLIC_KEY || null;
 

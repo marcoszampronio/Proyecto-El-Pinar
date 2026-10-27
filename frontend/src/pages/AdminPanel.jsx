@@ -640,6 +640,7 @@ function EstadoSistema() {
           />
         </div>
       )}
+      <AvisosCelular />
     </details>
   );
 }
@@ -2696,9 +2697,9 @@ function PendientesLista({ pendientes, onCambio }) {
 }
 
 // ---------- Hoy: lo del día en una sola pantalla ----------
-// Avisos al celular (van en Estadísticas, con el mismo margen que Movimientos y Estado del sistema):
-// cada persona los activa en su propio dispositivo.
-const MARGEN_STATS = { margin: '12px 20px 0' };
+// Avisos al celular: van dentro de "Estado del sistema" (Estadísticas), separados por una línea.
+// Cada persona los activa en su propio dispositivo.
+const DENTRO_DEL_ESTADO = { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--p-linea)' };
 function AvisosCelular() {
   const [estado, setEstado] = useState(null);
   const [trabajando, setTrabajando] = useState(false);
@@ -2725,7 +2726,7 @@ function AvisosCelular() {
 
   if (estado === 'activado') {
     return (
-      <section className="stat-card" style={{ ...MARGEN_STATS, padding: '12px 16px' }}>
+      <section style={DENTRO_DEL_ESTADO}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, color: 'var(--p-ok)', marginRight: 'auto' }}>✓ Avisos al celular activados</span>
           <button className="btn btn-ghost" style={{ padding: '6px 14px' }} disabled={trabajando}
@@ -2751,7 +2752,7 @@ function AvisosCelular() {
   };
 
   return (
-    <section className="stat-card" style={MARGEN_STATS}>
+    <section style={DENTRO_DEL_ESTADO}>
       <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular</h3>
       <p style={{ ...aviso, margin: 0 }}>Recibí una notificación en este celular cada vez que entra una reserva nueva.</p>
       {textos[estado] && <p style={{ ...aviso, color: estado === 'bloqueado' ? 'var(--p-bad)' : 'var(--p-mut)' }}>{textos[estado]}</p>}
@@ -3229,7 +3230,6 @@ function AdminPanelInterno() {
       )}
 
       {tab === 'stats' && !stats && <ExportPanel />}
-      {tab === 'stats' && <AvisosCelular />}
       {tab === 'stats' && <Movimientos />}
       {tab === 'stats' && <EstadoSistema />}
       </main>

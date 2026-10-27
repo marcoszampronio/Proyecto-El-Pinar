@@ -82,6 +82,7 @@ function resumenAgenda(r) {
     team_name: r.team_name,
     category: r.category,
     parrilla: r.parrilla,
+    fijo: !!r.origen_fijo_id, // viene de un turno fijo (se pinta distinto en el panel)
     mensajeCancelacion: mensaje,
     linkWhatsappCancelacion: tel ? `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}` : null,
   };

@@ -884,13 +884,14 @@ function GrillaFutbol({ agenda, sel, onCelda, onLibre }) {
             return (
               <button
                 key={court}
-                className={`grilla-celda ${slot.status} ${activo ? 'sel' : ''}`}
+                className={`grilla-celda ${slot.status} ${r && r.fijo ? 'fijo' : ''} ${activo ? 'sel' : ''}`}
                 disabled={!r && !(onLibre && slot.status === 'libre')}
                 title={!r && onLibre && slot.status === 'libre' ? 'Agendar un turno acá' : undefined}
                 onClick={() => (r ? onCelda(r.code) : onLibre && slot.status === 'libre' && onLibre(court, t.turn))}
               >
                 <span className="grilla-celda-nombre">{r ? (r.team_name ? nombreEquipo(r.team_name) : r.client_name.split(' ')[0]) : ''}</span>
                 <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
+                {r && r.fijo && <span className="grilla-celda-fijo">Fijo</span>}
                 {r && r.looking_for_rival && <span className="grilla-celda-rival">Busco rival</span>}
               </button>
             );
@@ -922,7 +923,7 @@ function TimelinePadel({ reservas, sel, onTramo }) {
           return (
             <button
               key={r.code}
-              className={`tl-tramo ${r.status} ${sel === r.code ? 'sel' : ''}`}
+              className={`tl-tramo ${r.status} ${r.fijo ? 'fijo' : ''} ${sel === r.code ? 'sel' : ''}`}
               style={{ left: `${((a - INICIO) / total) * 100}%`, width: `${((b - a) / total) * 100}%` }}
               onClick={() => onTramo(r.code)}
               title={`${r.client_name} · ${hhmm(r.start_time)}-${hhmm(r.end_time)}`}
@@ -1062,6 +1063,7 @@ function AgendaDia() {
               <span><i className="pt libre" /> Libre</span>
               <span><i className="pt pendiente" /> A confirmar</span>
               <span><i className="pt confirmada" /> Reservado</span>
+              <span><i className="pt fijo" /> Turno fijo</span>
             </div>
           </div>
 
@@ -1284,7 +1286,7 @@ function SemanaPanel() {
                                 <button
                                   key={slot.turn}
                                   type="button"
-                                  className={`sem-b ${slot.status} ${r.looking_for_rival ? 'con-rival' : ''} ${sel === r.code ? 'sel' : ''}`}
+                                  className={`sem-b ${slot.status} ${r.fijo ? 'fijo' : ''} ${r.looking_for_rival ? 'con-rival' : ''} ${sel === r.code ? 'sel' : ''}`}
                                   style={pos}
                                   onClick={() => toggle(r.code)}
                                   title={`${NOMBRE_CANCHA[court]} · ${hhmm(slot.start)}: ${r.team_name ? nombreEquipo(r.team_name) + ' · ' : ''}${r.client_name}`}
@@ -1330,7 +1332,7 @@ function SemanaPanel() {
                           <button
                             key={r.code}
                             type="button"
-                            className={`sem-b ${r.status} ${sel === r.code ? 'sel' : ''}`}
+                            className={`sem-b ${r.status} ${r.fijo ? 'fijo' : ''} ${sel === r.code ? 'sel' : ''}`}
                             style={semPos(Math.max(semMin(r.start_time), SEM_INI), Math.min(semMin(r.end_time), SEM_FIN))}
                             onClick={() => toggle(r.code)}
                             title={`Pádel · ${hhmm(r.start_time)} a ${hhmm(r.end_time)}: ${r.client_name}`}
@@ -1349,6 +1351,7 @@ function SemanaPanel() {
           <div className="grilla-leyenda sem-leyenda">
             <span><i className="pt pendiente" /> A confirmar</span>
             <span><i className="pt confirmada" /> Reservado</span>
+            <span><i className="pt fijo" /> Turno fijo</span>
             <span><i className="pt bloq" /> Bloqueado</span>
             <span><span aria-hidden="true">⚽</span> Busca rival</span>
           </div>
@@ -2689,7 +2692,7 @@ function PendientesLista({ pendientes, onCambio }) {
   const n = pendientes.length;
   if (lista.length === 0) {
     return (
-      <div className="hoy-confirmar vacio" role="status">
+      <div className="hoy-confirmar al-dia" role="status">
         <span className="hoy-confirmar-ok" aria-hidden="true">✓</span>
         <span><b>Todo al día.</b> Cuando alguien pida un turno, aparece acá.</span>
       </div>
@@ -2826,7 +2829,7 @@ function HoyPanel({ pendientes, onCambio, irA, arriba }) {
   const ocupados = agenda ? [...agenda.futbol.C1, ...agenda.futbol.C2].filter((s) => s.reserva).length : 0;
   const quien = (r) => (r.team_name ? nombreEquipo(r.team_name) : r.client_name);
   const Celda = ({ s }) => (
-    <span className={`hoy-celda ${s.reserva ? (s.reserva.status === 'pendiente' ? 'pend' : 'ocupada') : s.status}`}>
+    <span className={`hoy-celda ${s.reserva ? (s.reserva.status === 'pendiente' ? 'pend' : s.reserva.fijo ? 'ocupada fijo' : 'ocupada') : s.status}`}>
       {s.reserva ? quien(s.reserva) : s.status === 'bloqueado' ? 'Bloqueado' : 'Libre'}
     </span>
   );

@@ -99,6 +99,9 @@
   --p-txt:   #F0EDE4;
   --p-mut:   #ADBECB;
   --p-oro:   #F2C14E;
+  --p-fijo:  #9DB4F0;                       /* turnos fijos: azul-lavanda suave */
+  --p-fijo-bg: rgba(157, 180, 240, 0.20);
+  --p-fijo-borde: rgba(157, 180, 240, 0.55);
   --p-ok:    #5BAE6B;
   --p-bad:   #E58F6B;
   --p-linea: rgba(148,167,186,0.18);
@@ -1050,6 +1053,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .grilla-celda.bloqueado .grilla-celda-nombre { color: var(--p-mut); }
 .grilla-celda.pendiente { background: rgba(242,193,78,0.16); border-color: var(--p-oro); }
 .grilla-celda.confirmada { background: var(--p-alto); border-color: transparent; }
+/* Turno fijo: azul-lavanda suave, para distinguirlo de un Reservado común sin competir con el dorado de "a confirmar" */
+.grilla-celda.confirmada.fijo { background: var(--p-fijo-bg); box-shadow: inset 0 0 0 1px var(--p-fijo-borde); }
+.grilla-celda-fijo {
+  font-size: var(--pt-micro); font-weight: 700; color: var(--p-fijo); line-height: 1.1; letter-spacing: 0.3px; text-transform: uppercase;
+}
 .grilla-celda.sel { outline: 3px solid var(--p-oro); outline-offset: 1px; }
 .grilla-celda-nombre {
   font-size: var(--pt-cuerpo); font-weight: 800; max-width: 100%;
@@ -1081,6 +1089,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .grilla-leyenda .pt { width: 11px; height: 11px; border-radius: var(--pr-s); display: inline-block; }
 .pt.libre { background: rgba(151,171,172,0.2); border: 1px solid var(--p-ok); }
 .pt.pendiente { background: var(--p-oro); }
+.pt.fijo { background: var(--p-fijo-bg); border: 1px solid var(--p-fijo-borde); }
 .pt.confirmada { background: var(--p-alto); border: 1px solid var(--p-mut); }
 
 /* ---------- línea de tiempo de pádel ---------- */
@@ -1101,6 +1110,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .tl-tramo.pendiente { background: rgba(242,193,78,0.92); color: var(--p-nav); }
 .tl-tramo.confirmada { background: var(--p-alto); }
+.tl-tramo.confirmada.fijo { background: var(--p-fijo-bg); box-shadow: inset 0 0 0 1px var(--p-fijo-borde); }
 .tl-tramo.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; }
 .agenda-card-titulo {
   font-family: var(--s-texto); font-weight: 700; font-size: var(--pt-cuerpo); color: var(--p-txt);
@@ -2396,6 +2406,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 .sem-b.confirmada { background: var(--p-alto); }
 .sem-b.pendiente { background: rgba(242, 193, 78, 0.92); color: var(--p-nav); }
+.sem-b.confirmada.fijo { background: var(--p-fijo-bg); box-shadow: inset 0 0 0 1px var(--p-fijo-borde); }
 /* Libre = vacío (sin marco). Solo al apuntar o tocar se marca el cuadrado. */
 .sem-b.libre { background: transparent; border: 0; }
 .sem-b.libre:hover, .sem-b.libre:active { background: rgba(242, 193, 78, 0.16); box-shadow: inset 0 0 0 2px var(--p-oro); }
@@ -2462,11 +2473,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-lead); font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .hoy-confirmar-sub { margin: 4px 0 14px; color: var(--p-mut); font-size: var(--pt-cuerpo); }
-.hoy-confirmar.vacio {
+.hoy-confirmar.al-dia {
   display: flex; align-items: center; gap: 10px; padding: 2px 4px;
   color: var(--p-mut); font-size: var(--pt-chico); line-height: 1.4;
 }
-.hoy-confirmar.vacio b { color: var(--p-txt); font-weight: 600; }
+.hoy-confirmar.al-dia b { color: var(--p-txt); font-weight: 600; }
 .hoy-confirmar-ok {
   flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
   background: color-mix(in srgb, var(--p-ok) 20%, transparent); color: var(--p-ok); font-size: 13px; font-weight: 700;
@@ -2489,6 +2500,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   overflow-wrap: anywhere;
 }
 .hoy-celda.ocupada { background: var(--p-alto); color: var(--p-txt); }
+.hoy-celda.ocupada.fijo { background: var(--p-fijo-bg); box-shadow: inset 0 0 0 1px var(--p-fijo-borde); }
 .hoy-celda.pend { background: rgba(242, 193, 78, 0.16); color: var(--p-oro); box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.5); }
 .hoy-celda.libre { color: var(--p-ok); box-shadow: inset 0 0 0 1px rgba(91, 174, 107, 0.45); }
 .hoy-celda.bloqueado { color: var(--p-mut); background: var(--p-fila); }

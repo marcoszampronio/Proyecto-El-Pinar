@@ -122,7 +122,7 @@ export async function verificarEmail() {
 export const verificarSmtp = verificarEmail;
 
 // ---------- Envío ----------
-async function enviar({ to, subject, html, attachments }) {
+async function enviarInterno({ to, subject, html, attachments }) {
   if (process.env.BREVO_API_KEY) {
     return enviarViaBrevo({ to, subject, html, attachments });
   }
@@ -138,6 +138,23 @@ async function enviar({ to, subject, html, attachments }) {
     html,
     attachments,
   });
+}
+
+// Si un mail falla, se avisa al mantenedor (solo por aviso al celular: por mail no tiene sentido).
+async function enviar(datos) {
+  try {
+    return await enviarInterno(datos);
+  } catch (e) {
+    import('./alertas.js')
+      .then(({ alertar }) => alertar({ tipo: 'mail', titulo: 'No se pudo enviar un mail', detalle: `${datos.subject || ''} — ${e.message}`, mail: false }))
+      .catch(() => {});
+    throw e;
+  }
+}
+
+// Alerta al mantenedor (ver lib/alertas.js).
+export async function enviarAlertaMail({ to, asunto, html }) {
+  return enviarInterno({ to, subject: asunto, html });
 }
 
 // Backup diario: manda el CSV completo de reservas por email a los admins.

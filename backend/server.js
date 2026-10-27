@@ -15,6 +15,7 @@ import internalRoutes from './routes/internal.js';
 import { expirarPendientesVencidas } from './lib/expirarPendientes.js';
 import { iniciarBackupDiario } from './lib/backupDiario.js';
 import { generarProximasReservas } from './lib/turnosFijos.js';
+import { alertar } from './lib/alertas.js';
 
 const app = express();
 
@@ -43,6 +44,26 @@ const origenesPermitidos = (process.env.CORS_ORIGINS || '')
 app.use(cors(origenesPermitidos.length ? { origin: origenesPermitidos } : {}));
 
 app.use(express.json());
+
+// Si una respuesta sale con error del servidor (5xx), se avisa al mantenedor (mail + celular).
+// Se ignora el 503 de "avisos no configurados". Se agrupa por ruta (sin códigos) y avisa 1 vez por hora.
+app.use((req, res, next) => {
+  const json = res.json.bind(res);
+  res.json = (cuerpo) => {
+    if (res.statusCode >= 500 && cuerpo && cuerpo.error) res.locals.errorMsg = String(cuerpo.error);
+    return json(cuerpo);
+  };
+  res.on('finish', () => {
+    if (res.statusCode < 500 || res.statusCode === 503) return;
+    const ruta = `${req.baseUrl || ''}${req.route?.path && req.route.path !== '/' ? req.route.path : ''}` || req.path;
+    alertar({
+      tipo: `http:${req.method} ${ruta}`,
+      titulo: `Error ${res.statusCode} en ${req.method} ${ruta}`,
+      detalle: res.locals.errorMsg || 'El servidor respondió con error.',
+    });
+  });
+  next();
+});
 
 // Limita la CREACION de reservas (POST) para evitar que llenen la agenda con
 // turnos falsos. Las consultas (GET, ej. "buscar mi reserva") no se limitan.
@@ -89,6 +110,24 @@ app.use('/api/rivals', rivalsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/export', exportRoutes);
 app.use('/api/internal', internalRoutes);
+
+// Errores que se escapan de una ruta (ej. un throw): se avisa y se responde 500 en vez de dejar colgado el pedido.
+app.use((err, req, res, next) => {
+  console.error('[error]', req.method, req.originalUrl, err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Error interno del servidor.' });
+});
+
+// Errores que nadie atajó: se dejan en el registro y se avisa. Si el proceso quedó en mal estado, se reinicia (Render lo levanta solo).
+process.on('unhandledRejection', (motivo) => {
+  console.error('[unhandledRejection]', motivo);
+  alertar({ tipo: 'unhandledRejection', titulo: 'Error no atajado en el servidor', detalle: String(motivo?.message || motivo) });
+});
+process.on('uncaughtException', async (err) => {
+  console.error('[uncaughtException]', err);
+  await alertar({ tipo: 'uncaughtException', titulo: 'El servidor se cayó y se reinicia', detalle: String(err?.message || err) });
+  process.exit(1);
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

@@ -31,7 +31,7 @@ export async function enviarPush(payload, { email = null, limiteMs = 4000 } = {}
 
   const tarea = (async () => {
     let q = supabaseAdmin.from('push_suscripciones').select('*');
-    if (email) q = q.eq('admin_email', email);
+    if (email) q = q.ilike('admin_email', email);
     const { data: subs, error } = await q;
     if (error) return { error: error.message };
     if (!subs?.length) return { enviados: 0 };

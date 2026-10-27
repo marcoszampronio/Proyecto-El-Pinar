@@ -65,7 +65,7 @@ export async function avisarReservaNueva(reserva) {
     titulo: 'Reserva nueva',
     texto: `${lugar} · ${fechaCorta(reserva.reservation_date)} · ${hora(reserva.start_time)}`,
     tag: `reserva-${reserva.code}`,
-    url: '/panel?tab=buscar',
+    url: '/panel?tab=hoy',
     badge,
   });
 }

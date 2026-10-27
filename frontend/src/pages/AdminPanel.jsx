@@ -2686,13 +2686,33 @@ function PendientesLista({ pendientes, onCambio }) {
     ...Object.values(hechas).map((h) => h.p).filter((p) => !pendientes.some((x) => x.code === p.code)),
   ].sort((a, b) => `${a.reservation_date}${a.start_time}`.localeCompare(`${b.reservation_date}${b.start_time}`));
 
-  if (lista.length === 0) return <p className="agenda-vacio">No hay reservas para confirmar.</p>;
+  const n = pendientes.length;
+  if (lista.length === 0) {
+    return (
+      <div className="hoy-confirmar vacio" role="status">
+        <span className="hoy-confirmar-ok" aria-hidden="true">✓</span>
+        <span><b>Todo al día.</b> Cuando alguien pida un turno, aparece acá.</span>
+      </div>
+    );
+  }
   return (
-    <div className="pend-lista">
-      {lista.map((p) => (
-        <PendienteCard key={p.code} p={p} hecha={hechas[p.code]} onConfirmar={confirmar} onCancelar={cancelar} />
-      ))}
-    </div>
+    <section className={`stat-card hoy-confirmar ${n > 0 ? 'hay' : 'listo'}`}>
+      {n > 0 ? (
+        <>
+          <h3 className="hoy-confirmar-titulo">Reservas por confirmar <span className="hoy-confirmar-n">{n}</span></h3>
+          <p className="hoy-confirmar-sub">
+            {n === 1 ? 'Una persona ya mandó su WhatsApp y espera tu OK.' : `${n} personas ya mandaron su WhatsApp y esperan tu OK.`}
+          </p>
+        </>
+      ) : (
+        <h3 className="hoy-confirmar-titulo">Listo, no queda nada por confirmar</h3>
+      )}
+      <div className="pend-lista">
+        {lista.map((p) => (
+          <PendienteCard key={p.code} p={p} hecha={hechas[p.code]} onConfirmar={confirmar} onCancelar={cancelar} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -2767,7 +2787,7 @@ function AvisosCelular() {
   );
 }
 
-function HoyPanel({ pendientes, onCambio, irA }) {
+function HoyPanel({ pendientes, onCambio, irA, arriba }) {
   const hoy = hoyISO();
   const fecha = esDiaHabilitado(hoy) ? hoy : proximoDiaHabilitado(hoy);
   const esHoy = fecha === hoy;
@@ -2822,13 +2842,9 @@ function HoyPanel({ pendientes, onCambio, irA }) {
         </p>
       </div>
 
-      <section className="stat-card">
-        <h3 className="hoy-titulo">
-          Para confirmar
-          {pendientes.length > 0 && <span className="agenda-contador">{pendientes.length}</span>}
-        </h3>
-        <PendientesLista pendientes={pendientes} onCambio={onCambio} />
-      </section>
+      {arriba}
+
+      <PendientesLista pendientes={pendientes} onCambio={onCambio} />
 
       {error && <p className="error-msg">{error}</p>}
       {!agenda && !error && <p className="hoy-cargando">Cargando el día…</p>}
@@ -2917,7 +2933,7 @@ function AdminPanelInterno() {
   const inicial = paramsUrl();
   const desHecho = useDeshacer();
   const [tab, setTab] = useState(
-    ['hoy', 'buscar', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : inicial.code ? 'buscar' : 'hoy'
+    ['hoy', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : 'hoy'
   );
   const [codigo, setCodigo] = useState('');
   const [resultado, setResultado] = useState(null);
@@ -3046,7 +3062,6 @@ function AdminPanelInterno() {
 
   const NAV = [
     { id: 'hoy', label: 'Hoy', ico: <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /> },
-    { id: 'buscar', label: 'Confirmar', tag: pendientes.length || null, ico: <path d="M9 11l3 3 6-6M4 4h16v16H4z" /> },
     { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
     { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
     { id: 'fijos', label: 'Turnos fijos', ico: <path d="M12 7v5l3 2M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" /> },
@@ -3085,20 +3100,13 @@ function AdminPanelInterno() {
       </aside>
 
       <main className="pmain">
-      {tab === 'hoy' && <HoyPanel pendientes={pendientes} onCambio={cargarPendientes} irA={irA} />}
-      {tab === 'agenda' && <AgendaPanel />}
-      {tab === 'suspender' && (
-        <>
-          <SuspensionPanel />
-          <BloqueosPanel />
-          <AperturasEspecialesPanel />
-        </>
-      )}
-      {tab === 'contactos' && <ContactosYEquipos />}
-      {tab === 'fijos' && <TurnosFijosPanel />}
-
-      {tab === 'buscar' && (
-        <>
+      {tab === 'hoy' && (
+        <HoyPanel
+          pendientes={pendientes}
+          onCambio={cargarPendientes}
+          irA={irA}
+          arriba={(
+            <>
           {(error || aviso || confirmadaWa) && (
             <div className="stat-card">
               {error && <p className="error-msg" style={{ margin: 0 }}>{error}</p>}
@@ -3164,15 +3172,21 @@ function AdminPanelInterno() {
             </div>
           )}
 
-          <div className="stat-card">
-            <h3 style={{ marginTop: 0 }}>
-              Pendientes de confirmación
-              {pendientes.length > 0 && <span className="agenda-contador" style={{ marginLeft: 8 }}>{pendientes.length}</span>}
-            </h3>
-            <PendientesLista pendientes={pendientes} onCambio={cargarPendientes} />
-          </div>
+            </>
+          )}
+        />
+      )}
+      {tab === 'agenda' && <AgendaPanel />}
+      {tab === 'suspender' && (
+        <>
+          <SuspensionPanel />
+          <BloqueosPanel />
+          <AperturasEspecialesPanel />
         </>
       )}
+      {tab === 'contactos' && <ContactosYEquipos />}
+      {tab === 'fijos' && <TurnosFijosPanel />}
+
 
       {tab === 'stats' && <EstadisticasDecidir cargarCsv={cargarCsv} />}
       {tab === 'stats' && stats && (

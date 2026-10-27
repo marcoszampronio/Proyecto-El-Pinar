@@ -2448,6 +2448,29 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* ---------- panel: "Hoy" y pendientes con acción directa ---------- */
 .hoy { display: flex; flex-direction: column; gap: 14px; }
+
+/* "Por confirmar": grande y dorado cuando hay algo esperando; chico y tranquilo cuando no */
+.hoy-confirmar.hay {
+  border: 1px solid var(--p-oro);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--p-oro) 12%, var(--p-card)), var(--p-card) 70%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-oro) 14%, transparent);
+}
+.hoy-confirmar-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; font-size: var(--pt-lead); color: var(--p-txt); }
+.hoy-confirmar.hay .hoy-confirmar-titulo { font-size: var(--pt-display); letter-spacing: -0.02em; }
+.hoy-confirmar-n {
+  display: inline-grid; place-items: center; min-width: 40px; height: 40px; padding: 0 12px; border-radius: var(--pr-l);
+  background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-lead); font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.hoy-confirmar-sub { margin: 4px 0 14px; color: var(--p-mut); font-size: var(--pt-cuerpo); }
+.hoy-confirmar.vacio {
+  display: flex; align-items: center; gap: 10px; padding: 2px 4px;
+  color: var(--p-mut); font-size: var(--pt-chico); line-height: 1.4;
+}
+.hoy-confirmar.vacio b { color: var(--p-txt); font-weight: 600; }
+.hoy-confirmar-ok {
+  flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: color-mix(in srgb, var(--p-ok) 20%, transparent); color: var(--p-ok); font-size: 13px; font-weight: 700;
+}
 .hoy-cab h2 { margin: 0; font-size: var(--pt-display); letter-spacing: -0.02em; color: var(--p-txt); }
 .hoy-cab p { margin: 2px 0 0; color: var(--p-mut); font-size: var(--pt-cuerpo); }
 .hoy .stat-card { margin: 0; }

@@ -180,7 +180,7 @@ export async function enviarAvisoNuevaReserva(reserva) {
         </div>
         ${process.env.PANEL_URL ? `
         <p style="text-align:center;margin:18px 0;">
-          <a href="${process.env.PANEL_URL}?tab=buscar&code=${encodeURIComponent(reserva.code)}"
+          <a href="${process.env.PANEL_URL}?tab=hoy&code=${encodeURIComponent(reserva.code)}"
              style="background:#123C6E;color:#E4CF9C;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:bold;display:inline-block;">
             Abrir en el panel
           </a>

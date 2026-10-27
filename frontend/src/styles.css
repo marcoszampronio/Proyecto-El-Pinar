@@ -2477,7 +2477,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   display: flex; align-items: center; gap: 10px; padding: 2px 4px;
   color: var(--p-mut); font-size: var(--pt-chico); line-height: 1.4;
 }
-.hoy-confirmar.al-dia b { color: var(--p-txt); font-weight: 600; }
+
 .hoy-confirmar-ok {
   flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
   background: color-mix(in srgb, var(--p-ok) 20%, transparent); color: var(--p-ok); font-size: 13px; font-weight: 700;

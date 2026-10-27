@@ -2694,7 +2694,7 @@ function PendientesLista({ pendientes, onCambio }) {
     return (
       <div className="hoy-confirmar al-dia" role="status">
         <span className="hoy-confirmar-ok" aria-hidden="true">✓</span>
-        <span><b>Todo al día.</b> Cuando alguien pida un turno, aparece acá.</span>
+        <span>No hay reservas pendientes</span>
       </div>
     );
   }

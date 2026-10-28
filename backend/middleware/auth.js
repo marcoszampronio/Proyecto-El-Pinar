@@ -30,9 +30,10 @@ export async function requireAdmin(req, res, next) {
     if (EMAILS_PERMITIDOS.includes(email)) {
       req.rol = 'admin';
     } else {
-      const { data: emp } = await supabaseAdmin.from('empleados_panel').select('email').eq('email', email).maybeSingle();
+      const { data: emp } = await supabaseAdmin.from('empleados_panel').select('email, nombre').eq('email', email).maybeSingle();
       if (!emp) return res.status(403).json({ error: 'Tu cuenta no tiene permiso para usar el panel.' });
       req.rol = 'empleado';
+      req.nombreEmpleado = emp.nombre || email.split('@')[0];
     }
 
     req.adminEmail = email;

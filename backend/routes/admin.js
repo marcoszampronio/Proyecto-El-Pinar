@@ -15,7 +15,7 @@ import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
 import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
-import { enviarPush, pushConfigurado, clavePublicaPush, TIPOS_AVISO, IDS_TIPOS } from '../lib/push.js';
+import { enviarPush, pushConfigurado, clavePublicaPush, TIPOS_AVISO, IDS_TIPOS, avisarAccionEmpleado } from '../lib/push.js';
 import { ALERTAS_EMAIL } from '../lib/alertas.js';
 import { describirDispositivo } from '../lib/dispositivos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
@@ -395,6 +395,7 @@ router.post('/cancel/:code', async (req, res) => {
     email: req.adminEmail, accion: 'cancelo', code: actualizada.code, fecha: actualizada.reservation_date,
     detalle: `Canceló el turno de ${descripcionTurno(actualizada)}`,
   });
+  if (req.rol === 'empleado') avisarAccionEmpleado({ quien: req.nombreEmpleado, accion: 'canceló', reserva: actualizada }); // sin esperar
   // Igual que al confirmar: se devuelve el WhatsApp ya armado para avisarle al cliente.
   const telCliente = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeCancelacion = armarMensajeCancelacionTurno(actualizada);
@@ -498,6 +499,7 @@ router.post('/manual', async (req, res) => {
     detalle: `Agendó a mano el turno de ${descripcionTurno(data)}`,
   });
   if (data.looking_for_rival) await recordarEquipo(data.team_name, data.category);
+  if (req.rol === 'empleado') avisarAccionEmpleado({ quien: req.nombreEmpleado, accion: 'agendó', reserva: data }); // sin esperar
   const tel = normalizarTelefonoAR(data.client_phone);
   const mensajeConfirmacion = armarMensajeConfirmacion(data);
 
@@ -950,7 +952,7 @@ router.get('/push/preferencias', async (req, res) => {
     .eq('admin_email', req.adminEmail)
     .maybeSingle();
   if (error) return res.status(500).json({ error: error.message });
-  const tipos = TIPOS_AVISO.filter((t) => !t.soloMantenedor || esMantenedor(req.adminEmail)).map(({ id, titulo, detalle }) => ({ id, titulo, detalle }));
+  const tipos = TIPOS_AVISO.filter((t) => (!t.soloMantenedor || esMantenedor(req.adminEmail)) && (!t.soloAdmin || req.rol === 'admin')).map(({ id, titulo, detalle }) => ({ id, titulo, detalle }));
   res.json({ tipos, apagados: data?.apagados || [], suscripto: !!data });
 });
 

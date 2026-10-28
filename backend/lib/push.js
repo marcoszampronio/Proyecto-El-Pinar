@@ -20,6 +20,7 @@ export const TIPOS_AVISO = [
   { id: 'lista_espera', titulo: 'Lista de espera', detalle: 'Cuando alguien se anota para que le avisen si se libera un turno.' },
   { id: 'sin_atender', titulo: 'Reservas sin atender', detalle: 'Si una reserva lleva más de 2 horas esperando tu OK (solo de 9 a 22 hs).' },
   { id: 'lluvia', titulo: 'Pronóstico de lluvia', detalle: 'El día anterior a un día de juego, si hay mucha probabilidad de lluvia y reservas para suspender.' },
+  { id: 'accion_empleado', titulo: 'Lo que hacen los empleados', detalle: 'Cuando un empleado agenda o cancela un turno desde el panel.', soloAdmin: true },
   { id: 'falla', titulo: 'Fallas del sistema', detalle: 'Cuando el servidor da error o falla un mail.', soloMantenedor: true },
 ];
 export const IDS_TIPOS = TIPOS_AVISO.map((t) => t.id);
@@ -37,7 +38,7 @@ async function contarPendientes() {
 // Manda un aviso a todos los dispositivos suscriptos (o solo a los de un mail) que no tengan apagado ese `tipo`.
 // Borra las suscripciones que el servicio de push da por vencidas (404/410).
 // Nunca lanza error: devuelve un resumen. Espera como máximo `limiteMs` para no demorar al cliente.
-export async function enviarPush(payload, { email = null, limiteMs = 4000, tipo = null } = {}) {
+export async function enviarPush(payload, { email = null, limiteMs = 4000, tipo = null, soloAdmins = false } = {}) {
   if (!pushConfigurado) return { omitido: 'sin claves VAPID' };
 
   const tarea = (async () => {
@@ -45,7 +46,10 @@ export async function enviarPush(payload, { email = null, limiteMs = 4000, tipo 
     if (email) q = q.ilike('admin_email', email);
     const { data, error } = await q;
     if (error) return { error: error.message };
-    const subs = (data || []).filter((s) => !tipo || !(s.apagados || []).includes(tipo));
+    const admins = (process.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+    const subs = (data || [])
+      .filter((s) => !tipo || !(s.apagados || []).includes(tipo))
+      .filter((s) => !soloAdmins || admins.includes(String(s.admin_email).toLowerCase()));
     if (!subs.length) return { enviados: 0 };
 
     const cuerpo = JSON.stringify(payload);
@@ -80,6 +84,23 @@ export async function avisarReservaNueva(reserva) {
     url: '/panel?tab=hoy',
     badge,
   }, { tipo: 'reserva_nueva' });
+}
+
+// Un empleado agendó o canceló un turno: se les avisa a los administradores (nunca a los empleados).
+export async function avisarAccionEmpleado({ quien, accion, reserva }) {
+  try {
+    const lugar = CANCHA[reserva.court] || reserva.court;
+    const nombre = reserva.team_name || reserva.client_name;
+    return await enviarPush({
+      titulo: accion === 'agendó' ? 'Un empleado agendó un turno' : 'Un empleado canceló un turno',
+      texto: `${quien} ${accion}: ${lugar} · ${fechaCorta(reserva.reservation_date)} · ${hora(reserva.start_time)} · ${nombre}`,
+      tag: `empleado-${accion}-${reserva.code}`,
+      url: accion === 'agendó' ? '/panel?tab=hoy' : '/panel?tab=agenda',
+    }, { tipo: 'accion_empleado', soloAdmins: true });
+  } catch (e) {
+    console.error('[push] acción de empleado:', e.message);
+    return { error: e.message };
+  }
 }
 
 // Alguien se anotó en la lista de espera: "Lista de espera · 2 esperan turno el jueves 29/10" (sin nombre ni teléfono).

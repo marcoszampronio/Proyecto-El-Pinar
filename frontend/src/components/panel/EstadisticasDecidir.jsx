@@ -29,7 +29,7 @@ export default function EstadisticasDecidir({ cargarCsv }) {
   return (
     <section className="stat-card est">
       <h3 className="est-titulo">Qué horarios se llenan</h3>
-      <p className="est-sub">Cuántas veces se ocupó cada horario en las últimas 4 semanas (de las dos canchas).</p>
+      <p className="est-sub">Por cada día y horario: cuántos turnos se ocuparon de los 8 posibles (4 semanas × 2 canchas). Ej.: "5 de 8" = de los últimos 4 martes a las 20:30, hubo 5 canchas ocupadas.</p>
       {pocosDatos && (
         <p className="est-aviso">Hay muy poco movimiento en las últimas 4 semanas ({totalOcupados} {totalOcupados === 1 ? 'reserva' : 'reservas'} de fútbol en total). Estos números van a servir más cuando haya más reservas.</p>
       )}

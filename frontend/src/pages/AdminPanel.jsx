@@ -7,6 +7,7 @@ import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
 import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
+import Info from '../components/panel/Info';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -553,7 +554,7 @@ function Movimientos() {
   return (
     <div className="stat-card" style={{ margin: '12px 20px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <h3 style={{ margin: 0 }}>Movimientos</h3>
+        <h3 style={{ margin: 0 }}>Movimientos<Info>Últimos 30 días. Quién confirmó, canceló o agendó cada turno.</Info></h3>
         {personas.length > 1 && (
           <select value={persona} onChange={(e) => setPersona(e.target.value)} aria-label="Filtrar por persona">
             <option value="">Todos</option>
@@ -561,9 +562,6 @@ function Movimientos() {
           </select>
         )}
       </div>
-      <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', margin: '4px 0 8px' }}>
-        Últimos 30 días. Quién confirmó, canceló o agendó cada turno.
-      </p>
       {error && <p className="error-msg">{error}</p>}
       {!lista && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
       {lista && visibles.length === 0 && (
@@ -1691,10 +1689,7 @@ function EquiposPanel() {
 
   return (
     <div className="stat-card">
-      <h3 style={{ marginTop: 0 }}>Equipos</h3>
-      <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginTop: -6 }}>
-        Cada equipo reúne a todas las personas que escriben por él, aunque reserven desde teléfonos distintos.
-      </p>
+      <h3 style={{ marginTop: 0 }}>Equipos<Info>Cada equipo reúne a todas las personas que escriben por él, aunque reserven desde teléfonos distintos.</Info></h3>
       <input className="buscador" type="search" placeholder="Buscar equipo, nombre o teléfono" value={texto} onChange={(e) => setTexto(e.target.value)} />
       {!equipos && !error && <p style={{ color: 'var(--p-mut)' }}>Cargando...</p>}
       {error && <p className="error-msg">{error}</p>}
@@ -2524,10 +2519,7 @@ function SuspensionPanel() {
 
   return (
     <div className="stat-card">
-      <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia</h3>
-      <p style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', marginTop: 0 }}>
-        Cancela las reservas del día y arma el aviso por WhatsApp para cada cliente.
-      </p>
+      <h3 style={{ marginTop: 0 }}>Suspender fecha por lluvia<Info>Cancela las reservas del día y arma el aviso por WhatsApp para cada cliente.</Info></h3>
 
       <NavegadorFecha fecha={fecha} onCambiar={(f) => { setFecha(f); setReservas(null); setClientes(null); }} />
       <button className="btn btn-primary" style={{ width: '100%' }} onClick={verReservas} disabled={cargando}>
@@ -2749,7 +2741,7 @@ function QuienTieneQue() {
           <div style={sub}>Activó los avisos el {cuando(a.desde)}</div>
         </div>
       ))}
-      <h3 className="hoy-titulo" style={{ margin: '16px 0 6px' }}>Quién usa la app instalada</h3>
+      <h3 className="hoy-titulo" style={{ margin: '16px 0 6px' }}>Quién usa la app instalada<Info>Se ve quién abrió la app al menos una vez. Quien la instaló y nunca la abrió no aparece.</Info></h3>
       {d.app.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie abrió el panel desde la app instalada.</p>}
       {d.app.map((a, k) => (
         <div key={k} style={fila}>
@@ -2760,7 +2752,6 @@ function QuienTieneQue() {
           </div>
         </div>
       ))}
-      <p style={{ ...sub, margin: '10px 0 0' }}>Se ve quién abrió la app al menos una vez. Quien la instaló y nunca la abrió no aparece.</p>
     </section>
   );
 }
@@ -2811,19 +2802,24 @@ function AvisosCelular() {
     );
   }
 
+  // corto: lo que se ve siempre. largo: los pasos, dentro de la (i).
   const textos = {
     'sin-activar': null,
-    bloqueado: 'Los avisos están bloqueados en este dispositivo. Activalos desde los ajustes del sitio (el candado al lado de la dirección) o, en iPhone, en Ajustes → Notificaciones → El Pinar Panel. Después volvé acá.',
-    'iphone-sin-instalar': 'En iPhone los avisos solo funcionan con el panel instalado: en Safari tocá Compartir → "Agregar a inicio", abrí el panel desde el ícono nuevo y volvé a esta pantalla.',
-    'no-soportado': 'Este navegador no permite avisos al celular. Probá con Chrome en Android, o con el panel instalado en iPhone.',
-    'sin-configurar': 'Los avisos todavía no están activados en el servidor.',
+    bloqueado: { corto: 'Bloqueados en este dispositivo.', largo: 'Activalos desde los ajustes del sitio (el candado al lado de la dirección) o, en iPhone, en Ajustes → Notificaciones → El Pinar Panel. Después volvé acá.' },
+    'iphone-sin-instalar': { corto: 'Primero instalá el panel en tu iPhone.', largo: 'En iPhone los avisos solo funcionan con el panel instalado: en Safari tocá Compartir → "Agregar a inicio", abrí el panel desde el ícono nuevo y volvé a esta pantalla.' },
+    'no-soportado': { corto: 'Este navegador no permite avisos.', largo: 'Probá con Chrome en Android, o con el panel instalado en iPhone.' },
+    'sin-configurar': { corto: 'Todavía no están activados en el servidor.' },
   };
 
   return (
     <section style={DENTRO_DEL_ESTADO}>
-      <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular</h3>
-      <p style={{ ...aviso, margin: 0 }}>Recibí una notificación en este celular cada vez que entra una reserva nueva.</p>
-      {textos[estado] && <p style={{ ...aviso, color: estado === 'bloqueado' ? 'var(--p-bad)' : 'var(--p-mut)' }}>{textos[estado]}</p>}
+      <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular<Info>Recibí una notificación en este celular cada vez que entra una reserva nueva.</Info></h3>
+      {textos[estado] && (
+        <p style={{ ...aviso, margin: 0, color: estado === 'bloqueado' ? 'var(--p-bad)' : 'var(--p-mut)' }}>
+          {textos[estado].corto}
+          {textos[estado].largo && <Info etiqueta="Cómo solucionarlo">{textos[estado].largo}</Info>}
+        </p>
+      )}
       {estado === 'sin-activar' && (
         <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }} disabled={trabajando} onClick={() => correr(activarPush, 'Listo, los avisos quedaron activados.')}>
           {trabajando ? 'Activando…' : 'Activar avisos'}

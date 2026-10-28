@@ -52,9 +52,9 @@ export function requireAdminSolo(req, res, next) {
 
 // Lo que PUEDE hacer un empleado (método + ruta dentro de /api/admin). Todo lo demás queda prohibido.
 // Puede: ver Hoy y Agenda, confirmar y cancelar reservas, agendar a mano, avisar por WhatsApp, marcar "busco rival",
-// atender la lista de espera, VER contactos y equipos, y manejar sus propios avisos al celular.
+// atender la lista de espera, ver, agregar y editar contactos (no borrarlos), VER equipos, y manejar sus propios avisos al celular.
 // No puede: turnos fijos, bloqueos, días especiales, suspender por lluvia, estadísticas, movimientos, visitas, Excel,
-// editar contactos o equipos, ni administrar usuarios.
+// borrar contactos, editar equipos, ni administrar usuarios.
 const PERMITIDO_EMPLEADO = [
   ['GET', /^\/yo$/],
   ['GET', /^\/agenda\/[\d-]+$/],
@@ -65,6 +65,8 @@ const PERMITIDO_EMPLEADO = [
   ['GET', /^\/equipos$/],
   ['GET', /^\/bloqueos\/[\d-]+$/],
   ['GET', /^\/recordatorios-fijos$/],
+  ['POST', /^\/contactos$/],
+  ['PUT', /^\/contactos\/[^/]+$/],
   ['POST', /^\/confirm\/[^/]+$/],
   ['POST', /^\/cancel\/[^/]+$/],
   ['POST', /^\/manual$/],

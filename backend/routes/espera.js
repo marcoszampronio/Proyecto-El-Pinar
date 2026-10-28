@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
   }
 
   // Aviso al celular de los admins. No se espera: la persona no tiene que demorarse por esto, y si falla la anotación igual quedó.
-  avisarListaEspera(date).catch((e) => console.error('[aviso espera] error:', e.message));
+  avisarListaEspera(date, clientName).catch((e) => console.error('[aviso espera] error:', e.message));
   res.json({ ok: true });
 });
 

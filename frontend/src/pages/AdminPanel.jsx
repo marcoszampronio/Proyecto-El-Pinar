@@ -1518,7 +1518,7 @@ function ContactosPanel({ soloVer = false }) {
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Base de contactos</h3>
 
-      {soloVer ? null : agregar ? (
+      {agregar ? (
         <ContactoForm
           onGuardar={(datos) => guardarContacto(datos, null)}
           onCancelar={() => setAgregar(false)}
@@ -1555,7 +1555,7 @@ function ContactosPanel({ soloVer = false }) {
               inicial={{ nombre: c.nombre, equipo: c.equipo || '', area: p.area, num: p.num, comentario: c.comentario || '' }}
               onGuardar={(datos) => guardarContacto(datos, c)}
               onCancelar={() => setEditando(null)}
-              onEliminar={() => eliminarContacto(c)}
+              onEliminar={soloVer ? undefined : () => eliminarContacto(c)}
               eliminarLabel="Eliminar contacto"
               eliminarConfirm={
                 c.totalReservas > 0
@@ -1568,11 +1568,17 @@ function ContactosPanel({ soloVer = false }) {
         }
         return (
           <div key={clave} style={{ padding: 10, borderRadius: 'var(--pr)', background: 'var(--p-fila)', marginBottom: 8 }}>
+            <div className="contacto-rotulo">{c.equipo ? 'Equipo' : 'Contacto'}</div>
             <div className="contacto-cab">
               <span className="contacto-equipo">{c.equipo ? nombreEquipo(c.equipo) : c.nombre}</span>
               {c.manual && <span className="contacto-tag">agregado a mano</span>}
             </div>
-            {c.equipo && <div className="contacto-nombre">{c.nombre}</div>}
+            {c.equipo && (
+              <>
+                <div className="contacto-rotulo" style={{ marginTop: 6 }}>Contacto</div>
+                <div className="contacto-nombre">{c.nombre}</div>
+              </>
+            )}
             <div className="contacto-dato">{c.telefono}{c.email ? ` · ${c.email}` : ''}</div>
             <div className="contacto-hist" style={{ marginBottom: c.comentario ? 2 : 8 }}>
               {c.totalReservas === 0 ? (
@@ -1618,15 +1624,13 @@ function ContactosPanel({ soloVer = false }) {
               >
                 Agendar turno manual
               </button>
-              {!soloVer && (
-                <button
-                  className="btn btn-ghost"
-                  style={{ padding: '6px 14px' }}
-                  onClick={() => { setError(null); setAgregar(false); setEditando(clave); }}
-                >
-                  Editar
-                </button>
-              )}
+              <button
+                className="btn btn-ghost"
+                style={{ padding: '6px 14px' }}
+                onClick={() => { setError(null); setAgregar(false); setEditando(clave); }}
+              >
+                Editar
+              </button>
             </div>
           </div>
         );
@@ -1657,6 +1661,7 @@ function ContactosYEquipos({ soloVer = false }) {
         <button className={`btn ${vista === 'equipos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('equipos')}>Equipos</button>
       </div>
       {vista === 'contactos' ? <ContactosPanel soloVer={soloVer} /> : <EquiposPanel soloVer={soloVer} />}
+      {/* soloVer: el empleado puede agregar y editar contactos, pero no eliminarlos ni tocar equipos */}
     </>
   );
 }
@@ -1734,6 +1739,7 @@ function EquiposPanel({ soloVer = false }) {
               <div style={{ marginTop: 10 }}>
                 {e.contactos.map((c) => (
                   <div key={c.telefono || c.nombre} style={{ padding: '8px 0', borderTop: '1px solid var(--p-linea)' }}>
+                    <div className="contacto-rotulo">Contacto</div>
                     <div className="contacto-nombre">{c.nombre}</div>
                     <div className="contacto-dato">{c.telefono}{c.reservas ? ` · reservó ${c.reservas} ${c.reservas === 1 ? 'vez' : 'veces'}` : ''}</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>

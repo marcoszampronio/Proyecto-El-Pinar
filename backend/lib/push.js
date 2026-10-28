@@ -1,6 +1,6 @@
 import webpush from 'web-push';
 import { supabaseAdmin } from './supabaseAdmin.js';
-import { fechaCorta, hora } from './mensajes.js';
+import { fechaCorta, hora, primerNombre } from './mensajes.js';
 import 'dotenv/config';
 
 // Avisos al celular (push). Si faltan las claves VAPID, quedan apagados y nada más se rompe.
@@ -75,11 +75,16 @@ export async function enviarPush(payload, { email = null, limiteMs = 4000, tipo 
 
 // "Reserva nueva · Cancha 2 · jue 22 · 21:30" (sin nombre ni teléfono).
 export async function avisarReservaNueva(reserva) {
-  const lugar = CANCHA[reserva.court] || reserva.court;
   const badge = await contarPendientes().catch(() => undefined);
+  // "LOS PIBES (Lucas) quiere reservar la Cancha 2 el jueves 29/10 a las 22:30"
+  const persona = primerNombre(reserva.client_name);
+  const quien = reserva.team_name ? `${reserva.team_name} (${persona})` : persona;
+  const cuando = reserva.court === 'PAD'
+    ? `la cancha de pádel el ${fechaCorta(reserva.reservation_date)} de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}`
+    : `la ${CANCHA[reserva.court] || reserva.court} el ${fechaCorta(reserva.reservation_date)} a las ${hora(reserva.start_time)}`;
   return enviarPush({
     titulo: 'Reserva nueva',
-    texto: `${lugar} · ${fechaCorta(reserva.reservation_date)} · ${hora(reserva.start_time)}`,
+    texto: `${quien} quiere reservar ${cuando}`,
     tag: `reserva-${reserva.code}`,
     url: '/panel?tab=hoy',
     badge,
@@ -104,16 +109,17 @@ export async function avisarAccionEmpleado({ quien, accion, reserva }) {
 }
 
 // Alguien se anotó en la lista de espera: "Lista de espera · 2 esperan turno el jueves 29/10" (sin nombre ni teléfono).
-export async function avisarListaEspera(fecha) {
+export async function avisarListaEspera(fecha, nombre = null) {
   const { count } = await supabaseAdmin
     .from('lista_espera')
     .select('id', { count: 'exact', head: true })
     .eq('reservation_date', fecha)
     .eq('status', 'activa');
   const n = count || 1;
+  const quien = nombre ? primerNombre(nombre) : 'Una persona';
   return enviarPush({
     titulo: 'Lista de espera',
-    texto: n === 1 ? `Una persona quiere que le avisen si se libera un turno · ${fechaCorta(fecha)}` : `${n} personas quieren que les avisen si se libera un turno · ${fechaCorta(fecha)}`,
+    texto: `${quien} quiere que le avisen si se libera un turno el ${fechaCorta(fecha)}${n > 1 ? ` (ya son ${n} esperando)` : ''}`,
     tag: `espera-${fecha}`,
     url: '/panel?tab=hoy',
   }, { tipo: 'lista_espera' });

@@ -2587,6 +2587,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 
 /* ---------- Contactos: jerarquía de la tarjeta ---------- */
+/* rótulo chico que dice si lo de abajo es el equipo o la persona */
+.contacto-rotulo { font-size: var(--pt-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--p-mut); margin: 0 0 1px; line-height: 1.2; }
 .contacto-cab { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .contacto-equipo { font-size: var(--pt-lead); font-weight: 700; color: var(--p-txt); letter-spacing: -0.01em; line-height: 1.2; }
 .contacto-tag { font-size: var(--pt-micro); color: var(--p-mut); border: 1px solid var(--p-linea); border-radius: var(--pr-s); padding: 1px 7px; }

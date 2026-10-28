@@ -36,8 +36,8 @@ router.post('/', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  // Aviso al celular de los admins (espera como máximo 4 s; si falla, la anotación igual quedó).
-  await avisarListaEspera(date);
+  // Aviso al celular de los admins. No se espera: la persona no tiene que demorarse por esto, y si falla la anotación igual quedó.
+  avisarListaEspera(date).catch((e) => console.error('[aviso espera] error:', e.message));
   res.json({ ok: true });
 });
 

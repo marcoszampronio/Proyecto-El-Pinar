@@ -63,9 +63,12 @@ export function analizar(filas, hoy) {
   const mapa = [];
   for (const dow of DIAS_JUEGO) {
     for (const t of TURNOS) {
-      const ocupados = futbol.filter((r) => r.Turno === t.id && diaSemana(r.Fecha) === dow && rangos.some((g) => enRango(r, g)) && activa(r)).length;
+      const delTurno = futbol.filter((r) => r.Turno === t.id && diaSemana(r.Fecha) === dow && rangos.some((g) => enRango(r, g)) && activa(r));
+      const ocupados = delTurno.length;
       const posibles = rangos.length * CANCHAS_FUTBOL.length;
-      mapa.push({ dow, turno: t.id, hora: t.hora, ocupados, posibles, pct: Math.round((ocupados / posibles) * 100) });
+      // desglose: cuántas veces se ocupó cada cancha (de las 4 semanas)
+      const porCancha = CANCHAS_FUTBOL.map((c) => delTurno.filter((r) => r.Cancha === c).length);
+      mapa.push({ dow, turno: t.id, hora: t.hora, ocupados, posibles, porCancha, posiblesPorCancha: rangos.length, pct: Math.round((ocupados / posibles) * 100) });
     }
   }
 

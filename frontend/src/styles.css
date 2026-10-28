@@ -2600,17 +2600,47 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 
 /* ---------- Estadísticas "para decidir" ---------- */
 .est { margin-top: 12px; }
-.est-titulo { margin: 0 0 2px; }
-.est-sub { margin: 0 0 12px; font-size: var(--pt-chico); color: var(--p-mut); }
+.est { position: relative; }
+.est-cab { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.est-titulo { margin: 0; }
+/* botón (i): abre la nube con "cómo se lee" y el resumen */
+.est-info {
+  flex: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; padding: 0;
+  display: grid; place-items: center; font: italic 700 15px/1 Georgia, serif;
+  background: transparent; color: var(--p-mut); border: 1.5px solid var(--p-linea);
+}
+.est-info:hover, .est-info.abierto { color: var(--p-oro); border-color: var(--p-oro); }
+.est-info:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
+/* la "nube": globito sobre el mapa */
+.est-nube {
+  position: absolute; z-index: 5; left: 12px; right: 12px; top: 52px; padding: 14px 16px;
+  background: var(--p-card); border: 1px solid var(--p-oro); border-radius: var(--pr);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45); font-size: var(--pt-chico); color: var(--p-txt); line-height: 1.45;
+  animation: estNube 0.16s ease-out;
+}
+/* el desglose por cancha va debajo del mapa, sin tapar el casillero tocado */
+.est-nube--fluida { position: static; margin-top: 12px; animation: none; box-shadow: none; }
+.est-nube p { margin: 0 0 8px; }
+.est-nube p:last-child, .est-nube ul:last-child { margin-bottom: 0; }
+.est-nube ul { margin: 0; padding-left: 18px; }
+.est-nube li { margin-bottom: 6px; }
+.est-nube-t { font-size: var(--pt-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--p-oro); }
+.est-cancha { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 10px; margin-top: 8px; }
+.est-cancha-barra { height: 8px; border-radius: 999px; background: var(--p-fila); overflow: hidden; }
+.est-cancha-barra i { display: block; height: 100%; background: var(--p-oro); border-radius: 999px; }
+.est-cancha b { font-variant-numeric: tabular-nums; }
+@keyframes estNube { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .est-nube { animation: none; } }
 .est-cargando { margin: 0; color: var(--p-mut); }
-.est-aviso { margin: 0 0 12px; padding: 10px 12px; border-radius: var(--pr); background: var(--p-fila); border-left: 3px solid var(--p-oro); font-size: var(--pt-chico); color: var(--p-txt); }
 .est-mapa { display: grid; grid-template-columns: 54px repeat(3, 1fr); gap: 6px; align-items: stretch; }
 .est-mapa-fila { display: contents; }
 .est-mapa-dia { text-align: center; font-size: var(--pt-micro); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-mut); padding-bottom: 2px; }
 .est-mapa-hora { align-self: center; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--p-txt); }
-.est-celda { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 62px; padding: 6px 4px; border-radius: var(--pr); border: 1px solid transparent; text-align: center; }
+.est-celda { font: inherit; color: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 62px; padding: 6px 4px; border-radius: var(--pr); border: 1px solid transparent; text-align: center; }
 .est-celda b { font-size: var(--pt-lead); font-variant-numeric: tabular-nums; color: var(--p-txt); }
 .est-celda small { font-size: var(--pt-micro); color: var(--p-txt); opacity: 0.8; }
+.est-celda:hover { filter: brightness(1.12); }
+.est-celda:focus-visible, .est-celda.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; }
 .est-celda--alto { background: rgba(91, 174, 107, 0.22); border-color: rgba(91, 174, 107, 0.6); }
 .est-celda--medio { background: rgba(242, 193, 78, 0.13); border-color: rgba(242, 193, 78, 0.45); }
 .est-celda--bajo { background: rgba(229, 143, 107, 0.26); border-color: rgba(229, 143, 107, 0.75); }
@@ -2619,10 +2649,6 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .est-punto--alto { background: rgba(91, 174, 107, 0.8); }
 .est-punto--medio { background: rgba(242, 193, 78, 0.7); }
 .est-punto--bajo { background: rgba(229, 143, 107, 0.85); }
-.est-lectura { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.est-lectura li { padding: 10px 12px; border-radius: var(--pr); background: var(--p-fila); border-left: 3px solid var(--p-mut); font-size: var(--pt-chico); line-height: 1.4; color: var(--p-txt); }
-.est-lectura--flojo { border-left-color: var(--p-bad) !important; }
-.est-lectura--lleno { border-left-color: var(--p-ok) !important; }
 
 /* bloques plegables de Estadísticas: título + una línea de resumen cuando están cerrados */
 .estado-sistema .resumen-bloque { display: flex; flex-direction: column; gap: 2px; min-width: 0; }

@@ -14,7 +14,7 @@ const SERVICIOS = [
     texto: 'Césped natural con iluminación profesional',
     fotos: [
       { src: '/canchas/futbol-2.jpg', alt: 'Cancha de fútbol 11 de Complejo El Pinar, Paraná', pos: 'center 60%' },
-      { titulo: 'De noche también', texto: 'Se prenden las luces y el partido sigue', src: '/canchas/futbol-1.jpg', alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
+      { titulo: 'De noche también', texto: 'Se prenden las luces y el partido sigue', src: '/canchas/futbol-1.jpg', vertical: true, alt: 'Dos pelotas sobre la línea de la cancha de fútbol 11 de noche, con arcos e iluminación, en Complejo El Pinar, Paraná', pos: 'center 55%' },
     ],
   },
   {
@@ -90,7 +90,7 @@ function FotosTarjeta({ fotos }) {
   return (
     <div className="serv-card-foto" onPointerEnter={empezar} onPointerLeave={salir}>
       {fotos.map((f, k) => (
-        <img key={f.src} src={f.src} alt={f.alt} loading="lazy" style={{ objectPosition: f.pos }} className={k === i ? 'on' : ''} />
+        <img key={f.src} src={f.src} alt={f.alt} loading="lazy" style={{ objectPosition: f.pos }} className={`${k === i ? 'on' : ''}${f.vertical ? ' vertical' : ''}`} />
       ))}
       {varias && (
         <div className="serv-puntos">

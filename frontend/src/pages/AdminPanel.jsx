@@ -817,6 +817,7 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       <div className={`agenda-detalle-estado ${reserva.status}`}>
         {reserva.status === 'pendiente' ? 'Pendiente de confirmar' : 'Confirmada'}
       </div>
+      {reserva.fijo && <span className="agenda-detalle-fijo">Turno fijo</span>}
       <div className="agenda-detalle-cliente">
         {reserva.team_name ? `${nombreEquipo(reserva.team_name)} · ${reserva.client_name}` : reserva.client_name}
         {reserva.looking_for_rival && reserva.category ? ` (Cat: ${reserva.category})` : ''}

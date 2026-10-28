@@ -1146,6 +1146,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .agenda-detalle-code { font-family: monospace; font-weight: 700; font-size: var(--pt-cuerpo); color: var(--p-oro); }
 .agenda-detalle-cancha { font-family: var(--s-texto); font-size: var(--pt-titulo); font-weight: 700; color: var(--p-txt); line-height: 1.2; }
 .agenda-detalle-estado { display: inline-block; margin: 6px 0; padding: 3px 10px; border-radius: var(--pr-l); font-size: var(--pt-chico); font-weight: 700; }
+.agenda-detalle-fijo { display: inline-block; margin-left: 8px; font-size: var(--pt-chico); font-weight: 500; color: var(--p-fijo); }
 .agenda-detalle-estado.pendiente { background: rgba(242,193,78,0.2); color: var(--p-oro); }
 .agenda-detalle-estado.confirmada { background: rgba(91,174,107,0.18); color: var(--p-ok); }
 .agenda-detalle-cliente { font-size: var(--pt-lead); font-weight: 600; color: var(--p-txt); margin-top: 2px; }
@@ -1786,6 +1787,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   aspect-ratio: 4 / 5; background: var(--s-pino-800);
 }
 .serv-card--ancha .serv-card-foto { aspect-ratio: auto; height: 320px; }
+/* foto vertical en una tarjeta ancha (compu): se muestra entera, achicada, para que no quede sin encuadre */
+@media (min-width: 621px) {
+  .serv-card--ancha .serv-card-foto { background: var(--s-pino-900); }
+  .serv-card--ancha .serv-card-foto img.vertical { object-fit: contain; }
+}
 .serv-card-foto img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
   opacity: 0; transform: scale(1); transition: opacity 0.7s ease, transform 1.2s var(--curva);

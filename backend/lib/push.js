@@ -69,3 +69,19 @@ export async function avisarReservaNueva(reserva) {
     badge,
   });
 }
+
+// Alguien se anotó en la lista de espera: "Lista de espera · 2 esperan turno el jueves 29/10" (sin nombre ni teléfono).
+export async function avisarListaEspera(fecha) {
+  const { count } = await supabaseAdmin
+    .from('lista_espera')
+    .select('id', { count: 'exact', head: true })
+    .eq('reservation_date', fecha)
+    .eq('status', 'activa');
+  const n = count || 1;
+  return enviarPush({
+    titulo: 'Lista de espera',
+    texto: n === 1 ? `Una persona quiere que le avisen si se libera un turno · ${fechaCorta(fecha)}` : `${n} personas quieren que les avisen si se libera un turno · ${fechaCorta(fecha)}`,
+    tag: `espera-${fecha}`,
+    url: '/panel?tab=hoy',
+  });
+}

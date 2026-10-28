@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
 import { esFechaAbierta } from '../lib/aperturasEspeciales.js';
+import { avisarListaEspera } from '../lib/push.js';
 
 const router = Router();
 
@@ -35,6 +36,8 @@ router.post('/', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
+  // Aviso al celular de los admins (espera como máximo 4 s; si falla, la anotación igual quedó).
+  await avisarListaEspera(date);
   res.json({ ok: true });
 });
 

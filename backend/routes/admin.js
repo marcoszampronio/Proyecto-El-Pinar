@@ -1017,6 +1017,60 @@ router.get('/dispositivos', async (req, res) => {
   });
 });
 
+// GET /api/admin/visitas - visitantes de la página pública (personas distintas, anónimo) de los últimos 30 días.
+const ETIQUETA_ORIGEN = (o) => {
+  const s = String(o || 'directo');
+  if (/instagram/.test(s)) return 'Instagram';
+  if (/facebook|^fb\.|^m\.facebook/.test(s)) return 'Facebook';
+  if (/google/.test(s)) return 'Google';
+  if (/whatsapp|wa\.me/.test(s)) return 'WhatsApp';
+  if (/pages\.dev|elpinar|^directo$/.test(s)) return 'Directo';
+  return s;
+};
+router.get('/visitas', async (req, res) => {
+  const hoy = hoyART();
+  const restarDias = (iso, n) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - n * 86400000).toISOString().slice(0, 10);
+  const desde30 = restarDias(hoy, 29);
+  const [v, p] = await Promise.all([
+    supabaseAdmin.from('visitas').select('dia, visitante, origen, dispositivo').gte('dia', desde30).limit(50000),
+    supabaseAdmin.from('reservations').select('id', { count: 'exact', head: true })
+      .not('whatsapp_enviado_at', 'is', null).gte('whatsapp_enviado_at', `${desde30}T03:00:00Z`),
+  ]);
+  if (v.error) return res.status(500).json({ error: v.error.message });
+
+  // personas distintas: cada visita sin código cuenta como una persona
+  const quien = (r, i) => r.visitante || `anon-${i}`;
+  const distintas = (filas) => new Set(filas.map((r) => quien(r, r._i))).size;
+  const filas = (v.data || []).map((r, i) => ({ ...r, _i: i }));
+  const desde7 = restarDias(hoy, 6);
+
+  const porDia = [];
+  for (let n = 13; n >= 0; n--) {
+    const dia = restarDias(hoy, n);
+    porDia.push({ dia, n: distintas(filas.filter((r) => r.dia === dia)) });
+  }
+  const origenes = {};
+  for (const r of filas) {
+    const e = ETIQUETA_ORIGEN(r.origen);
+    (origenes[e] ||= new Set()).add(quien(r, r._i));
+  }
+  const dispositivos = { movil: 0, compu: 0 };
+  const porDisp = { movil: new Set(), compu: new Set() };
+  for (const r of filas) (porDisp[r.dispositivo] || porDisp.compu).add(quien(r, r._i));
+  dispositivos.movil = porDisp.movil.size;
+  dispositivos.compu = porDisp.compu.size;
+
+  res.json({
+    hoy: distintas(filas.filter((r) => r.dia === hoy)),
+    ult7: distintas(filas.filter((r) => r.dia >= desde7)),
+    ult30: distintas(filas),
+    porDia,
+    origenes: Object.entries(origenes).map(([origen, set]) => ({ origen, n: set.size })).sort((a, b) => b.n - a.n).slice(0, 6),
+    dispositivos,
+    pedidos30: p.count || 0,
+  });
+});
+
 // GET /api/admin/equipos - un equipo = un nombre (normalizado). Agrupa los contactos
 // (varias personas pueden escribir por el mismo equipo), su historial y su categoría.
 router.get('/equipos', async (req, res) => {

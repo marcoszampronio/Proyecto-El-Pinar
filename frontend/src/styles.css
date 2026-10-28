@@ -2620,6 +2620,20 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 /* el desglose por cancha va debajo del mapa, sin tapar el casillero tocado */
 .est-nube--fluida { position: static; margin-top: 12px; animation: none; box-shadow: none; }
+/* visitas a la página */
+.vis-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.vis-numeros > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 6px; border-radius: var(--pr); background: var(--p-fila); text-align: center; }
+.vis-numeros b { font-size: var(--pt-display); letter-spacing: -0.02em; color: var(--p-oro); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.vis-numeros span { font-size: var(--pt-micro); color: var(--p-mut); }
+.vis-vacio { margin: 12px 0 0; font-size: var(--pt-chico); color: var(--p-mut); }
+.vis-barras { display: flex; align-items: flex-end; gap: 3px; height: 64px; margin-top: 14px; }
+.vis-col { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.vis-col i { display: block; width: 100%; background: var(--p-oro); border-radius: 3px 3px 0 0; }
+.vis-col i.cero { background: var(--p-linea); }
+.vis-eje { display: flex; justify-content: space-between; margin-top: 4px; font-size: var(--pt-micro); color: var(--p-mut); }
+.vis-pie { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--p-linea); font-size: var(--pt-chico); color: var(--p-mut); line-height: 1.45; }
+.vis-pie b { color: var(--p-txt); }
+
 /* interruptores de avisos */
 .pref-titulo { margin: 4px 0 2px; font-size: var(--pt-micro); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--p-mut); }
 .pref-fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--p-linea); cursor: pointer; }

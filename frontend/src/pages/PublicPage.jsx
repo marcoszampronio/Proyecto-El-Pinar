@@ -20,6 +20,7 @@ import SiteFooter from '../components/site/SiteFooter';
 import MobileTabBar from '../components/site/MobileTabBar';
 import { FlechaAbajo } from '../components/site/iconos';
 import { hoyISO, proximoDiaHabilitado, sumarDias } from '../lib/fechas';
+import { registrarVisita } from '../lib/visitas';
 
 function irA(id) {
   // Si el click vino de un botón, el navegador a veces hace su propio ajuste
@@ -53,6 +54,8 @@ export default function PublicPage() {
   const [rivalVisto, setRivalVisto] = useState(null);
   const [reintento, setReintento] = useState(0);
   const [diasEspeciales, setDiasEspeciales] = useState(() => new Set());
+
+  useEffect(() => { registrarVisita(); }, []); // cuenta la visita (anónimo; no cuenta al equipo)
 
   useEffect(() => {
     const desde = hoyISO();

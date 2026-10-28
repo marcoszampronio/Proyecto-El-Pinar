@@ -121,6 +121,9 @@ export const api = {
   adminRival: (code, payload) =>
     requestAdmin(`/admin/rival/${encodeURIComponent(code)}`, { method: 'POST', body: JSON.stringify(payload) }),
   adminBackupAhora: () => requestAdmin('/admin/export/backup-ahora', { method: 'POST' }),
+  registrarVisita: (payload) =>
+    requestPublico('/visitas', { method: 'POST', body: JSON.stringify(payload), keepalive: true }),
+  adminVisitas: () => requestAdmin('/admin/visitas'),
   adminDispositivo: (payload) =>
     requestAdmin('/admin/dispositivo', { method: 'POST', body: JSON.stringify(payload) }),
   adminDispositivos: () => requestAdmin('/admin/dispositivos'),

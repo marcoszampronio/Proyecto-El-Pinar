@@ -8,6 +8,7 @@ import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
 import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
 import Info from '../components/panel/Info';
+import Visitas from '../components/panel/Visitas';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -3284,6 +3285,7 @@ function AdminPanelInterno() {
 
 
       {tab === 'stats' && <EstadisticasDecidir cargarCsv={cargarCsv} />}
+      {tab === 'stats' && <Visitas />}
       {tab === 'stats' && stats && (
         <>
           <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>

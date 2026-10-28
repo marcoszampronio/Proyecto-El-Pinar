@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
 import { activarAppPanel } from '../lib/appPanel';
+import { marcarComoInterno } from '../lib/visitas';
 
 // Ruta /panel. Acá vive la sesión de Supabase y se carga bajo demanda
 // (React.lazy en App.jsx): quien entra al sitio público no descarga el panel
@@ -13,6 +14,9 @@ export default function PanelRoute() {
 
   // App instalable: el manifest, los íconos y el service worker solo existen mientras se está en el panel.
   useEffect(() => activarAppPanel(), []);
+
+  // Quien abre el panel es del equipo: este navegador deja de contar como visita de la página pública.
+  useEffect(() => { marcarComoInterno(); }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

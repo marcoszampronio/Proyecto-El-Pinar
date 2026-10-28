@@ -76,8 +76,8 @@ export async function enviarPush(payload, { email = null, limiteMs = 4000, tipo 
 // "Reserva nueva · Cancha 2 · jue 22 · 21:30" (sin nombre ni teléfono).
 export async function avisarReservaNueva(reserva) {
   const badge = await contarPendientes().catch(() => undefined);
-  // "LOS PIBES (Lucas) quiere reservar la Cancha 2 el jueves 29/10 a las 22:30"
-  const persona = primerNombre(reserva.client_name);
+  // "LOS PIBES (Lucas Prieto) quiere reservar la Cancha 2 el jueves 29/10 a las 22:30" (nombre completo)
+  const persona = String(reserva.client_name || '').trim().replace(/\s+/g, ' ');
   const quien = reserva.team_name ? `${reserva.team_name} (${persona})` : persona;
   const cuando = reserva.court === 'PAD'
     ? `la cancha de pádel el ${fechaCorta(reserva.reservation_date)} de ${hora(reserva.start_time)} a ${hora(reserva.end_time)}`
@@ -116,7 +116,7 @@ export async function avisarListaEspera(fecha, nombre = null) {
     .eq('reservation_date', fecha)
     .eq('status', 'activa');
   const n = count || 1;
-  const quien = nombre ? primerNombre(nombre) : 'Una persona';
+  const quien = nombre ? String(nombre).trim().replace(/\s+/g, ' ') : 'Una persona';
   return enviarPush({
     titulo: 'Lista de espera',
     texto: `${quien} quiere que le avisen si se libera un turno el ${fechaCorta(fecha)}${n > 1 ? ` (ya son ${n} esperando)` : ''}`,

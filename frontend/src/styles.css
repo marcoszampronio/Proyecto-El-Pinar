@@ -2472,11 +2472,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: linear-gradient(180deg, color-mix(in srgb, var(--p-oro) 12%, var(--p-card)), var(--p-card) 70%);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-oro) 14%, transparent);
 }
-.hoy-confirmar-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; font-size: var(--pt-lead); color: var(--p-txt); }
-.hoy-confirmar.hay .hoy-confirmar-titulo { font-size: var(--pt-display); letter-spacing: -0.02em; }
+.hoy-confirmar-titulo { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; margin: 0; font-size: var(--pt-lead); color: var(--p-txt); }
+.hoy-confirmar.hay .hoy-confirmar-titulo { font-size: clamp(1.3rem, 6vw, var(--pt-display)); letter-spacing: -0.02em; line-height: 1.15; }
 .hoy-confirmar-n {
   display: inline-grid; place-items: center; min-width: 40px; height: 40px; padding: 0 12px; border-radius: var(--pr-l);
-  background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-lead); font-weight: 700; font-variant-numeric: tabular-nums;
+  flex: none; background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-lead); font-weight: 700; font-family: inherit;
 }
 .hoy-confirmar-sub { margin: 4px 0 14px; color: var(--p-mut); font-size: var(--pt-cuerpo); }
 .hoy-confirmar.al-dia {

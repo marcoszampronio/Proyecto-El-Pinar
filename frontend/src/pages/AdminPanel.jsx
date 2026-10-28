@@ -2657,7 +2657,7 @@ function PendienteCard({ p, hecha, onConfirmar, onCancelar }) {
   );
 }
 
-function PendientesLista({ pendientes, onCambio }) {
+function PendientesLista({ pendientes, onCambio, cargado = true }) {
   const des = useDeshacer();
   const [hechas, setHechas] = useState({}); // code -> { p, estado: 'confirmada' | 'cancelando' | 'cancelada', link }
 
@@ -2692,6 +2692,7 @@ function PendientesLista({ pendientes, onCambio }) {
   ].sort((a, b) => `${a.reservation_date}${a.start_time}`.localeCompare(`${b.reservation_date}${b.start_time}`));
 
   const n = pendientes.length;
+  if (!cargado && lista.length === 0) return null; // todavía no sabemos: no mostrar "no hay nada" por un instante
   if (lista.length === 0) {
     return (
       <div className="hoy-confirmar al-dia" role="status">
@@ -2834,7 +2835,7 @@ function AvisosCelular() {
   );
 }
 
-function HoyPanel({ pendientes, onCambio, irA, arriba }) {
+function HoyPanel({ pendientes, pendientesCargados, onCambio, irA, arriba }) {
   const hoy = hoyISO();
   const fecha = esDiaHabilitado(hoy) ? hoy : proximoDiaHabilitado(hoy);
   const esHoy = fecha === hoy;
@@ -2891,7 +2892,7 @@ function HoyPanel({ pendientes, onCambio, irA, arriba }) {
 
       {arriba}
 
-      <PendientesLista pendientes={pendientes} onCambio={onCambio} />
+      <PendientesLista pendientes={pendientes} onCambio={onCambio} cargado={pendientesCargados} />
 
       {error && <p className="error-msg">{error}</p>}
       {!agenda && !error && <p className="hoy-cargando">Cargando el día…</p>}
@@ -2986,6 +2987,7 @@ function AdminPanelInterno() {
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState(null);
   const [pendientes, setPendientes] = useState([]);
+  const [pendientesCargados, setPendientesCargados] = useState(false);
   const [stats, setStats] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [aviso, setAviso] = useState(null);
@@ -3033,6 +3035,7 @@ function AdminPanelInterno() {
     try {
       const data = await api.adminPendientes();
       setPendientes(data.pendientes);
+      setPendientesCargados(true);
     } catch (e) {
       console.error(e);
     }
@@ -3153,6 +3156,7 @@ function AdminPanelInterno() {
       {tab === 'hoy' && (
         <HoyPanel
           pendientes={pendientes}
+          pendientesCargados={pendientesCargados}
           onCambio={cargarPendientes}
           irA={irA}
           arriba={(

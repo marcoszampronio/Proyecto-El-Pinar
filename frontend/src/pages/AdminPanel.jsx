@@ -1409,7 +1409,7 @@ function AgendaPanel() {
   );
 }
 
-function ContactosPanel() {
+function ContactosPanel({ soloVer = false }) {
   const [contactos, setContactos] = useState(null);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -1518,7 +1518,7 @@ function ContactosPanel() {
     <div className="stat-card">
       <h3 style={{ marginTop: 0 }}>Base de contactos</h3>
 
-      {agregar ? (
+      {soloVer ? null : agregar ? (
         <ContactoForm
           onGuardar={(datos) => guardarContacto(datos, null)}
           onCancelar={() => setAgregar(false)}
@@ -1618,13 +1618,15 @@ function ContactosPanel() {
               >
                 Agendar turno manual
               </button>
-              <button
-                className="btn btn-ghost"
-                style={{ padding: '6px 14px' }}
-                onClick={() => { setError(null); setAgregar(false); setEditando(clave); }}
-              >
-                Editar
-              </button>
+              {!soloVer && (
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: '6px 14px' }}
+                  onClick={() => { setError(null); setAgregar(false); setEditando(clave); }}
+                >
+                  Editar
+                </button>
+              )}
             </div>
           </div>
         );
@@ -1646,7 +1648,7 @@ function ContactosPanel() {
 }
 
 // Contactos | Equipos: dos formas de ver la misma gente.
-function ContactosYEquipos() {
+function ContactosYEquipos({ soloVer = false }) {
   const [vista, setVista] = useState('contactos');
   return (
     <>
@@ -1654,13 +1656,13 @@ function ContactosYEquipos() {
         <button className={`btn ${vista === 'contactos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('contactos')}>Contactos</button>
         <button className={`btn ${vista === 'equipos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('equipos')}>Equipos</button>
       </div>
-      {vista === 'contactos' ? <ContactosPanel /> : <EquiposPanel />}
+      {vista === 'contactos' ? <ContactosPanel soloVer={soloVer} /> : <EquiposPanel soloVer={soloVer} />}
     </>
   );
 }
 
 // Un equipo = un nombre. Reúne a todas las personas que escriben por ese equipo.
-function EquiposPanel() {
+function EquiposPanel({ soloVer = false }) {
   const [equipos, setEquipos] = useState(null);
   const [error, setError] = useState(null);
   const [aviso, setAviso] = useState(null);
@@ -1745,6 +1747,9 @@ function EquiposPanel() {
                   </div>
                 ))}
 
+                {soloVer ? (
+                  e.categoria && <p style={{ margin: '10px 0 0', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>Categoría: {e.categoria}</p>
+                ) : (<>
                 <div className="field" style={{ marginTop: 10 }}>
                   <label>Categoría del equipo</label>
                   <select
@@ -1789,6 +1794,7 @@ function EquiposPanel() {
                     Renombrar o unir con otro equipo
                   </button>
                 )}
+                </>)}
               </div>
             )}
           </div>
@@ -2813,7 +2819,8 @@ function PreferenciasAvisos() {
 // Avisos al celular: van dentro de "Estado del sistema" (Estadísticas), separados por una línea.
 // Cada persona los activa en su propio dispositivo.
 const DENTRO_DEL_ESTADO = { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--p-linea)' };
-function AvisosCelular() {
+function AvisosCelular({ suelta = false }) {
+  const estiloSeccion = suelta ? {} : DENTRO_DEL_ESTADO;
   const [estado, setEstado] = useState(null);
   const [trabajando, setTrabajando] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -2839,7 +2846,7 @@ function AvisosCelular() {
 
   if (estado === 'activado') {
     return (
-      <section style={DENTRO_DEL_ESTADO}>
+      <section style={estiloSeccion}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, color: 'var(--p-ok)', marginRight: 'auto' }}>✓ Avisos al celular activados</span>
           <button className="btn btn-ghost" style={{ padding: '6px 14px' }} disabled={trabajando}
@@ -2867,7 +2874,7 @@ function AvisosCelular() {
   };
 
   return (
-    <section style={DENTRO_DEL_ESTADO}>
+    <section style={estiloSeccion}>
       <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular<Info>Recibí una notificación en este celular cada vez que entra una reserva nueva.</Info></h3>
       {textos[estado] && (
         <p style={{ ...aviso, margin: 0, color: estado === 'bloqueado' ? 'var(--p-bad)' : 'var(--p-mut)' }}>
@@ -2886,7 +2893,7 @@ function AvisosCelular() {
   );
 }
 
-function HoyPanel({ pendientes, pendientesCargados, onCambio, irA, arriba }) {
+function HoyPanel({ pendientes, pendientesCargados, onCambio, irA, arriba, esEmpleado = false }) {
   const hoy = hoyISO();
   const fecha = esDiaHabilitado(hoy) ? hoy : proximoDiaHabilitado(hoy);
   const esHoy = fecha === hoy;
@@ -3002,7 +3009,13 @@ function HoyPanel({ pendientes, pendientesCargados, onCambio, irA, arriba }) {
         </section>
       )}
 
-      {recordatorios?.length > 0 && (
+      {esEmpleado && (
+        <section className="stat-card">
+          <AvisosCelular suelta />
+        </section>
+      )}
+
+      {!esEmpleado && recordatorios?.length > 0 && (
         <section className="stat-card">
           <h3 className="hoy-titulo">Recordatorios por mandar <span className="agenda-contador">{recordatorios.length}</span></h3>
           <ul className="hoy-lista">
@@ -3039,6 +3052,17 @@ function AdminPanelInterno() {
   const [error, setError] = useState(null);
   const [pendientes, setPendientes] = useState([]);
   const [pendientesCargados, setPendientesCargados] = useState(false);
+  const [rol, setRol] = useState(() => { try { return sessionStorage.getItem('elpinar-rol'); } catch { return null; } });
+  useEffect(() => {
+    api.adminYo().then((r) => {
+      setRol(r.rol);
+      try { sessionStorage.setItem('elpinar-rol', r.rol); } catch { /* sin almacenamiento */ }
+    }).catch(() => {});
+  }, []);
+  // si por el rol no corresponde la pestaña (ej. un empleado con un link viejo), vuelve a Hoy
+  useEffect(() => {
+    if (rol && rol !== 'admin' && ['fijos', 'suspender', 'stats'].includes(tab)) setTab('hoy');
+  }, [rol, tab]);
   const [stats, setStats] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [aviso, setAviso] = useState(null);
@@ -3164,7 +3188,12 @@ function AdminPanelInterno() {
     }
   }
 
-  const NAV = [
+  // Rol: el empleado ve solo Hoy, Agenda y Contactos (y no puede editar contactos ni equipos).
+  // Mientras no se sabe el rol (primera vez), se muestra lo básico para no enseñar de más.
+  const esEmpleado = rol === 'empleado';
+  const restringido = rol !== 'admin';
+  const SOLO_ADMIN = ['fijos', 'suspender', 'stats'];
+  const NAV_TODOS = [
     { id: 'hoy', label: 'Hoy', ico: <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /> },
     { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
     { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
@@ -3172,6 +3201,7 @@ function AdminPanelInterno() {
     { id: 'suspender', label: 'Eventos especiales', ico: <path d="M4 15a4 4 0 0 1 1-7.5A5.5 5.5 0 0 1 16 6a4 4 0 0 1 1 8.9M8 19l-1 2M12 19l-1 2M16 19l-1 2" /> },
     { id: 'stats', label: 'Estadísticas', ico: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /> },
   ];
+  const NAV = NAV_TODOS.filter((n) => !(restringido && SOLO_ADMIN.includes(n.id)));
 
   return (
     <div className="panel">
@@ -3210,6 +3240,7 @@ function AdminPanelInterno() {
           pendientesCargados={pendientesCargados}
           onCambio={cargarPendientes}
           irA={irA}
+          esEmpleado={esEmpleado}
           arriba={(
             <>
           {(error || aviso || confirmadaWa) && (
@@ -3289,8 +3320,8 @@ function AdminPanelInterno() {
           <AperturasEspecialesPanel />
         </>
       )}
-      {tab === 'contactos' && <ContactosYEquipos />}
-      {tab === 'fijos' && <TurnosFijosPanel />}
+      {tab === 'contactos' && <ContactosYEquipos soloVer={esEmpleado} />}
+      {tab === 'fijos' && !restringido && <TurnosFijosPanel />}
 
 
       {tab === 'stats' && (

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { supabaseAdmin } from '../lib/supabaseAdmin.js';
-import { requireAdmin } from '../middleware/auth.js';
+import { requireAdmin, limitarEmpleado } from '../middleware/auth.js';
 import { normalizarEquipo, equiposParecidos, recordarEquipo } from '../lib/equipo.js';
 import { fechaCorta, primerNombre, hora, unir } from '../lib/mensajes.js';
 import {
@@ -31,6 +31,11 @@ const router = Router();
 
 // Todas las rutas de este archivo requieren estar logueado como admin
 router.use(requireAdmin);
+// Un empleado solo puede usar una parte del panel (ver middleware/auth.js).
+router.use(limitarEmpleado);
+
+// GET /api/admin/yo - quién es y qué rol tiene (el panel arma el menú con esto).
+router.get('/yo', (req, res) => res.json({ email: req.adminEmail, rol: req.rol }));
 
 const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 const MAPS_URL = process.env.MAPS_URL || 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';

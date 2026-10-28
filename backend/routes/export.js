@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { requireAdmin } from '../middleware/auth.js';
+import { requireAdmin, requireAdminSolo } from '../middleware/auth.js';
 import { generarCsvReservas } from '../lib/csvReservas.js';
 import { generarExcelReservas } from '../lib/excelReservas.js';
 import { ejecutarBackupDiario } from '../lib/backupDiario.js';
 
 const router = Router();
-router.use(requireAdmin);
+router.use(requireAdmin, requireAdminSolo);
 
 // GET /api/admin/export/excel?desde=YYYY-MM-DD&hasta=YYYY-MM-DD
 // Reporte en Excel (.xlsx) con resumen + tabla de detalle.

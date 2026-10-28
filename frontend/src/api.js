@@ -123,6 +123,7 @@ export const api = {
   adminBackupAhora: () => requestAdmin('/admin/export/backup-ahora', { method: 'POST' }),
   registrarVisita: (payload) =>
     requestPublico('/visitas', { method: 'POST', body: JSON.stringify(payload), keepalive: true }),
+  adminYo: () => requestAdmin('/admin/yo'),
   adminVisitas: () => requestAdmin('/admin/visitas'),
   adminDispositivo: (payload) =>
     requestAdmin('/admin/dispositivo', { method: 'POST', body: JSON.stringify(payload) }),

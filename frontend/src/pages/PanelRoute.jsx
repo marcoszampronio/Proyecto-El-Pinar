@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import AdminLogin from './AdminLogin';
+import ElegirClave from './ElegirClave';
 import AdminPanel from './AdminPanel';
 import { activarAppPanel } from '../lib/appPanel';
 import { marcarComoInterno } from '../lib/visitas';
@@ -11,6 +12,10 @@ import { marcarComoInterno } from '../lib/visitas';
 export default function PanelRoute() {
   const [session, setSession] = useState(null);
   const [cargando, setCargando] = useState(true);
+  // Llegó desde el link de una invitación o de "¿Olvidaste tu contraseña?": hay que elegir una contraseña antes de entrar.
+  const [eligiendoClave, setEligiendoClave] = useState(() => /[#&]type=(invite|recovery)\b/.test(window.location.hash));
+  // Link vencido o ya usado: el login avisa qué hacer.
+  const [linkVencido] = useState(() => /error_code=otp_expired|error=access_denied/.test(window.location.hash));
 
   // App instalable: el manifest, los íconos y el service worker solo existen mientras se está en el panel.
   useEffect(() => activarAppPanel(), []);
@@ -32,5 +37,8 @@ export default function PanelRoute() {
   }, []);
 
   if (cargando) return <div className="cargando">Cargando...</div>;
-  return session ? <AdminPanel /> : <AdminLogin />;
+  if (session && eligiendoClave) {
+    return <ElegirClave alTerminar={() => { window.history.replaceState(null, '', window.location.pathname); setEligiendoClave(false); }} />;
+  }
+  return session ? <AdminPanel /> : <AdminLogin errorInicial={linkVencido ? 'El link venció o ya se usó. Tocá "¿Olvidaste tu contraseña?" para recibir uno nuevo.' : null} />;
 }

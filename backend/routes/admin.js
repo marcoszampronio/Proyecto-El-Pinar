@@ -15,7 +15,7 @@ import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
 import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
-import { enviarPush, pushConfigurado, clavePublicaPush, avisarTurnoLiberado, TIPOS_AVISO, IDS_TIPOS } from '../lib/push.js';
+import { enviarPush, pushConfigurado, clavePublicaPush, TIPOS_AVISO, IDS_TIPOS } from '../lib/push.js';
 import { ALERTAS_EMAIL } from '../lib/alertas.js';
 import { describirDispositivo } from '../lib/dispositivos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
@@ -390,7 +390,6 @@ router.post('/cancel/:code', async (req, res) => {
     email: req.adminEmail, accion: 'cancelo', code: actualizada.code, fecha: actualizada.reservation_date,
     detalle: `Canceló el turno de ${descripcionTurno(actualizada)}`,
   });
-  avisarTurnoLiberado(actualizada); // sin esperar: si había gente en la lista de espera, avisa al celular
   // Igual que al confirmar: se devuelve el WhatsApp ya armado para avisarle al cliente.
   const telCliente = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeCancelacion = armarMensajeCancelacionTurno(actualizada);

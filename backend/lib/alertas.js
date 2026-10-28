@@ -30,7 +30,7 @@ export async function alertar({ tipo, titulo, detalle = '', mail = true }) {
     const tareas = [
       enviarPush(
         { titulo: 'Falla en El Pinar', texto: `${titulo}${corto ? ` — ${corto}` : ''}`.slice(0, 220), tag: `alerta-${tipo}`.slice(0, 80), url: '/panel?tab=stats' },
-        { email: ALERTAS_EMAIL, limiteMs: 3000 }
+        { email: ALERTAS_EMAIL, limiteMs: 3000, tipo: 'falla' }
       ),
     ];
     if (mail) {

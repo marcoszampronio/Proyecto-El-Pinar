@@ -124,6 +124,9 @@ export const api = {
   adminDispositivo: (payload) =>
     requestAdmin('/admin/dispositivo', { method: 'POST', body: JSON.stringify(payload) }),
   adminDispositivos: () => requestAdmin('/admin/dispositivos'),
+  adminPushPreferencias: (endpoint) => requestAdmin(`/admin/push/preferencias?endpoint=${encodeURIComponent(endpoint)}`),
+  adminGuardarPreferencias: (endpoint, apagados) =>
+    requestAdmin('/admin/push/preferencias', { method: 'POST', body: JSON.stringify({ endpoint, apagados }) }),
   adminPushEstado: () => requestAdmin('/admin/push/estado'),
   adminPushSuscribir: (sub) =>
     requestAdmin('/admin/push/suscribir', { method: 'POST', body: JSON.stringify(sub) }),

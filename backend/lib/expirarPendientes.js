@@ -1,4 +1,5 @@
 import { supabaseAdmin } from './supabaseAdmin.js';
+import { avisarTurnoLiberado } from './push.js';
 
 // Una reserva "pendiente" pasa por dos etapas:
 //
@@ -21,7 +22,7 @@ async function cancelar(aplicarFiltros, motivo) {
       cancelled_at: new Date().toISOString(),
       cancelled_by: motivo, // siempre empieza con "sistema": el panel lo muestra como "se liberó solo"
     })
-  ).select('code');
+  ).select('*');
 
   if (error) {
     console.error('[expirarPendientes] error:', error.message);
@@ -29,6 +30,8 @@ async function cancelar(aplicarFiltros, motivo) {
   }
   if (data && data.length) {
     console.log(`[expirarPendientes] ${data.length} reserva(s) liberada(s) (${motivo}):`, data.map((r) => r.code).join(', '));
+    // si ese turno tenía gente esperando, se avisa al celular de los admins
+    for (const r of data) avisarTurnoLiberado(r);
   }
 }
 

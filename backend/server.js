@@ -16,6 +16,7 @@ import { expirarPendientesVencidas } from './lib/expirarPendientes.js';
 import { iniciarBackupDiario } from './lib/backupDiario.js';
 import { generarProximasReservas } from './lib/turnosFijos.js';
 import { alertar } from './lib/alertas.js';
+import { correrAvisosProgramados } from './lib/avisosProgramados.js';
 
 const app = express();
 
@@ -139,6 +140,10 @@ app.listen(PORT, () => {
 // Mateo los confirme o cancele (el vencimiento automático está apagado por defecto).
 expirarPendientesVencidas();
 setInterval(expirarPendientesVencidas, 60 * 1000);
+
+// Avisos por horario (reservas sin atender, pronóstico de lluvia): se revisan cada 10 minutos.
+setTimeout(correrAvisosProgramados, 60 * 1000);
+setInterval(correrAvisosProgramados, 10 * 60 * 1000);
 
 // Backup diario: manda el CSV de todas las reservas por email a los admins (3:00 ART).
 iniciarBackupDiario();

@@ -15,7 +15,8 @@ import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
 import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
-import { enviarPush, pushConfigurado, clavePublicaPush } from '../lib/push.js';
+import { enviarPush, pushConfigurado, clavePublicaPush, avisarTurnoLiberado, TIPOS_AVISO, IDS_TIPOS } from '../lib/push.js';
+import { ALERTAS_EMAIL } from '../lib/alertas.js';
 import { describirDispositivo } from '../lib/dispositivos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 import {
@@ -389,6 +390,7 @@ router.post('/cancel/:code', async (req, res) => {
     email: req.adminEmail, accion: 'cancelo', code: actualizada.code, fecha: actualizada.reservation_date,
     detalle: `Canceló el turno de ${descripcionTurno(actualizada)}`,
   });
+  avisarTurnoLiberado(actualizada); // sin esperar: si había gente en la lista de espera, avisa al celular
   // Igual que al confirmar: se devuelve el WhatsApp ya armado para avisarle al cliente.
   const telCliente = normalizarTelefonoAR(actualizada.client_phone);
   const mensajeCancelacion = armarMensajeCancelacionTurno(actualizada);
@@ -930,6 +932,38 @@ router.post('/push/baja', async (req, res) => {
     .eq('admin_email', req.adminEmail);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ ok: true });
+});
+
+// GET /api/admin/push/preferencias?endpoint=... - qué avisos recibe este dispositivo.
+// El aviso de fallas solo aparece para el usuario de las alertas.
+const esMantenedor = (email) => String(email || '').toLowerCase() === ALERTAS_EMAIL;
+router.get('/push/preferencias', async (req, res) => {
+  const endpoint = String(req.query.endpoint || '');
+  const { data, error } = await supabaseAdmin
+    .from('push_suscripciones')
+    .select('apagados')
+    .eq('endpoint', endpoint)
+    .eq('admin_email', req.adminEmail)
+    .maybeSingle();
+  if (error) return res.status(500).json({ error: error.message });
+  const tipos = TIPOS_AVISO.filter((t) => !t.soloMantenedor || esMantenedor(req.adminEmail)).map(({ id, titulo, detalle }) => ({ id, titulo, detalle }));
+  res.json({ tipos, apagados: data?.apagados || [], suscripto: !!data });
+});
+
+// POST /api/admin/push/preferencias { endpoint, apagados: [ids] } - guarda los avisos que este dispositivo NO quiere.
+router.post('/push/preferencias', async (req, res) => {
+  const { endpoint, apagados } = req.body || {};
+  if (typeof endpoint !== 'string' || !Array.isArray(apagados)) return res.status(400).json({ error: 'Datos inválidos.' });
+  const limpios = [...new Set(apagados.filter((id) => IDS_TIPOS.includes(id)))];
+  const { data, error } = await supabaseAdmin
+    .from('push_suscripciones')
+    .update({ apagados: limpios })
+    .eq('endpoint', endpoint)
+    .eq('admin_email', req.adminEmail)
+    .select('id');
+  if (error) return res.status(500).json({ error: error.message });
+  if (!data?.length) return res.status(404).json({ error: 'Este dispositivo no tiene los avisos activados.' });
+  res.json({ ok: true, apagados: limpios });
 });
 
 // POST /api/admin/push/prueba - manda un aviso de prueba a los dispositivos de este usuario.

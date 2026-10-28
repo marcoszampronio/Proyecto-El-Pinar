@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
-import { estadoPush, activarPush, desactivarPush, probarPush, numeroEnIcono, registrarDispositivo } from '../lib/pushPanel';
+import { estadoPush, activarPush, desactivarPush, probarPush, numeroEnIcono, registrarDispositivo, endpointActual } from '../lib/pushPanel';
 import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
@@ -2756,6 +2756,50 @@ function QuienTieneQue() {
   );
 }
 
+// Interruptores: qué avisos recibe ESTE dispositivo. Lo que no se apaga, se recibe (los tipos nuevos llegan prendidos).
+function PreferenciasAvisos() {
+  const [d, setD] = useState(null);
+  const [endpoint, setEndpoint] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const ep = await endpointActual();
+        if (!ep) return;
+        setEndpoint(ep);
+        setD(await api.adminPushPreferencias(ep));
+      } catch (e) { setError(e.message); }
+    })();
+  }, []);
+
+  async function cambiar(id, prendido) {
+    const antes = d.apagados;
+    const apagados = prendido ? antes.filter((x) => x !== id) : [...antes, id];
+    setD({ ...d, apagados }); // se ve al instante; si falla, vuelve atrás
+    setError(null);
+    try { await api.adminGuardarPreferencias(endpoint, apagados); }
+    catch (e) { setD({ ...d, apagados: antes }); setError(e.message); }
+  }
+
+  if (!d) return error ? <p className="error-msg">{error}</p> : null;
+  return (
+    <div style={{ marginTop: 12 }}>
+      <p className="pref-titulo">Qué avisos recibir en este dispositivo</p>
+      {d.tipos.map((t) => {
+        const prendido = !d.apagados.includes(t.id);
+        return (
+          <label key={t.id} className="pref-fila">
+            <span className="pref-texto">{t.titulo}<Info etiqueta={`Qué es: ${t.titulo}`}>{t.detalle}</Info></span>
+            <input type="checkbox" className="pref-switch" role="switch" checked={prendido} onChange={(e) => cambiar(t.id, e.target.checked)} />
+          </label>
+        );
+      })}
+      {error && <p className="error-msg">{error}</p>}
+    </div>
+  );
+}
+
 // Avisos al celular: van dentro de "Estado del sistema" (Estadísticas), separados por una línea.
 // Cada persona los activa en su propio dispositivo.
 const DENTRO_DEL_ESTADO = { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--p-linea)' };
@@ -2798,6 +2842,7 @@ function AvisosCelular() {
         </div>
         {msg && <p style={{ ...aviso, color: 'var(--p-ok)' }}>{msg}</p>}
         {error && <p className="error-msg">{error}</p>}
+        <PreferenciasAvisos />
       </section>
     );
   }

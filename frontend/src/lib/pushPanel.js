@@ -58,6 +58,13 @@ export async function desactivarPush() {
 
 export const probarPush = () => api.adminPushPrueba();
 
+// Dirección de este dispositivo en el servicio de avisos (identifica sus preferencias).
+export async function endpointActual() {
+  const reg = await navigator.serviceWorker.getRegistration('/panel');
+  const sub = reg ? await reg.pushManager.getSubscription() : null;
+  return sub ? sub.endpoint : null;
+}
+
 // El panel avisa que se abrió en este dispositivo (id al azar guardado en el navegador). Sirve para ver
 // quién usa la app instalada. Nunca rompe nada: si falla, no pasa nada.
 function idDispositivo() {

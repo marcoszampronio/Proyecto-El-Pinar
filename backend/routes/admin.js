@@ -16,6 +16,7 @@ import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
 import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
 import { enviarPush, pushConfigurado, clavePublicaPush } from '../lib/push.js';
+import { describirDispositivo } from '../lib/dispositivos.js';
 import { normalizarTelefonoAR } from '../lib/telefono.js';
 import {
   listarAperturasEspeciales,
@@ -940,6 +941,47 @@ router.post('/push/prueba', async (req, res) => {
   );
   if (r.error) return res.status(500).json({ error: r.error });
   res.json({ enviados: r.enviados || 0, demorado: !!r.demorado });
+});
+
+// ---- Dispositivos: quién tiene los avisos y quién usa la app instalada ----
+
+// POST /api/admin/dispositivo { deviceId, app, instalada } - el panel avisa que se abrió en este dispositivo.
+// app: se abrió desde la app instalada. instalada: el navegador informó la instalación (Android/Chrome).
+router.post('/dispositivo', async (req, res) => {
+  const { deviceId, app, instalada } = req.body || {};
+  if (typeof deviceId !== 'string' || deviceId.length < 8 || deviceId.length > 80) {
+    return res.status(400).json({ error: 'Dispositivo inválido.' });
+  }
+  const ahora = new Date().toISOString();
+  const fila = {
+    admin_email: req.adminEmail,
+    device_id: deviceId,
+    user_agent: String(req.headers['user-agent'] || '').slice(0, 300),
+    ultimo_uso: ahora,
+  };
+  if (app) fila.ultimo_uso_app = ahora;
+  if (instalada) fila.instalada_en = ahora;
+  const { error } = await supabaseAdmin.from('panel_dispositivos').upsert(fila, { onConflict: 'admin_email,device_id' });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ ok: true });
+});
+
+// GET /api/admin/dispositivos - para la tarjeta de Estado del sistema (la ven todos los usuarios del panel).
+router.get('/dispositivos', async (req, res) => {
+  const [subs, apps] = await Promise.all([
+    supabaseAdmin.from('push_suscripciones').select('admin_email, user_agent, created_at, ultimo_envio_ok').order('created_at', { ascending: true }),
+    supabaseAdmin
+      .from('panel_dispositivos')
+      .select('admin_email, user_agent, ultimo_uso_app, instalada_en')
+      .or('ultimo_uso_app.not.is.null,instalada_en.not.is.null')
+      .order('ultimo_uso_app', { ascending: false, nullsFirst: false }),
+  ]);
+  const fallo = subs.error || apps.error;
+  if (fallo) return res.status(500).json({ error: fallo.message });
+  res.json({
+    avisos: subs.data.map((s) => ({ email: s.admin_email, dispositivo: describirDispositivo(s.user_agent), desde: s.created_at, ultimoEnvioOk: s.ultimo_envio_ok })),
+    app: apps.data.map((d) => ({ email: d.admin_email, dispositivo: describirDispositivo(d.user_agent), ultimoUso: d.ultimo_uso_app, instaladaEn: d.instalada_en })),
+  });
 });
 
 // GET /api/admin/equipos - un equipo = un nombre (normalizado). Agrupa los contactos

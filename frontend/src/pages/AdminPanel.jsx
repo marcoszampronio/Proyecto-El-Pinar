@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
-import { estadoPush, activarPush, desactivarPush, probarPush, numeroEnIcono } from '../lib/pushPanel';
+import { estadoPush, activarPush, desactivarPush, probarPush, numeroEnIcono, registrarDispositivo } from '../lib/pushPanel';
 import { fechaCorta, primerNombre, unir } from '../lib/mensajes';
 import ImagenBuscoRivalModal from '../components/ImagenBuscoRival';
 import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
@@ -641,6 +641,7 @@ function EstadoSistema() {
         </div>
       )}
       <AvisosCelular />
+      <QuienTieneQue />
     </details>
   );
 }
@@ -2721,6 +2722,48 @@ function PendientesLista({ pendientes, onCambio }) {
 }
 
 // ---------- Hoy: lo del día en una sola pantalla ----------
+// Quién tiene los avisos activados y quién usa la app instalada (lo ven todos los usuarios del panel).
+const nombreCorto = (mail) => String(mail || '').split('@')[0];
+function cuando(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const zona = 'America/Argentina/Buenos_Aires';
+  const mismoDia = d.toLocaleDateString('es-AR', { timeZone: zona }) === new Date().toLocaleDateString('es-AR', { timeZone: zona });
+  const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: zona });
+  return mismoDia ? 'hoy ' + hora : d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', timeZone: zona });
+}
+function QuienTieneQue() {
+  const [d, setD] = useState(null);
+  useEffect(() => { api.adminDispositivos().then(setD).catch(() => {}); }, []);
+  if (!d) return null;
+  const fila = { padding: '7px 0', borderTop: '1px solid var(--p-linea)' };
+  const sub = { fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' };
+  return (
+    <section style={DENTRO_DEL_ESTADO}>
+      <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Quién tiene los avisos</h3>
+      {d.avisos.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie activó los avisos.</p>}
+      {d.avisos.map((a, k) => (
+        <div key={k} style={fila}>
+          <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{nombreCorto(a.email)} · {a.dispositivo}</div>
+          <div style={sub}>Activó los avisos el {cuando(a.desde)}</div>
+        </div>
+      ))}
+      <h3 className="hoy-titulo" style={{ margin: '16px 0 6px' }}>Quién usa la app instalada</h3>
+      {d.app.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie abrió el panel desde la app instalada.</p>}
+      {d.app.map((a, k) => (
+        <div key={k} style={fila}>
+          <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{nombreCorto(a.email)} · {a.dispositivo}</div>
+          <div style={sub}>
+            {a.ultimoUso ? 'Último uso: ' + cuando(a.ultimoUso) : 'Instalada, todavía sin abrir'}
+            {a.instaladaEn ? ' · instalada el ' + cuando(a.instaladaEn) : ''}
+          </div>
+        </div>
+      ))}
+      <p style={{ ...sub, margin: '10px 0 0' }}>Se ve quién abrió la app al menos una vez. Quien la instaló y nunca la abrió no aparece.</p>
+    </section>
+  );
+}
+
 // Avisos al celular: van dentro de "Estado del sistema" (Estadísticas), separados por una línea.
 // Cada persona los activa en su propio dispositivo.
 const DENTRO_DEL_ESTADO = { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--p-linea)' };
@@ -2979,6 +3022,9 @@ function AdminPanelInterno() {
   useEffect(() => {
     if (tab === 'stats') cargarStats();
   }, [tab]);
+
+  // Anota desde qué dispositivo se usa el panel (para ver quién tiene la app instalada).
+  useEffect(() => registrarDispositivo(), []);
 
   // El número sobre el ícono de la app sigue a las reservas por confirmar.
   useEffect(() => { numeroEnIcono(pendientes.length); }, [pendientes.length]);

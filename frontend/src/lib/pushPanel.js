@@ -58,6 +58,27 @@ export async function desactivarPush() {
 
 export const probarPush = () => api.adminPushPrueba();
 
+// El panel avisa que se abrió en este dispositivo (id al azar guardado en el navegador). Sirve para ver
+// quién usa la app instalada. Nunca rompe nada: si falla, no pasa nada.
+function idDispositivo() {
+  try {
+    let id = localStorage.getItem('elpinar-dispositivo');
+    if (!id) {
+      id = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now();
+      localStorage.setItem('elpinar-dispositivo', id);
+    }
+    return id;
+  } catch { return null; }
+}
+export function registrarDispositivo() {
+  const deviceId = idDispositivo();
+  if (!deviceId) return () => {};
+  api.adminDispositivo({ deviceId, app: instalada() }).catch(() => {});
+  const alInstalar = () => api.adminDispositivo({ deviceId, app: true, instalada: true }).catch(() => {});
+  window.addEventListener('appinstalled', alInstalar);
+  return () => window.removeEventListener('appinstalled', alInstalar);
+}
+
 // Número sobre el ícono de la app: reservas por confirmar. El color lo decide el sistema (no se puede cambiar).
 export function numeroEnIcono(n) {
   try {

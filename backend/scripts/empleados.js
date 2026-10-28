@@ -1,7 +1,8 @@
 // Alta y baja de empleados con acceso limitado al panel.
 //
 //   cd backend
-//   node scripts/empleados.js invitar maria@gmail.com "María"   -> le llega un mail con un link para elegir SU contraseña
+//   node scripts/empleados.js invitar maria@gmail.com "María"          -> te da un LINK para mandárselo (WhatsApp); ahí elige SU contraseña
+//   node scripts/empleados.js invitar maria@gmail.com "María" --mail   -> en vez del link, le manda la invitación por mail
 //   node scripts/empleados.js quitar maria@gmail.com            -> pierde el acceso en el acto
 //   node scripts/empleados.js quitar maria@gmail.com --borrar   -> además se borra su usuario
 //   node scripts/empleados.js listar
@@ -24,14 +25,24 @@ async function invitar() {
   const { error } = await supabaseAdmin.from('empleados_panel').upsert({ email, nombre, invitado_por: 'script' }, { onConflict: 'email' });
   if (error) salir('No se pudo anotar al empleado: ' + error.message);
 
-  const { error: eInv } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: REDIRECT });
-  if (eInv) {
-    if (/already|registered|exists/i.test(eInv.message)) {
-      salir(`${email} ya tenía usuario: quedó habilitado como empleado. Si no recuerda su contraseña, que use "¿Olvidaste tu contraseña?" en el panel.`, 0);
-    }
-    salir(`Quedó anotado como empleado, pero no se pudo mandar la invitación: ${eInv.message}`);
+  if (process.argv.includes('--mail')) {
+    // La invitación sale por el servicio de mails de Supabase (si no está configurado para cualquier destinatario, puede no llegar).
+    const { error: eInv } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: REDIRECT });
+    if (eInv) salir(`Quedó anotado como empleado, pero no se pudo mandar el mail: ${eInv.message}. Probá sin --mail para obtener el link.`);
+    salir(`Listo: ${email} quedó como empleado y le llegó un mail para elegir su contraseña.`, 0);
   }
-  salir(`Listo: ${email} quedó como empleado y le llegó un mail para elegir su contraseña (el link lo lleva a ${REDIRECT}).`, 0);
+
+  // Por defecto: se genera el link y se lo mandás vos. Sirve una sola vez y vence solo.
+  let { data, error: eLink } = await supabaseAdmin.auth.admin.generateLink({ type: 'invite', email, options: { redirectTo: REDIRECT } });
+  if (eLink && /already|registered|exists/i.test(eLink.message)) {
+    // ya tenía usuario: el link sirve para que elija una contraseña nueva
+    ({ data, error: eLink } = await supabaseAdmin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: REDIRECT } }));
+  }
+  if (eLink) salir(`Quedó anotado como empleado, pero no se pudo generar el link: ${eLink.message}`);
+  console.log(`Listo: ${email} quedó como empleado. Mandale este link (una sola vez, para que elija SU contraseña):
+`);
+  console.log(data.properties.action_link);
+  process.exit(0);
 }
 
 async function quitar() {

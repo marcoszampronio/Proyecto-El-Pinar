@@ -45,7 +45,7 @@ export default function AdminLogin({ errorInicial = null }) {
         <button className="btn btn-primary" style={{ width: '100%' }} disabled={cargando}>
           {cargando ? 'Ingresando...' : 'Ingresar'}
         </button>
-        <button type="button" className="btn-texto" style={{ width: '100%', marginTop: 12 }} onClick={olvideClave}>
+        <button type="button" className="login-olvide" onClick={olvideClave}>
           ¿Olvidaste tu contraseña?
         </button>
       </form>

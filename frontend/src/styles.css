@@ -2695,3 +2695,11 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .estado-sistema .resumen-bloque small { font-size: var(--pt-chico); font-weight: 500; color: var(--p-mut); }
 .estado-sistema[open] .resumen-bloque small { display: none; }
 .estado-sistema[open] > .stat-grid { margin-top: 14px; }
+
+/* "¿Olvidaste tu contraseña?" en el login del panel: texto discreto, no botón */
+.login-olvide {
+  display: block; width: 100%; margin-top: 14px; padding: 6px; background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: var(--pt-chico); color: var(--p-mut); text-decoration: underline; text-underline-offset: 3px;
+}
+.login-olvide:hover { color: var(--p-oro); }
+.login-olvide:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; border-radius: var(--pr-s); }

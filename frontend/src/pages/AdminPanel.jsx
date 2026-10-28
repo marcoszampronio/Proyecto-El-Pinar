@@ -478,8 +478,11 @@ function ExportPanel() {
   }
 
   return (
-    <div className="stat-card" style={{ margin: '12px 20px' }}>
-      <h3 style={{ marginTop: 0 }}>Reporte en Excel</h3>
+    <details className="stat-card estado-sistema">
+      <summary>
+        <span className="resumen-bloque"><b>Reporte en Excel</b><small>Descargar las reservas o enviar un backup por mail</small></span>
+      </summary>
+      <div style={{ height: 14 }} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         <div className="field" style={{ flex: 1, minWidth: 120 }}>
           <label>Desde</label>
@@ -500,7 +503,7 @@ function ExportPanel() {
       {backup && backup !== '...' && (
         <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-mut)', marginBottom: 0 }}>{backup}</p>
       )}
-    </div>
+    </details>
   );
 }
 
@@ -553,9 +556,15 @@ function Movimientos() {
   const corto = (mail) => (mail || 'sistema').split('@')[0];
 
   return (
-    <div className="stat-card" style={{ margin: '12px 20px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-        <h3 style={{ margin: 0 }}>Movimientos<Info>Últimos 30 días. Quién confirmó, canceló o agendó cada turno.</Info></h3>
+    <details className="stat-card estado-sistema">
+      <summary>
+        <span className="resumen-bloque">
+          <b>Movimientos</b>
+          <small>{lista ? `${lista.length} en los últimos 30 días · quién confirmó, canceló o agendó` : 'Quién confirmó, canceló o agendó cada turno'}</small>
+        </span>
+      </summary>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+        <span style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>Últimos 30 días<Info>Quién confirmó, canceló o agendó cada turno, y cuándo.</Info></span>
         {personas.length > 1 && (
           <select value={persona} onChange={(e) => setPersona(e.target.value)} aria-label="Filtrar por persona">
             <option value="">Todos</option>
@@ -576,7 +585,7 @@ function Movimientos() {
           </div>
         ))}
       </div>
-    </div>
+    </details>
   );
 }
 
@@ -600,9 +609,9 @@ function EstadoSistema() {
   useEffect(() => { cargar(); }, []);
 
   return (
-    <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>
+    <details className="stat-card estado-sistema">
       <summary>
-        <span>Estado del sistema</span>
+        <span className="resumen-bloque"><b>Estado del sistema</b></span>
         {d && <span aria-hidden="true">{d.baseDatos.ok && d.email.ok ? '🟢' : '🔴'}</span>}
       </summary>
       <button className="btn btn-ghost" style={{ padding: '4px 12px', fontSize: 'var(--pt-micro)', marginTop: 10 }} onClick={cargar} disabled={cargando}>
@@ -3284,11 +3293,10 @@ function AdminPanelInterno() {
       {tab === 'fijos' && <TurnosFijosPanel />}
 
 
-      {tab === 'stats' && <EstadisticasDecidir cargarCsv={cargarCsv} />}
-      {tab === 'stats' && <Visitas />}
-      {tab === 'stats' && stats && (
-        <>
-          <details className="stat-card estado-sistema" style={{ margin: '12px 20px 0' }}>
+      {tab === 'stats' && (
+        <div className="stats">
+          {stats && (
+          <details className="stat-card estado-sistema">
             <summary>
               <span className="resumen-bloque">
                 <b>Próximos {stats.rangoDias} días</b>
@@ -3311,8 +3319,11 @@ function AdminPanelInterno() {
               <Cifra titulo="Pádel" valor={stats.ventana.reservasPorCancha.PAD} />
             </div>
           </details>
-
-          <div className="stat-card" style={{ margin: '12px 20px 0' }}>
+          )}
+          <EstadisticasDecidir cargarCsv={cargarCsv} />
+          <Visitas />
+          {stats && (
+          <div className="stat-card">
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>
             <div className="stat-grid">
               <Cifra titulo="Reservas" valor={stats.historico30.totalActivas} />
@@ -3335,14 +3346,12 @@ function AdminPanelInterno() {
               })}
             </div>
           </div>
-
+          )}
+          <Movimientos />
           <ExportPanel />
-        </>
+          <EstadoSistema />
+        </div>
       )}
-
-      {tab === 'stats' && !stats && <ExportPanel />}
-      {tab === 'stats' && <Movimientos />}
-      {tab === 'stats' && <EstadoSistema />}
       </main>
     </div>
   );

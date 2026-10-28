@@ -2620,6 +2620,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 }
 /* el desglose por cancha va debajo del mapa, sin tapar el casillero tocado */
 .est-nube--fluida { position: static; margin-top: 12px; animation: none; box-shadow: none; }
+/* pestaña Estadísticas: una columna, todas las tarjetas del mismo ancho y con el mismo espacio */
+.stats { display: flex; flex-direction: column; gap: 14px; }
+.stats > .stat-card { margin: 0; }
+
 /* visitas a la página */
 .vis-numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .vis-numeros > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 6px; border-radius: var(--pr); background: var(--p-fila); text-align: center; }

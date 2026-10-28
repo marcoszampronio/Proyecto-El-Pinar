@@ -1,6 +1,5 @@
 // Conteo de visitas a la página pública. Anónimo y sin cookies: un código al azar por navegador y una visita por sesión.
-// NO cuenta a quienes trabajan en el panel (Mateo, el equipo, el mantenedor): se marca el navegador como "interno"
-// al abrir el panel, o al abrir la página una vez con ?interno=1 (sirve para el celular que no entra al panel).
+// No cuenta los navegadores donde se abrió el panel (el equipo): al abrirlo se los marca como "internos".
 import { api } from '../api';
 
 const CLAVE_INTERNO = 'elpinar-interno';
@@ -31,8 +30,6 @@ function origenDeLaVisita() {
 export function registrarVisita() {
   try {
     if (import.meta.env.DEV) return; // las pruebas en la compu no cuentan
-    const p = new URLSearchParams(location.search);
-    if (p.get('interno') === '1') { marcarComoInterno(); return; }
     if (esInterno() || navigator.webdriver || /bot|crawl|spider|lighthouse|headless/i.test(navigator.userAgent)) return;
     if (sessionStorage.getItem('elpinar-visita')) return; // una visita por sesión
     sessionStorage.setItem('elpinar-visita', '1');

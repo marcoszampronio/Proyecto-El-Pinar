@@ -3,7 +3,6 @@ import { api } from '../../api';
 import Info from './Info';
 
 const DIA_CORTO = (iso) => iso.split('-').reverse().slice(0, 2).join('/');
-const URL_INTERNO = `${typeof location !== 'undefined' ? location.origin : ''}/?interno=1`;
 
 // "Visitas a la página": personas distintas que entraron a la página de reservas. Anónimo; no cuenta al equipo.
 export default function Visitas() {
@@ -27,8 +26,6 @@ export default function Visitas() {
         <h3 className="est-titulo">Visitas a la página</h3>
         <Info etiqueta="Cómo se cuentan las visitas">
           Cuenta personas distintas que entraron a la página de reservas, una vez por sesión. Es anónimo: no guarda nombres, teléfonos ni IP.
-          No cuenta a quien abrió el panel o inició sesión en ese navegador. Para que tu celular no cuente, abrí una vez{' '}
-          <b>{URL_INTERNO}</b> en ese celular.
         </Info>
       </div>
 

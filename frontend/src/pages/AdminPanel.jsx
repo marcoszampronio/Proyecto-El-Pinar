@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { api } from '../api';
 import { nombreEquipo } from '../lib/equipo';
@@ -891,6 +891,9 @@ function GrillaFutbol({ agenda, sel, onCelda, onLibre }) {
             const slot = agenda.futbol[court][i];
             const r = slot.reserva;
             const activo = r && sel === r.code;
+            // quién lo confirmó o agendó (solo lo reciben los administradores)
+            // (solo las personas que figuran en PERSONAS_PANEL: quien no está en la lista no muestra nada)
+            const quien = r && [...(r.acciones_panel || [])].reverse().find((a) => a.accion !== 'cancelo' && PERSONAS_PANEL[a.email]);
             return (
               <button
                 key={court}
@@ -900,7 +903,16 @@ function GrillaFutbol({ agenda, sel, onCelda, onLibre }) {
                 onClick={() => (r ? onCelda(r.code) : onLibre && slot.status === 'libre' && onLibre(court, t.turn))}
               >
                 <span className="grilla-celda-nombre">{r ? (r.team_name ? nombreEquipo(r.team_name) : r.client_name.split(' ')[0]) : ''}</span>
-                <span className="grilla-celda-estado">{TXT_ESTADO[slot.status]}</span>
+                <span className="grilla-celda-estado">
+                  {TXT_ESTADO[slot.status]}
+                  {/* hombrecito + número: va en la misma línea que "Reservado", nunca encima de otro texto */}
+                  {quien && (
+                    <span className="grilla-celda-quien" title={`${quien.accion === 'agendo' ? 'Agendado a mano' : 'Confirmado'} por ${(PERSONAS_PANEL[quien.email] || {}).nombre || quien.email}`}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6" /></svg>
+                      {(PERSONAS_PANEL[quien.email] || {}).n}
+                    </span>
+                  )}
+                </span>
                 {r && r.fijo && <span className="grilla-celda-fijo">Fijo</span>}
                 {r && r.looking_for_rival && <span className="grilla-celda-rival">Busco rival</span>}
               </button>
@@ -938,7 +950,17 @@ function TimelinePadel({ reservas, sel, onTramo }) {
               onClick={() => onTramo(r.code)}
               title={`${r.client_name} · ${hhmm(r.start_time)}-${hhmm(r.end_time)}`}
             >
-              {r.client_name.split(' ')[0]}
+              <span className="tl-nombre">{r.client_name.split(' ')[0]}</span>
+              {(() => {
+                // hombrecito + número de quien lo confirmó o agendó (solo administradores; mismos números que en fútbol)
+                const q = [...(r.acciones_panel || [])].reverse().find((a) => a.accion !== 'cancelo' && PERSONAS_PANEL[a.email]);
+                return q ? (
+                  <span className="grilla-celda-quien" title={`${q.accion === 'agendo' ? 'Agendado a mano' : 'Confirmado'} por ${PERSONAS_PANEL[q.email].nombre}`}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6" /></svg>
+                    {PERSONAS_PANEL[q.email].n}
+                  </span>
+                ) : null;
+              })()}
             </button>
           );
         })}
@@ -1005,18 +1027,27 @@ function FilaFlexible({ r, seleccionado, onClick, detalle }) {
   );
 }
 
-function AgendaDia() {
-  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
+// Quién confirmó o agendó cada turno: en la grilla se ve como un hombrecito con este número (solo lo ven los administradores).
+const PERSONAS_PANEL = {
+  'hillairetmateo@gmail.com': { n: 1, nombre: 'Mateo' },
+  'ldhillairet@gmail.com': { n: 2, nombre: 'Lucas' },
+  'eliseozamarioli@gmail.com': { n: 3, nombre: 'Eliseo' },
+};
+
+// fechaInicial / codigoInicial: cuando se llega desde "Hoy" tocando un turno, abre ese día con ese turno ya abierto.
+function AgendaDia({ fechaInicial = null, codigoInicial = null }) {
+  const [fecha, setFecha] = useState(() => fechaInicial || proximoDiaHabilitado(hoyISO()));
   const [agenda, setAgenda] = useState(null);
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [sel, setSel] = useState(null);
   const [agendando, setAgendando] = useState(null); // { court, date, turn? } desde una celda libre
+  const yaElegi = useRef(false); // una vez que la persona toca algo, ya no se vuelve a abrir el turno de entrada
 
   async function cargar() {
     setCargando(true);
     setError(null);
-    setSel(null);
+    setSel(!yaElegi.current && codigoInicial && fecha === fechaInicial ? codigoInicial : null);
     try {
       setAgenda(await api.adminAgenda(fecha));
     } catch (e) {
@@ -1029,7 +1060,7 @@ function AgendaDia() {
 
   useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [fecha]);
 
-  const toggle = (code) => setSel((s) => (s === code ? null : code));
+  const toggle = (code) => { yaElegi.current = true; setSel((s) => (s === code ? null : code)); };
 
   const reservaSel =
     agenda && sel
@@ -1048,7 +1079,7 @@ function AgendaDia() {
 
   return (
     <div className="stat-card">
-      <NavegadorFecha fecha={fecha} onCambiar={setFecha} />
+      <NavegadorFecha fecha={fecha} onCambiar={(f) => { yaElegi.current = true; setFecha(f); }} />
 
       {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
       {error && <p className="error-msg">{error}</p>}
@@ -1062,19 +1093,38 @@ function AgendaDia() {
           </p>
 
           <div className="agenda-card">
-            <div className="agenda-card-titulo">Fútbol</div>
+            <div className="agenda-card-titulo">
+              Fútbol
+              <Info etiqueta="Qué significan los colores y los números">
+                <span className="est-nube-t">Colores</span>
+                <span className="ley-lista">
+                  <span><i className="pt libre" /> Libre</span>
+                  <span><i className="pt pendiente" /> A confirmar</span>
+                  <span><i className="pt confirmada" /> Reservado</span>
+                  <span><i className="pt fijo" /> Turno fijo</span>
+                </span>
+                {/* solo para administradores (el empleado no recibe este dato) */}
+                {[...agenda.futbol.C1.map((s) => s.reserva), ...agenda.futbol.C2.map((s) => s.reserva), ...agenda.padel].some((r) => r?.acciones_panel?.length) && (
+                  <>
+                    <span className="est-nube-t" style={{ marginTop: 12 }}>Quién lo confirmó o agendó</span>
+                    <span className="ley-lista">
+                      {Object.values(PERSONAS_PANEL).map((p) => (
+                        <span key={p.n}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6" /></svg>
+                          {p.n} · {p.nombre}
+                        </span>
+                      ))}
+                    </span>
+                  </>
+                )}
+              </Info>
+            </div>
             <GrillaFutbol
               agenda={agenda}
               sel={sel}
               onCelda={toggle}
               onLibre={(court, turn) => setAgendando({ court, date: fecha, turn })}
             />
-            <div className="grilla-leyenda">
-              <span><i className="pt libre" /> Libre</span>
-              <span><i className="pt pendiente" /> A confirmar</span>
-              <span><i className="pt confirmada" /> Reservado</span>
-              <span><i className="pt fijo" /> Turno fijo</span>
-            </div>
           </div>
 
           {reservaSel && reservaSel.court !== 'PAD' && (
@@ -1390,8 +1440,10 @@ function SemanaPanel() {
 }
 
 // La Agenda tiene dos vistas: la semana completa (la de siempre al abrir) y un día en detalle.
-function AgendaPanel() {
+// destino (opcional, viene de "Hoy"): { vista: 'semana' } o { vista: 'dia', fecha, code } para abrir ese turno.
+function AgendaPanel({ destino = null }) {
   const [vista, setVista] = useState(() => {
+    if (destino?.vista) return destino.vista;
     try { return localStorage.getItem('panel-agenda-vista') === 'dia' ? 'dia' : 'semana'; } catch { return 'semana'; }
   });
   function elegir(v) {
@@ -1404,7 +1456,7 @@ function AgendaPanel() {
         <button type="button" role="tab" aria-selected={vista === 'dia'} className={vista === 'dia' ? 'on' : ''} onClick={() => elegir('dia')}>Día</button>
         <button type="button" role="tab" aria-selected={vista === 'semana'} className={vista === 'semana' ? 'on' : ''} onClick={() => elegir('semana')}>Semana</button>
       </div>
-      {vista === 'semana' ? <SemanaPanel /> : <AgendaDia />}
+      {vista === 'semana' ? <SemanaPanel /> : <AgendaDia fechaInicial={destino?.fecha} codigoInicial={destino?.code} />}
     </>
   );
 }
@@ -2937,10 +2989,18 @@ function HoyPanel({ pendientes, pendientesCargados, onCambio, irA, arriba, esEmp
   const turnos = agenda ? agenda.futbol.C1.map((s, i) => ({ s1: s, s2: agenda.futbol.C2[i] })) : [];
   const ocupados = agenda ? [...agenda.futbol.C1, ...agenda.futbol.C2].filter((s) => s.reserva).length : 0;
   const quien = (r) => (r.team_name ? nombreEquipo(r.team_name) : r.client_name);
-  const Celda = ({ s }) => (
-    <span className={`hoy-celda ${s.reserva ? (s.reserva.status === 'pendiente' ? 'pend' : s.reserva.fijo ? 'ocupada fijo' : 'ocupada') : s.status}`}>
-      {s.reserva ? quien(s.reserva) : s.status === 'bloqueado' ? 'Bloqueado' : 'Libre'}
-    </span>
+  // tocar un turno ocupado lleva a la Agenda (vista Día) con ese turno abierto
+  const abrirEnAgenda = (r) => irA('agenda', { vista: 'dia', fecha, code: r.code });
+  const Celda = ({ s }) => s.reserva ? (
+    <button
+      type="button"
+      className={`hoy-celda ${s.reserva.status === 'pendiente' ? 'pend' : s.reserva.fijo ? 'ocupada fijo' : 'ocupada'}`}
+      onClick={() => abrirEnAgenda(s.reserva)}
+    >
+      {quien(s.reserva)}
+    </button>
+  ) : (
+    <span className={`hoy-celda ${s.status}`}>{s.status === 'bloqueado' ? 'Bloqueado' : 'Libre'}</span>
   );
 
   return (
@@ -2982,11 +3042,14 @@ function HoyPanel({ pendientes, pendientesCargados, onCambio, irA, arriba, esEmp
           {agenda.padel.length > 0 && (
             <ul className="hoy-padel">
               {agenda.padel.map((r) => (
-                <li key={r.code}><span className="hoy-hora">{hhmm(r.start_time)}</span> Pádel · {quien(r)}</li>
+                <li key={r.code}>
+                  <span className="hoy-hora">{hhmm(r.start_time)}</span>
+                  <button type="button" className="hoy-padel-ver" onClick={() => abrirEnAgenda(r)}>Pádel · {quien(r)}</button>
+                </li>
               ))}
             </ul>
           )}
-          <button className="btn btn-ghost btn-sm hoy-mas" onClick={() => irA('agenda')}>Ver la agenda completa</button>
+          <button className="btn btn-ghost btn-sm hoy-mas" onClick={() => irA('agenda', { vista: 'semana' })}>Ver la agenda completa</button>
         </section>
       )}
 
@@ -3059,11 +3122,22 @@ function AdminPanelInterno() {
   const [pendientes, setPendientes] = useState([]);
   const [pendientesCargados, setPendientesCargados] = useState(false);
   const [rol, setRol] = useState(() => { try { return sessionStorage.getItem('elpinar-rol'); } catch { return null; } });
+  // Quién tiene la sesión abierta (nombre y mail), para mostrarlo arriba de "Salir"
+  const [yo, setYo] = useState(() => { try { return JSON.parse(sessionStorage.getItem('elpinar-yo')); } catch { return null; } });
   useEffect(() => {
     api.adminYo().then((r) => {
       setRol(r.rol);
-      try { sessionStorage.setItem('elpinar-rol', r.rol); } catch { /* sin almacenamiento */ }
-    }).catch(() => {});
+      setYo({ email: r.email, nombre: r.nombre });
+      try {
+        sessionStorage.setItem('elpinar-rol', r.rol);
+        sessionStorage.setItem('elpinar-yo', JSON.stringify({ email: r.email, nombre: r.nombre }));
+      } catch { /* sin almacenamiento */ }
+    }).catch(() => {
+      // si el servidor no reconoce a esta cuenta, no se queda con el rol de la sesión anterior
+      setRol(null);
+      setYo(null);
+      try { sessionStorage.removeItem('elpinar-rol'); sessionStorage.removeItem('elpinar-yo'); } catch { /* sin almacenamiento */ }
+    });
   }, []);
   // si por el rol no corresponde la pestaña (ej. un empleado con un link viejo), vuelve a Hoy
   useEffect(() => {
@@ -3088,8 +3162,11 @@ function AdminPanelInterno() {
     };
   }, [menu]);
 
-  function irA(id) {
+  // destino (solo para la Agenda): { vista: 'semana' } o { vista: 'dia', fecha, code }
+  const [destinoAgenda, setDestinoAgenda] = useState(null);
+  function irA(id, destino = null) {
     desHecho.confirmarTodo(); // lo que estaba esperando en un aviso se manda ya, antes de cambiar de pantalla
+    setDestinoAgenda(id === 'agenda' ? destino : null);
     setTab(id);
     setMenu(false);
     window.scrollTo({ top: 0 });
@@ -3232,7 +3309,16 @@ function AdminPanelInterno() {
           </button>
         ))}
         <div className="pnav-pie">
-          <button className="pnav-item" onClick={() => supabase.auth.signOut()}>
+          {yo?.email && (
+            <div className="pnav-usuario" title={yo.email}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6" /></svg>
+              <div>
+                <b>{yo.nombre || yo.email}</b>
+                {yo.nombre && <span>{yo.email}</span>}
+              </div>
+            </div>
+          )}
+          <button className="pnav-item" onClick={() => { try { sessionStorage.removeItem('elpinar-yo'); sessionStorage.removeItem('elpinar-rol'); } catch { /* sin almacenamiento */ } supabase.auth.signOut(); }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
             Salir
           </button>
@@ -3318,7 +3404,7 @@ function AdminPanelInterno() {
           )}
         />
       )}
-      {tab === 'agenda' && <AgendaPanel />}
+      {tab === 'agenda' && <AgendaPanel destino={destinoAgenda} />}
       {tab === 'suspender' && (
         <>
           <SuspensionPanel />

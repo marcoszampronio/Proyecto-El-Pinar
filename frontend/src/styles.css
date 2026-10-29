@@ -960,6 +960,13 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .pnav-item.on { background: var(--p-alto); color: var(--p-txt); box-shadow: inset 3px 0 0 var(--p-oro); }
 .pnav-tag { margin-left: auto; background: var(--p-oro); color: var(--p-nav); font-size: var(--pt-micro); font-weight: 700; padding: 1px 7px; border-radius: var(--pr-l); }
 .pnav-pie { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--p-linea); }
+/* quién tiene la sesión abierta, arriba de "Salir" */
+.pnav-usuario { display: flex; align-items: center; gap: 11px; padding: 6px 12px 10px; min-width: 0; color: var(--p-mut); }
+.pnav-usuario svg { width: 17px; height: 17px; flex: none; }
+.pnav-usuario > div { min-width: 0; }
+.pnav-usuario b, .pnav-usuario span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pnav-usuario b { font-size: var(--pt-chico); font-weight: 700; color: var(--p-txt); }
+.pnav-usuario span { font-size: var(--pt-micro); }
 
 .pmain { padding: 24px 28px 56px; min-width: 0; }
 .admin-header { display: none; }
@@ -1067,7 +1074,15 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   overflow: hidden; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
-.grilla-celda-estado { font-size: var(--pt-micro); text-transform: uppercase; letter-spacing: 0.3px; }
+.grilla-celda-estado { display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 6px; font-size: var(--pt-micro); text-transform: uppercase; letter-spacing: 0.3px; }
+/* hombrecito + número de quien confirmó o agendó el turno (solo administradores): va junto a "Reservado", en la misma línea */
+.grilla-celda-quien { display: inline-flex; align-items: center; gap: 1px; font-weight: 700; letter-spacing: 0; color: var(--p-mut); }
+.grilla-celda-quien svg, .ley-lista svg { width: 11px; height: 11px; flex: none; }
+/* referencias dentro de la (i) de "Fútbol" */
+.ley-lista { display: grid; gap: 7px; margin-top: 8px; }
+.ley-lista > span { display: flex; align-items: center; gap: 8px; }
+.ley-lista .pt { width: 12px; height: 12px; border-radius: var(--pr-s); display: inline-block; flex: none; }
+.est-nube .est-nube-t { display: block; }
 .grilla-celda.libre .grilla-celda-nombre { color: var(--p-mut); font-weight: 600; }
 /* "LIBRE" bien visible para Mateo: más grande, en negrita y con un verde más luminoso */
 .grilla-celda.libre .grilla-celda-estado {
@@ -1116,6 +1131,10 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .tl-tramo.confirmada { background: var(--p-alto); }
 .tl-tramo.confirmada.fijo { background: var(--p-fijo-bg); box-shadow: inset 0 0 0 1px var(--p-fijo-borde); }
 .tl-tramo.sel { outline: 2px solid var(--p-oro); outline-offset: 1px; }
+.tl-tramo { display: flex; align-items: center; gap: 6px; }
+.tl-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-tramo .grilla-celda-quien { flex: none; color: inherit; opacity: 0.8; }
+.tl-tramo .grilla-celda-quien svg { width: 11px; height: 11px; }
 .agenda-card-titulo {
   font-family: var(--s-texto); font-weight: 700; font-size: var(--pt-cuerpo); color: var(--p-txt);
   margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
@@ -2509,6 +2528,12 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   padding: 6px 8px; border-radius: var(--pr); font-size: var(--pt-chico); font-weight: 600; line-height: 1.2;
   overflow-wrap: anywhere;
 }
+/* los turnos ocupados son botones: llevan a la Agenda con ese turno abierto */
+button.hoy-celda { border: 0; font-family: inherit; cursor: pointer; width: 100%; transition: filter 0.12s; }
+button.hoy-celda:hover { filter: brightness(1.18); }
+button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
+.hoy-padel-ver { background: none; border: 0; padding: 0; font: inherit; color: var(--p-txt); text-align: left; cursor: pointer; }
+.hoy-padel-ver:hover { text-decoration: underline; text-underline-offset: 3px; }
 .hoy-celda.ocupada { background: var(--p-alto); color: var(--p-txt); }
 .hoy-celda.ocupada.fijo { background: var(--p-fijo-bg); box-shadow: inset 0 0 0 1px var(--p-fijo-borde); }
 .hoy-celda.pend { background: rgba(242, 193, 78, 0.16); color: var(--p-oro); box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.5); }

@@ -21,6 +21,7 @@ export const TIPOS_AVISO = [
   { id: 'sin_atender', titulo: 'Reservas sin atender', detalle: 'Si una reserva lleva más de 2 horas esperando tu OK (solo de 9 a 22 hs).' },
   { id: 'lluvia', titulo: 'Pronóstico de lluvia', detalle: 'El día anterior a un día de juego, si hay mucha probabilidad de lluvia y reservas para suspender.' },
   { id: 'accion_empleado', titulo: 'Lo que hacen los empleados', detalle: 'Cuando un empleado agenda o cancela un turno desde el panel.', soloAdmin: true },
+  { id: 'cuenta', titulo: 'Contraseñas', detalle: 'Cuando alguien pide recuperar su contraseña o la cambia.', soloMantenedor: true },
   { id: 'falla', titulo: 'Fallas del sistema', detalle: 'Cuando el servidor da error o falla un mail.', soloMantenedor: true },
 ];
 export const IDS_TIPOS = TIPOS_AVISO.map((t) => t.id);

@@ -14,7 +14,7 @@ import {
 import { obtenerBloqueosDelDia, estaBloqueado } from '../lib/bloqueos.js';
 import { generarProximasReservas } from '../lib/turnosFijos.js';
 import { hoyART } from '../lib/anticipacion.js';
-import { registrarMovimiento, descripcionTurno } from '../lib/movimientos.js';
+import { registrarMovimiento, descripcionTurno, accionesDelPanel } from '../lib/movimientos.js';
 import { enviarPush, pushConfigurado, clavePublicaPush, TIPOS_AVISO, IDS_TIPOS, avisarAccionEmpleado } from '../lib/push.js';
 import { ALERTAS_EMAIL } from '../lib/alertas.js';
 import { describirDispositivo } from '../lib/dispositivos.js';
@@ -35,7 +35,7 @@ router.use(requireAdmin);
 router.use(limitarEmpleado);
 
 // GET /api/admin/yo - quién es y qué rol tiene (el panel arma el menú con esto).
-router.get('/yo', (req, res) => res.json({ email: req.adminEmail, rol: req.rol }));
+router.get('/yo', (req, res) => res.json({ email: req.adminEmail, rol: req.rol, nombre: req.nombreEmpleado || null }));
 
 const NOMBRE_CANCHA_WA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 const MAPS_URL = process.env.MAPS_URL || 'https://maps.app.goo.gl/iwggmLmbxJggAMPP7';
@@ -148,6 +148,14 @@ router.get('/agenda/:date', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
+  // Solo los administradores ven quién confirmó o agendó cada turno ("Confirmado por Eliseo · 28/10 21:14").
+  const acciones = req.rol === 'admin' ? await accionesDelPanel(data) : {};
+  const resumen = (r) => {
+    const x = resumenAgenda(r);
+    if (x && acciones[x.code]) x.acciones_panel = acciones[x.code];
+    return x;
+  };
+
   const futbol = {};
   for (const court of ['C1', 'C2']) {
     futbol[court] = Object.entries(TURNOS_FUTBOL).map(([turn, h]) => {
@@ -158,12 +166,12 @@ router.get('/agenda/:date', async (req, res) => {
         end: h.end,
         label: h.label,
         status: r ? r.status : (estaBloqueado(bloqueos, court, turn) ? 'bloqueado' : 'libre'),
-        reserva: resumenAgenda(r),
+        reserva: resumen(r),
       };
     });
   }
 
-  const padel = data.filter((x) => x.court === 'PAD').map(resumenAgenda);
+  const padel = data.filter((x) => x.court === 'PAD').map(resumen);
   const conParrilla = data.filter((x) => x.parrilla).map(resumenAgenda);
 
   // Turnos de fútbol con alguna cancha libre ese día (para decirles cuál se liberó).

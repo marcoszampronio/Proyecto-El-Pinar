@@ -3,6 +3,7 @@ import { enviarPush } from './push.js';
 import { esFechaAbierta } from './aperturasEspeciales.js';
 import { fechaCorta } from './mensajes.js';
 import { hoyART } from './anticipacion.js';
+import { ALERTAS_EMAIL } from './alertas.js';
 
 // Avisos que salen por horario. Se revisan cada 10 minutos (ver server.js). Nunca lanzan error.
 
@@ -96,8 +97,42 @@ export async function avisarPronosticoLluvia() {
   }
 }
 
+// 3) Alguien pidió recuperar su contraseña o la cambió (los anota un trigger en la base: `eventos_cuenta`).
+//    Solo le llega al usuario de las alertas, una sola vez por evento, y únicamente si hubo alguno: si no pasó nada, no se manda nada.
+const MAX_ANTIGUEDAD_EVENTO_MS = 2 * 3600000; // si el servidor estuvo caído y el evento es viejo, no tiene sentido avisarlo tarde
+export async function avisarCambiosDeCuenta() {
+  const { data, error } = await supabaseAdmin
+    .from('eventos_cuenta')
+    .select('id, tipo, email, created_at')
+    .is('avisado_at', null)
+    .order('created_at')
+    .limit(50);
+  if (error) { console.error('[avisos] cuentas:', error.message); return { error: error.message }; }
+  if (!data?.length) return { omitido: 'ninguno' };
+
+  // se marcan primero, así nunca se repite el aviso aunque el envío demore o el servidor se reinicie
+  const { error: e2 } = await supabaseAdmin.from('eventos_cuenta').update({ avisado_at: new Date().toISOString() }).in('id', data.map((e) => e.id));
+  if (e2) { console.error('[avisos] marcar cuentas:', e2.message); return { error: e2.message }; }
+
+  // lo mismo pedido dos veces seguidas (misma cuenta, mismo tipo) se avisa una sola vez
+  const vistos = new Set();
+  const vigentes = data
+    .filter((e) => Date.now() - new Date(e.created_at).getTime() < MAX_ANTIGUEDAD_EVENTO_MS)
+    .filter((e) => { const k = `${e.tipo}|${e.email}`; if (vistos.has(k)) return false; vistos.add(k); return true; });
+  if (!vigentes.length) return { omitido: 'eventos viejos' };
+
+  const frase = (e) => (e.tipo === 'clave_pedida' ? `Pidieron recuperar la contraseña de ${e.email}` : `Se cambió la contraseña de ${e.email}`);
+  const texto = vigentes.length <= 3 ? vigentes.map(frase).join('. ') : `${vigentes.length} movimientos de contraseñas en las cuentas del panel.`;
+  return enviarPush({
+    titulo: 'Contraseñas',
+    texto,
+    tag: 'cuentas',
+    url: '/panel',
+  }, { email: ALERTAS_EMAIL, tipo: 'cuenta' });
+}
+
 export async function correrAvisosProgramados() {
-  for (const tarea of [avisarReservasSinAtender, avisarPronosticoLluvia]) {
+  for (const tarea of [avisarReservasSinAtender, avisarPronosticoLluvia, avisarCambiosDeCuenta]) {
     try { await tarea(); } catch (e) { console.error('[avisos] error:', e.message); }
   }
 }

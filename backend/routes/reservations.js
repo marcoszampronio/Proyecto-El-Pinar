@@ -109,8 +109,11 @@ router.get('/estado/:code', async (req, res) => {
 // por mail a los admins. Se exige el teléfono con el que se reservó (además del
 // código, que es fácil de adivinar) para que nadie pueda firmar turnos ajenos.
 router.post('/whatsapp-enviado', async (req, res) => {
-  const code = String(req.body?.code || '').trim();
-  const digitos = String(req.body?.clientPhone || '').replace(/\D/g, '');
+  // puede llegar como JSON (clientes viejos) o como texto simple con JSON adentro (sendBeacon)
+  let cuerpo = req.body;
+  if (typeof cuerpo === 'string') { try { cuerpo = JSON.parse(cuerpo); } catch { cuerpo = {}; } }
+  const code = String(cuerpo?.code || '').trim();
+  const digitos = String(cuerpo?.clientPhone || '').replace(/\D/g, '');
   if (!code || digitos.length < 8) return res.status(400).json({ error: 'Faltan datos.' });
 
   // Un mismo código puede repetirse en distintos años: tomamos el más reciente.

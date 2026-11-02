@@ -46,6 +46,9 @@ const origenesPermitidos = (process.env.CORS_ORIGINS || '')
 app.use(cors(origenesPermitidos.length ? { origin: origenesPermitidos } : {}));
 
 app.use(express.json());
+// El aviso "apretó Enviar WhatsApp" llega como texto simple (sendBeacon, sin "permiso previo" entre dominios):
+// se lee como texto y la ruta lo convierte a objeto. Los clientes viejos lo siguen mandando como JSON.
+app.use('/api/reservations/whatsapp-enviado', express.text({ type: 'text/plain', limit: '4kb' }));
 
 // Si una respuesta sale con error del servidor (5xx), se avisa al mantenedor (mail + celular).
 // Se ignora el 503 de "avisos no configurados". Se agrupa por ruta (sin códigos) y avisa 1 vez por hora.

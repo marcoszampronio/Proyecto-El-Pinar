@@ -93,9 +93,34 @@ export const api = {
     requestPublico('/reservations/padel', { method: 'POST', body: JSON.stringify(payload) }),
 
   // La persona apretó "Enviar WhatsApp": el turno deja de estar solo "guardado" y queda firme.
-  // keepalive: el pedido sale aunque el navegador pase a la app de WhatsApp enseguida.
-  avisarWhatsappEnviado: (payload) =>
-    requestPublico('/reservations/whatsapp-enviado', { method: 'POST', body: JSON.stringify(payload), keepalive: true }),
+  // El celular salta a la app de WhatsApp en ese mismo instante, y un pedido JSON entre dominios (que primero
+  // necesita un "permiso previo" del servidor) se puede perder en el cambio de app: Mateo se quedaba sin ver la reserva.
+  // Por eso se manda con sendBeacon como texto simple (sale en un solo paso y sobrevive al cambio de app),
+  // y se repite al volver a la página. El servidor ignora los repetidos ("yaEnviado").
+  avisarWhatsappEnviado: (payload) => {
+    const url = `${API_URL}/reservations/whatsapp-enviado`;
+    const cuerpo = JSON.stringify(payload);
+    const porFetch = () =>
+      requestPublico('/reservations/whatsapp-enviado', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: cuerpo,
+        keepalive: true,
+      });
+
+    let salio = false;
+    try { salio = typeof navigator !== 'undefined' && !!navigator.sendBeacon && navigator.sendBeacon(url, cuerpo); } catch { salio = false; }
+
+    // al volver a la página (después de WhatsApp) se confirma de nuevo, por si el primero no llegó
+    const alVolver = () => {
+      if (document.visibilityState !== 'visible') return;
+      document.removeEventListener('visibilitychange', alVolver);
+      porFetch().catch(() => {});
+    };
+    document.addEventListener('visibilitychange', alVolver);
+
+    return salio ? Promise.resolve({ ok: true }) : porFetch();
+  },
 
   anotarseEspera: (payload) =>
     requestPublico('/espera', { method: 'POST', body: JSON.stringify(payload) }),

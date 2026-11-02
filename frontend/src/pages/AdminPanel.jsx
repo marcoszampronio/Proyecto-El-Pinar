@@ -750,11 +750,16 @@ function RivalToggle({ reserva, fecha, onCambio }) {
   );
 }
 
+// Cuando se confirma o cancela desde la Agenda, "Hoy" y el contador del menú tienen que enterarse.
+const avisarCambioDePendientes = () => window.dispatchEvent(new Event('pendientes-cambiaron'));
+
 function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState(null);
   const [waAbierto, setWaAbierto] = useState(false);
   const [cancelado, setCancelado] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const [confirmada, setConfirmada] = useState(null); // { link } una vez confirmada desde acá
 
   async function cancelar() {
     setProcesando(true);
@@ -764,9 +769,25 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       // Queda a la vista (sin refrescar todavía) para poder avisarle al cliente por WhatsApp
       // y, si hay lista de espera, a esa gente. Se refresca recién al tocar "Listo".
       setCancelado(true);
+      avisarCambioDePendientes();
     } catch (e) {
       setError(e.message);
       setProcesando(false);
+    }
+  }
+
+  // Confirmar una reserva pendiente directo desde la Agenda (también las que todavía no mandaron el WhatsApp).
+  async function confirmar() {
+    setConfirmando(true);
+    setError(null);
+    try {
+      const r = await api.adminConfirmar(reserva.code);
+      setConfirmada({ link: r.linkWhatsappConfirmacion || null });
+      avisarCambioDePendientes();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setConfirmando(false);
     }
   }
 
@@ -779,6 +800,33 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
       `Hola ${primerNombre(e.client_name)}! Se liberó la ${NOMBRE_CANCHA[reserva.court]} el ${fechaCorta(fecha)} ` +
       `a las ${hhmm(reserva.start_time)} 🙌 ¿La querés? Respondenos y te la reservamos.`;
     return `${base}?text=${encodeURIComponent(msg)}`;
+  }
+
+  if (confirmada) {
+    return (
+      <div className="agenda-detalle">
+        <p style={{ color: 'var(--p-ok)', fontWeight: 600, marginTop: 0 }}>
+          Turno confirmado: {reserva.team_name ? nombreEquipo(reserva.team_name) : reserva.client_name} · {NOMBRE_CANCHA[reserva.court]} {hhmm(reserva.start_time)}–{hhmm(reserva.end_time)}.
+        </p>
+        {confirmada.link ? (
+          <a
+            className={`btn ${waAbierto ? 'btn-ghost' : 'btn-primary'}`}
+            style={{ textDecoration: 'none', textAlign: 'center', display: 'block', margin: '10px 0' }}
+            href={confirmada.link}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setWaAbierto(true)}
+          >
+            {waAbierto ? '✓ WhatsApp abierto' : `Avisarle a ${primerNombre(reserva.client_name)} por WhatsApp`}
+          </a>
+        ) : (
+          <p style={{ fontSize: 'var(--pt-micro)', color: 'var(--p-bad)', margin: '10px 0' }}>Sin número válido para avisarle por WhatsApp</p>
+        )}
+        <button className="btn btn-primary" style={{ width: '100%', marginTop: 6 }} onClick={onCancelado}>
+          Listo
+        </button>
+      </div>
+    );
   }
 
   if (cancelado) {
@@ -837,14 +885,21 @@ function DetalleReserva({ reserva, espera = [], fecha, onCancelado }) {
 
       {error && <p className="error-msg">{error}</p>}
 
+      {reserva.status === 'pendiente' && (
+        <button className="btn btn-primary" style={{ width: '100%', marginTop: 10 }} onClick={confirmar} disabled={confirmando || procesando}>
+          {confirmando ? 'Confirmando…' : 'Confirmar turno'}
+        </button>
+      )}
+
       <div className="modal-actions" style={{ marginTop: 10 }}>
         <BotonConfirmar
           label={procesando ? 'Cancelando…' : 'Cancelar turno'}
           confirmLabel="Confirmar cancelación"
           onConfirm={cancelar}
-          disabled={procesando}
+          disabled={procesando || confirmando}
         />
-        {reserva.linkWhatsappCancelacion ? (
+        {/* en una reserva pendiente no se ofrece el aviso de cancelación: el aviso útil es el de confirmación, que aparece al confirmar */}
+        {reserva.status === 'pendiente' ? null : reserva.linkWhatsappCancelacion ? (
           <a
             className={`btn ${waAbierto ? 'btn-ghost' : 'btn-primary'}`}
             style={{ textDecoration: 'none', textAlign: 'center' }}
@@ -3182,6 +3237,14 @@ function AdminPanelInterno() {
   useEffect(() => {
     if (tab === 'stats') cargarStats();
   }, [tab]);
+
+  // si se confirma o cancela un turno desde la Agenda, se actualiza la lista de pendientes y el contador
+  useEffect(() => {
+    const alCambiar = () => cargarPendientes();
+    window.addEventListener('pendientes-cambiaron', alCambiar);
+    return () => window.removeEventListener('pendientes-cambiaron', alCambiar);
+    // eslint-disable-next-line
+  }, []);
 
   // Anota desde qué dispositivo se usa el panel (para ver quién tiene la app instalada).
   useEffect(() => registrarDispositivo(), []);

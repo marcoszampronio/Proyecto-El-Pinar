@@ -63,15 +63,51 @@ async function requestPublico(path, options = {}) {
   return leerRespuesta(res);
 }
 
+// Si el servidor dice "sesión inválida" (401), puede ser que la sesión se haya vencido con la app guardada en segundo plano
+// (en el celular pasa seguido): se intenta renovarla UNA vez. Si no se puede, se cierra la sesión y se vuelve al login
+// con un aviso, en vez de dejar el panel lleno de errores sin salida.
+let cerrandoSesion = false;
+async function renovarSesion() {
+  try {
+    const { supabase } = await import('./supabaseClient');
+    const { data, error } = await supabase.auth.refreshSession();
+    return !error && !!data?.session;
+  } catch {
+    return false;
+  }
+}
+async function cerrarSesionVencida() {
+  if (cerrandoSesion) return;
+  cerrandoSesion = true;
+  try {
+    try {
+      sessionStorage.setItem('elpinar-sesion-vencida', '1');
+      sessionStorage.removeItem('elpinar-rol');
+      sessionStorage.removeItem('elpinar-yo');
+    } catch { /* sin almacenamiento */ }
+    const { supabase } = await import('./supabaseClient');
+    await supabase.auth.signOut();
+  } catch { /* si falla, el próximo intento lo vuelve a resolver */ } finally {
+    cerrandoSesion = false;
+  }
+}
+
 async function requestAdmin(path, options = {}) {
-  const token = await tokenAdmin();
-  const res = await pedir(`${API_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    ...options,
-  });
+  const enviar = async () => {
+    const token = await tokenAdmin();
+    return pedir(`${API_URL}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      ...options,
+    });
+  };
+  let res = await enviar();
+  if (res.status === 401) {
+    if (await renovarSesion()) res = await enviar(); // un 401 no procesó nada: reintentar es seguro
+    if (res.status === 401) await cerrarSesionVencida();
+  }
   return leerRespuesta(res);
 }
 

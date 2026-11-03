@@ -3246,6 +3246,20 @@ function AdminPanelInterno() {
     if (tab === 'stats') cargarStats();
   }, [tab]);
 
+  // Recarga la app entera en la misma pantalla en la que estaba (así también toma la versión más nueva).
+  function actualizar() {
+    desHecho.confirmarTodo(); // lo que estaba esperando en un aviso se manda antes de recargar
+    window.location.assign(`/panel?tab=${tab}`);
+  }
+
+  // Al volver a la app (por ejemplo después de usar WhatsApp), se actualiza la lista de pendientes y el contador.
+  useEffect(() => {
+    const alVolver = () => { if (document.visibilityState === 'visible') cargarPendientes(); };
+    document.addEventListener('visibilitychange', alVolver);
+    return () => document.removeEventListener('visibilitychange', alVolver);
+    // eslint-disable-next-line
+  }, []);
+
   // si se confirma o cancela un turno desde la Agenda, se actualiza la lista de pendientes y el contador
   useEffect(() => {
     const alCambiar = () => cargarPendientes();
@@ -3365,6 +3379,10 @@ function AdminPanelInterno() {
           {pendientes.length > 0 && <span className="ptop-punto" aria-label={`${pendientes.length} pendientes`}>{pendientes.length}</span>}
         </button>
         <span className="ptop-titulo">{(NAV.find((n) => n.id === tab) || {}).label}</span>
+        {/* en el iPhone la app instalada no tiene "arrastrar para recargar": este botón vuelve a cargar todo (y trae la versión más nueva) */}
+        <button type="button" className="ptop-btn ptop-actualizar" aria-label="Actualizar" title="Actualizar" onClick={actualizar}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9" /><path d="M20 4v5h-5" /></svg>
+        </button>
       </header>
       {menu && <div className="pnav-fondo" onClick={() => setMenu(false)} aria-hidden="true" />}
       <aside className={`pnav ${menu ? 'abierto' : ''}`}>

@@ -5,7 +5,17 @@ import CampoClave from '../components/panel/CampoClave';
 export default function AdminLogin({ errorInicial = null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(errorInicial);
+  // si el panel cerró la sesión porque se había vencido, se avisa (una sola vez)
+  const [error, setError] = useState(() => {
+    if (errorInicial) return errorInicial;
+    try {
+      if (sessionStorage.getItem('elpinar-sesion-vencida')) {
+        sessionStorage.removeItem('elpinar-sesion-vencida');
+        return 'Tu sesión venció. Iniciá sesión de nuevo para seguir.';
+      }
+    } catch { /* sin almacenamiento */ }
+    return null;
+  });
   const [cargando, setCargando] = useState(false);
   const [aviso, setAviso] = useState(null);
 

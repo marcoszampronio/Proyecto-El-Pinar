@@ -2372,6 +2372,8 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
     box-shadow: 0 0 0 2px var(--p-nav);
   }
   .ptop-titulo { font-weight: 700; font-size: var(--pt-lead); color: var(--p-txt); }
+  .ptop-actualizar { margin-left: auto; color: var(--p-mut); }
+  .ptop-actualizar:hover, .ptop-actualizar:active { color: var(--p-oro); border-color: var(--p-oro); }
 
   .pnav-fondo { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(5, 13, 20, 0.62); }
   .pnav {

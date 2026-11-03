@@ -9,6 +9,7 @@ import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
 import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
 import Info from '../components/panel/Info';
 import Visitas from '../components/panel/Visitas';
+import BotonHistoriaIG from '../components/panel/BotonHistoriaIG';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -55,7 +56,8 @@ function BotonConfirmar({ label, confirmLabel = '¿Seguro? Tocá de nuevo', onCo
 }
 
 // Navegador de fecha: ‹  Martes 1 de septiembre  ›  + acceso a un date picker.
-function NavegadorFecha({ fecha, onCambiar, soloHabilitados = true }) {
+// extra (opcional): algo más al final de la fila, por ejemplo el botón de Instagram.
+function NavegadorFecha({ fecha, onCambiar, soloHabilitados = true, extra = null }) {
   const [abrirPicker, setAbrirPicker] = useState(false);
   const p = partesFecha(fecha);
 
@@ -76,6 +78,7 @@ function NavegadorFecha({ fecha, onCambiar, soloHabilitados = true }) {
           <span className="agenda-fecha-mes">{p.mes} {p.anio}</span>
         </button>
         <button className="agenda-flecha" onClick={() => saltar(1)} aria-label="Día siguiente">›</button>
+        {extra}
       </div>
       {abrirPicker && (
         <input
@@ -1134,7 +1137,11 @@ function AgendaDia({ fechaInicial = null, codigoInicial = null }) {
 
   return (
     <div className="stat-card">
-      <NavegadorFecha fecha={fecha} onCambiar={(f) => { yaElegi.current = true; setFecha(f); }} />
+      <NavegadorFecha
+        fecha={fecha}
+        onCambiar={(f) => { yaElegi.current = true; setFecha(f); }}
+        extra={<BotonHistoriaIG modo="dia" fecha={fecha} />}
+      />
 
       {cargando && <p style={{ color: 'var(--p-mut)' }}>Cargando…</p>}
       {error && <p className="error-msg">{error}</p>}
@@ -1351,6 +1358,7 @@ function SemanaPanel() {
           <span className="agenda-fecha-mes">{primero.anio}</span>
         </div>
         <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, 7))} aria-label="Semana siguiente">›</button>
+        <BotonHistoriaIG modo="semana" lunes={lunes} />
       </div>
 
       {error && <p className="error-msg">{error}</p>}

@@ -1017,6 +1017,27 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   background: transparent; color: var(--p-txt); font-size: var(--pt-titulo); cursor: pointer;
 }
 .agenda-flecha:hover { border-color: var(--p-oro); color: var(--p-oro); }
+/* botón con el logo de Instagram: descarga la imagen de historia con los turnos libres */
+.ig-btn {
+  flex: 0 0 44px; height: 44px; display: grid; place-items: center; padding: 0;
+  border: 1.5px solid var(--p-linea); border-radius: var(--pr); background: transparent;
+  color: var(--p-oro); cursor: pointer;
+}
+.ig-btn svg { width: 22px; height: 22px; }
+.ig-btn:hover { border-color: var(--p-oro); background: rgba(242, 193, 78, 0.08); }
+.ig-btn:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; }
+.ig-btn:disabled { cursor: progress; }
+.ig-giro { width: 18px; height: 18px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: igGiro 0.8s linear infinite; }
+@keyframes igGiro { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ig-giro { animation-duration: 2.4s; } }
+.ig-aviso {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 60;
+  width: max-content; max-width: min(92vw, 420px); padding: 12px 16px; border-radius: var(--pr);
+  background: var(--p-card); color: var(--p-txt); border: 1px solid var(--p-oro);
+  font-size: var(--pt-chico); line-height: 1.4; box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+.ig-aviso--ok { border-color: var(--p-ok); }
+.ig-aviso--error { border-color: var(--p-bad); }
 .agenda-flecha:active { background: rgba(255,255,255,0.06); }
 .agenda-fecha { flex: 1; border: none; background: transparent; color: var(--p-txt); cursor: pointer; padding: 4px; line-height: 1.2; text-align: left; }
 .agenda-fecha-dia { display: block; font-family: var(--s-texto); font-size: var(--pt-titulo); font-weight: 700; text-transform: capitalize; }

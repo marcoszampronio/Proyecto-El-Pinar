@@ -32,10 +32,9 @@ cd frontend && npm run build
 ## Estilos (selector Claro / Azul / Dorado, se recuerda por celular)
 - Claro: fondo crema, bloque verde detrás de "LIBRES".
 - Azul: azul pino con verde.
-- **Dorado**: azul pino con el dorado `#F2C14E` de los videos de "Busco rival" (la última versión mostrada). Hoy el estilo por defecto es Claro; falta decidir si pasa a ser Dorado.
+- **Dorado**: azul pino con el dorado `#F2C14E` de los videos de "Busco rival" (la última versión mostrada). **Es el estilo por defecto** (si alguien ya eligió otro en su celular, se respeta).
 
 ## Pendiente
 1. Probarlo en el panel real (login de Mateo, reservas reales) y en un celular Android: hasta ahora solo se vio con datos de ejemplo.
 2. Revisarlo con el criterio UX/UI de `CLAUDE.md`.
-3. Decidir el estilo por defecto.
-4. Subir a `main` solo cuando Marcos lo apruebe; sin abrir pull request salvo que lo pida.
+3. Subir a `main` solo cuando Marcos lo apruebe; sin abrir pull request salvo que lo pida.

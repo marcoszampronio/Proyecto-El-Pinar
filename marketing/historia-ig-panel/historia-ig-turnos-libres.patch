@@ -1,9 +1,9 @@
 diff --git a/frontend/src/components/panel/HistoriaTurnos.jsx b/frontend/src/components/panel/HistoriaTurnos.jsx
 new file mode 100644
-index 0000000..ddcb22d
+index 0000000..5ab9807
 --- /dev/null
 +++ b/frontend/src/components/panel/HistoriaTurnos.jsx
-@@ -0,0 +1,192 @@
+@@ -0,0 +1,196 @@
 +import { useEffect, useRef, useState } from 'react';
 +import { api } from '../../api';
 +import {
@@ -32,7 +32,11 @@ index 0000000..ddcb22d
 +    try { return localStorage.getItem('panel-historia-modo') === 'semana' ? 'semana' : 'dia'; } catch { return 'dia'; }
 +  });
 +  const [estilo, setEstilo] = useState(() => {
-+    try { return ['azul', 'dorado'].includes(localStorage.getItem('panel-historia-estilo')) ? localStorage.getItem('panel-historia-estilo') : 'claro'; } catch { return 'claro'; }
++    // por defecto "dorado"; si ya eligió otro en este celular, se respeta
++    try {
++      const guardado = localStorage.getItem('panel-historia-estilo');
++      return ['claro', 'azul', 'dorado'].includes(guardado) ? guardado : 'dorado';
++    } catch { return 'dorado'; }
 +  });
 +  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
 +  const [lunes, setLunes] = useState(semanaInicial);
@@ -198,7 +202,7 @@ index 0000000..ddcb22d
 +}
 diff --git a/frontend/src/lib/historiaTurnos.js b/frontend/src/lib/historiaTurnos.js
 new file mode 100644
-index 0000000..d480a49
+index 0000000..cb5bf10
 --- /dev/null
 +++ b/frontend/src/lib/historiaTurnos.js
 @@ -0,0 +1,302 @@
@@ -435,7 +439,7 @@ index 0000000..d480a49
 + *   modo: 'dia' | 'semana',
 + *   subtitulo: string ("MARTES 4 DE NOVIEMBRE" / "DEL 3 AL 5 DE NOVIEMBRE"),
 + *   dias: [{ fecha, diaCorto, diaNum, turnos: [{ hora, libres: ['C1','C2'], cerrado }] }],
-+ *   estilo: 'claro' | 'azul' | 'dorado' (por defecto 'claro'),
++ *   estilo: 'claro' | 'azul' | 'dorado' (por defecto 'dorado'),
 + * }
 + * Solo se dibujan los turnos libres: lo reservado no se muestra.
 + */
@@ -448,7 +452,7 @@ index 0000000..d480a49
 +    ]);
 +  } catch { /* si no cargan, se usan las de respaldo */ }
 +
-+  COL = TEMAS[datos.estilo] || TEMAS.claro;
++  COL = TEMAS[datos.estilo] || TEMAS.dorado;
 +  canvas.width = HISTORIA_W;
 +  canvas.height = HISTORIA_H;
 +  const ctx = canvas.getContext('2d');

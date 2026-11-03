@@ -198,10 +198,10 @@ index 0000000..ddcb22d
 +}
 diff --git a/frontend/src/lib/historiaTurnos.js b/frontend/src/lib/historiaTurnos.js
 new file mode 100644
-index 0000000..5bdce95
+index 0000000..d480a49
 --- /dev/null
 +++ b/frontend/src/lib/historiaTurnos.js
-@@ -0,0 +1,293 @@
+@@ -0,0 +1,302 @@
 +// Dibuja la imagen de "turnos libres" para subir a una historia de Instagram (1080×1920).
 +// Se hace con canvas (sin librerías): el dibujo es siempre el mismo y se descarga como PNG.
 +// Zona segura de Instagram: arriba ~250 px y abajo ~300 px quedan tapados por la app, ahí no va nada importante.
@@ -290,18 +290,27 @@ index 0000000..5bdce95
 +    ctx.fillStyle = COL.fondo;
 +  }
 +  ctx.fillRect(0, 0, HISTORIA_W, HISTORIA_H);
-+  // líneas de cancha muy suaves (círculo central + línea de mitad de cancha)
++  // líneas de cancha muy suaves: círculo central y línea de mitad de cancha, que pasa justo por su centro
++  const cx = 860;
++  const cy = 1200;
++  const ang = -0.52;             // inclinación de la línea de mitad de cancha
++  const dx = Math.cos(ang);
++  const dy = Math.sin(ang);
 +  ctx.save();
 +  ctx.strokeStyle = COL.lineas;
++  ctx.fillStyle = COL.lineas;
 +  ctx.lineWidth = 16;
 +  ctx.lineCap = 'round';
 +  ctx.beginPath();
-+  ctx.arc(1230, 1100, 660, 0, Math.PI * 2);
++  ctx.arc(cx, cy, 520, 0, Math.PI * 2);
 +  ctx.stroke();
 +  ctx.beginPath();
-+  ctx.moveTo(-40, 1560);
-+  ctx.lineTo(1120, 820);
++  ctx.moveTo(cx - dx * 2200, cy - dy * 2200);
++  ctx.lineTo(cx + dx * 2200, cy + dy * 2200);
 +  ctx.stroke();
++  ctx.beginPath();
++  ctx.arc(cx, cy, 20, 0, Math.PI * 2);   // punto central
++  ctx.fill();
 +  ctx.restore();
 +}
 +

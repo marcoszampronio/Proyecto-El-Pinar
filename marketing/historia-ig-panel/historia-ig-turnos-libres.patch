@@ -1,0 +1,556 @@
+diff --git a/frontend/src/components/panel/HistoriaTurnos.jsx b/frontend/src/components/panel/HistoriaTurnos.jsx
+new file mode 100644
+index 0000000..ddcb22d
+--- /dev/null
++++ b/frontend/src/components/panel/HistoriaTurnos.jsx
+@@ -0,0 +1,192 @@
++import { useEffect, useRef, useState } from 'react';
++import { api } from '../../api';
++import {
++  hoyISO, proximoDiaHabilitado, sumarDias, esDiaHabilitado, lunesDeLaSemana, partesFecha,
++} from '../../lib/fechas';
++import {
++  dibujarHistoria, hayTurnosLibres, turnosDeAgenda, etiquetasDia, subtituloDia, subtituloSemana,
++} from '../../lib/historiaTurnos';
++import Info from './Info';
++
++// Primer lunes que muestra la vista semanal: la semana en curso, y de viernes en adelante la que viene.
++function semanaInicial() {
++  const dow = new Date().getDay();
++  const lunes = lunesDeLaSemana(hoyISO());
++  return dow === 0 || dow >= 5 ? sumarDias(lunes, 7) : lunes;
++}
++
++function nombreArchivo(modo, ref, estilo) {
++  return `turnos-libres-${modo === 'dia' ? ref : `semana-${ref}`}-${estilo}.png`;
++}
++
++// Arma la historia de Instagram con los turnos libres del día o de la semana, lista para descargar o compartir.
++// Navegador: el selector de día del panel (se le pasa de AdminPanel para no duplicarlo).
++export default function HistoriaTurnos({ Navegador }) {
++  const [modo, setModo] = useState(() => {
++    try { return localStorage.getItem('panel-historia-modo') === 'semana' ? 'semana' : 'dia'; } catch { return 'dia'; }
++  });
++  const [estilo, setEstilo] = useState(() => {
++    try { return ['azul', 'dorado'].includes(localStorage.getItem('panel-historia-estilo')) ? localStorage.getItem('panel-historia-estilo') : 'claro'; } catch { return 'claro'; }
++  });
++  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
++  const [lunes, setLunes] = useState(semanaInicial);
++  const [dias, setDias] = useState(null); // [{ fecha, turnos }]
++  const [error, setError] = useState(null);
++  const [cargando, setCargando] = useState(false);
++  const [puedeCompartir, setPuedeCompartir] = useState(false);
++  const canvasRef = useRef(null);
++
++  function elegirEstilo(e) {
++    setEstilo(e);
++    try { localStorage.setItem('panel-historia-estilo', e); } catch { /* sin almacenamiento: no pasa nada */ }
++  }
++  function elegirModo(m) {
++    setModo(m);
++    try { localStorage.setItem('panel-historia-modo', m); } catch { /* sin almacenamiento: no pasa nada */ }
++  }
++
++  // trae la agenda de los días que entran en la imagen
++  useEffect(() => {
++    let vigente = true;
++    async function cargar() {
++      setCargando(true);
++      setError(null);
++      try {
++        let fechas;
++        if (modo === 'dia') {
++          fechas = [fecha];
++        } else {
++          const aperturas = await api.adminAperturas(lunes, sumarDias(lunes, 4)).catch(() => ({ aperturas: [] }));
++          const abiertos = new Set((aperturas.aperturas || []).map((a) => a.reservation_date));
++          const hoy = hoyISO();
++          fechas = [0, 1, 2, 3, 4]
++            .map((n) => sumarDias(lunes, n))
++            .filter((f) => f >= hoy && (esDiaHabilitado(f) || abiertos.has(f)));
++        }
++        const agendas = await Promise.all(fechas.map((f) => api.adminAgenda(f)));
++        if (!vigente) return;
++        const ahora = new Date();
++        setDias(fechas.map((f, i) => ({ fecha: f, ...etiquetasDia(f), turnos: turnosDeAgenda(f, agendas[i], ahora) })));
++      } catch (e) {
++        if (!vigente) return;
++        setError(e.message);
++        setDias(null);
++      } finally {
++        if (vigente) setCargando(false);
++      }
++    }
++    cargar();
++    return () => { vigente = false; };
++  }, [modo, fecha, lunes]);
++
++  // dibuja la imagen cada vez que cambian los datos
++  useEffect(() => {
++    if (!dias || !dias.length || !hayTurnosLibres(dias) || !canvasRef.current) return;
++    const subtitulo = modo === 'dia' ? subtituloDia(dias[0].fecha) : subtituloSemana(dias.map((d) => d.fecha));
++    dibujarHistoria(canvasRef.current, { modo, estilo, subtitulo, dias });
++  }, [dias, modo, estilo]);
++
++  // ¿el celular permite compartir un archivo directo a Instagram?
++  useEffect(() => {
++    try {
++      const prueba = new File([new Blob(['x'], { type: 'image/png' })], 'x.png', { type: 'image/png' });
++      setPuedeCompartir(!!(navigator.canShare && navigator.canShare({ files: [prueba] })));
++    } catch { setPuedeCompartir(false); }
++  }, []);
++
++  function blob() {
++    return new Promise((resolve) => canvasRef.current.toBlob(resolve, 'image/png'));
++  }
++  const ref = dias && dias.length ? dias[0].fecha : hoyISO();
++
++  async function descargar() {
++    const b = await blob();
++    const url = URL.createObjectURL(b);
++    const a = document.createElement('a');
++    a.href = url;
++    a.download = nombreArchivo(modo, ref, estilo);
++    document.body.appendChild(a);
++    a.click();
++    a.remove();
++    setTimeout(() => URL.revokeObjectURL(url), 2000);
++  }
++
++  async function compartir() {
++    const b = await blob();
++    const archivo = new File([b], nombreArchivo(modo, ref, estilo), { type: 'image/png' });
++    try {
++      await navigator.share({ files: [archivo] });
++    } catch (e) {
++      if (e.name !== 'AbortError') setError('No se pudo abrir el menú de compartir. Probá con Descargar.');
++    }
++  }
++
++  const hayDias = dias && dias.length > 0;
++  const hayLibres = hayTurnosLibres(dias);
++  const rangoSemana = (() => {
++    const a = partesFecha(sumarDias(lunes, 1));
++    const b = partesFecha(sumarDias(lunes, 3));
++    return a.mes === b.mes ? `${a.diaNum} al ${b.diaNum} de ${b.mes}` : `${a.diaNum} de ${a.mes} al ${b.diaNum} de ${b.mes}`;
++  })();
++
++  return (
++    <div className="stat-card historia">
++      <h3 style={{ marginTop: 0 }}>
++        Historia de Instagram
++        <Info>Arma una imagen solo con los turnos de fútbol que están libres (lo reservado no se muestra), lista para subir a tu historia. Se calcula con lo que hay en la agenda en este momento: si después entra una reserva, volvé a generarla.</Info>
++      </h3>
++
++      <div className="vista-toggle" role="tablist" aria-label="Qué turnos mostrar">
++        <button type="button" role="tab" aria-selected={modo === 'dia'} className={modo === 'dia' ? 'on' : ''} onClick={() => elegirModo('dia')}>Del día</button>
++        <button type="button" role="tab" aria-selected={modo === 'semana'} className={modo === 'semana' ? 'on' : ''} onClick={() => elegirModo('semana')}>De la semana</button>
++      </div>
++
++      {modo === 'dia' ? (
++        <Navegador fecha={fecha} onCambiar={setFecha} />
++      ) : (
++        <div className="agenda-nav">
++          <div className="agenda-nav-row">
++            <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, -7))} aria-label="Semana anterior" disabled={lunes <= lunesDeLaSemana(hoyISO())}>‹</button>
++            <div className="agenda-fecha" style={{ cursor: 'default' }}>
++              <span className="agenda-fecha-dia">{rangoSemana}</span>
++              <span className="agenda-fecha-mes">martes a jueves</span>
++            </div>
++            <button className="agenda-flecha" onClick={() => setLunes(sumarDias(lunes, 7))} aria-label="Semana siguiente">›</button>
++          </div>
++        </div>
++      )}
++
++      {error && <p className="error-msg">{error}</p>}
++      {cargando && !hayDias && <div className="cargando">Armando la imagen…</div>}
++      {!cargando && dias && !hayDias && (
++        <p className="vacio">No hay días habilitados para mostrar en esta semana. Probá con la siguiente.</p>
++      )}
++
++      {hayDias && !hayLibres && !cargando && (
++        <p className="vacio">
++          {modo === 'dia' ? 'No quedan turnos libres ese día.' : 'No quedan turnos libres en esta semana.'} Probá con otra fecha.
++        </p>
++      )}
++
++      {hayDias && hayLibres && (
++        <>
++          <div className="vista-toggle historia-estilo" role="tablist" aria-label="Estilo de la imagen">
++            <button type="button" role="tab" aria-selected={estilo === 'claro'} className={estilo === 'claro' ? 'on' : ''} onClick={() => elegirEstilo('claro')}>Claro</button>
++            <button type="button" role="tab" aria-selected={estilo === 'azul'} className={estilo === 'azul' ? 'on' : ''} onClick={() => elegirEstilo('azul')}>Azul</button>
++            <button type="button" role="tab" aria-selected={estilo === 'dorado'} className={estilo === 'dorado' ? 'on' : ''} onClick={() => elegirEstilo('dorado')}>Dorado</button>
++          </div>
++          <div className="historia-vista" aria-busy={cargando}>
++            <canvas ref={canvasRef} className="historia-canvas" role="img" aria-label="Vista previa de la historia de turnos libres" />
++          </div>
++          <div className="historia-acciones">
++            <button className="btn btn-primary" onClick={descargar} disabled={cargando}>Descargar imagen</button>
++            {puedeCompartir && <button className="btn btn-ghost" onClick={compartir} disabled={cargando}>Compartir</button>}
++          </div>
++          <p className="historia-ayuda">
++            Para subirla: {puedeCompartir ? 'tocá Compartir y elegí Instagram → Historias, o ' : ''}descargala y elegila desde la galería al crear la historia.
++          </p>
++        </>
++      )}
++    </div>
++  );
++}
+diff --git a/frontend/src/lib/historiaTurnos.js b/frontend/src/lib/historiaTurnos.js
+new file mode 100644
+index 0000000..5bdce95
+--- /dev/null
++++ b/frontend/src/lib/historiaTurnos.js
+@@ -0,0 +1,293 @@
++// Dibuja la imagen de "turnos libres" para subir a una historia de Instagram (1080×1920).
++// Se hace con canvas (sin librerías): el dibujo es siempre el mismo y se descarga como PNG.
++// Zona segura de Instagram: arriba ~250 px y abajo ~300 px quedan tapados por la app, ahí no va nada importante.
++import { desdeISO, fechaLargaCompleta, partesFecha } from './fechas';
++
++export const HISTORIA_W = 1080;
++export const HISTORIA_H = 1920;
++
++// Tres estilos: "claro" (fondo crema), "azul" (azul pino) y "dorado" (azul pino con el dorado de la marca).
++const TEMAS = {
++  claro: {
++    fondo: '#FAF8F3', tinta: '#0F2436', verde: '#5BAE6B', sobreVerde: '#0F2436', gris: '#6B7A86',
++    lineas: 'rgba(91,174,107,0.16)', tarjeta: '#FFFFFF', chip: '#DDEFD9', borde: '#0F2436',
++    pildora: '#0F2436', pildoraTexto: '#FAF8F3', diaFondo: '#0F2436', diaTexto: '#FAF8F3',
++  },
++  azul: {
++    fondo: '#0F2436', tinta: '#F3EEE1', verde: '#5BAE6B', sobreVerde: '#0F2436', gris: '#9FB6C9',
++    lineas: 'rgba(243,238,225,0.08)', tarjeta: 'rgba(243,238,225,0.08)', chip: 'rgba(91,174,107,0.30)', borde: 'rgba(243,238,225,0.55)',
++    pildora: '#F3EEE1', pildoraTexto: '#0F2436', diaFondo: '#F3EEE1', diaTexto: '#0F2436', degrade: true,
++  },
++  // azul pino con el dorado de la marca (el de los videos de "Busco rival")
++  dorado: {
++    fondo: '#0F2436', tinta: '#F3EEE1', verde: '#F2C14E', sobreVerde: '#0F2436', gris: '#9FB6C9',
++    lineas: 'rgba(243,238,225,0.08)', tarjeta: 'rgba(243,238,225,0.08)', chip: '#F2C14E', textoChip: '#0F2436', borde: 'rgba(243,238,225,0.55)',
++    pildora: '#F3EEE1', pildoraTexto: '#0F2436', diaFondo: '#F3EEE1', diaTexto: '#0F2436', degrade: true,
++  },
++};
++let COL = TEMAS.claro;
++
++const FUENTE = 'Satoshi, system-ui, sans-serif';
++const SERIF = '"DM Serif Display", Georgia, serif';
++
++const DIA_CORTO_MAYUS = { domingo: 'DOM', lunes: 'LUN', martes: 'MAR', miércoles: 'MIÉ', jueves: 'JUE', viernes: 'VIE', sábado: 'SÁB' };
++
++function rect(ctx, x, y, w, h, r) {
++  ctx.beginPath();
++  ctx.moveTo(x + r, y);
++  ctx.arcTo(x + w, y, x + w, y + h, r);
++  ctx.arcTo(x + w, y + h, x, y + h, r);
++  ctx.arcTo(x, y + h, x, y, r);
++  ctx.arcTo(x, y, x + w, y, r);
++  ctx.closePath();
++}
++
++function texto(ctx, t, x, y, { size, peso = 700, color = COL.tinta, align = 'center', fuente = FUENTE, espaciado = 0 }) {
++  ctx.font = `${peso} ${size}px ${fuente}`;
++  ctx.fillStyle = color;
++  ctx.textAlign = align;
++  ctx.textBaseline = 'alphabetic';
++  if ('letterSpacing' in ctx) ctx.letterSpacing = `${espaciado}px`;
++  ctx.fillText(t, x, y);
++  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
++}
++
++// Titular pesado: se engorda el trazo para que parezca una tipografía "black".
++function titular(ctx, t, x, y, size, { relleno = null, contorno = null, color = COL.tinta, grosor = 6, alpha = 1 }) {
++  ctx.save();
++  ctx.globalAlpha = alpha;
++  ctx.font = `700 ${size}px ${FUENTE}`;
++  ctx.textAlign = 'center';
++  ctx.textBaseline = 'alphabetic';
++  ctx.lineJoin = 'round';
++  if ('letterSpacing' in ctx) ctx.letterSpacing = '-4px';
++  if (relleno) {
++    ctx.fillStyle = color;
++    ctx.strokeStyle = color;
++    ctx.lineWidth = grosor;
++    ctx.strokeText(t, x, y);
++    ctx.fillText(t, x, y);
++  }
++  if (contorno) {
++    ctx.strokeStyle = color;
++    ctx.lineWidth = 4;
++    ctx.strokeText(t, x, y);
++  }
++  ctx.restore();
++}
++
++function fondo(ctx) {
++  if (COL.degrade) {
++    const g = ctx.createLinearGradient(0, 0, 0, HISTORIA_H);
++    g.addColorStop(0, '#12304A');
++    g.addColorStop(1, '#0B1B2A');
++    ctx.fillStyle = g;
++  } else {
++    ctx.fillStyle = COL.fondo;
++  }
++  ctx.fillRect(0, 0, HISTORIA_W, HISTORIA_H);
++  // líneas de cancha muy suaves (círculo central + línea de mitad de cancha)
++  ctx.save();
++  ctx.strokeStyle = COL.lineas;
++  ctx.lineWidth = 16;
++  ctx.lineCap = 'round';
++  ctx.beginPath();
++  ctx.arc(1230, 1100, 660, 0, Math.PI * 2);
++  ctx.stroke();
++  ctx.beginPath();
++  ctx.moveTo(-40, 1560);
++  ctx.lineTo(1120, 820);
++  ctx.stroke();
++  ctx.restore();
++}
++
++function encabezado(ctx, subtitulo) {
++  // contorno repetido hacia arriba, y la palabra llena abajo
++  titular(ctx, 'TURNOS', 540, 400, 200, { contorno: true, alpha: 0.14 });
++  titular(ctx, 'TURNOS', 540, 510, 200, { contorno: true, alpha: 0.3 });
++  titular(ctx, 'TURNOS', 540, 620, 200, { relleno: true });
++
++  // "LIBRES" sobre un bloque verde
++  ctx.font = `700 200px ${FUENTE}`;
++  if ('letterSpacing' in ctx) ctx.letterSpacing = '-4px';
++  const wl = ctx.measureText('LIBRES').width;
++  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
++  ctx.fillStyle = COL.verde;
++  rect(ctx, 540 - wl / 2 - 36, 656, wl + 72, 196, 40);
++  ctx.fill();
++  titular(ctx, 'LIBRES', 540, 800, 200, { relleno: true, color: COL.sobreVerde });
++
++  // etiqueta con el día o la semana
++  ctx.font = `700 40px ${FUENTE}`;
++  if ('letterSpacing' in ctx) ctx.letterSpacing = '2px';
++  const w = ctx.measureText(subtitulo).width + 84;
++  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
++  ctx.fillStyle = COL.pildora;
++  rect(ctx, 540 - w / 2, 890, w, 84, 42);
++  ctx.fill();
++  texto(ctx, subtitulo, 540, 948, { size: 40, peso: 700, color: COL.pildoraTexto, espaciado: 2 });
++}
++
++// Solo la marca: pino + "El Pinar", centrados.
++function pie(ctx) {
++  const size = 76;
++  ctx.font = `400 ${size}px ${SERIF}`;
++  const wt = ctx.measureText('El Pinar').width;
++  const esc = 1.7;                 // tamaño del pino
++  const wp = 28 * esc;
++  const gap = 22;
++  const x0 = 540 - (wp + gap + wt) / 2;
++  ctx.save();
++  ctx.translate(x0, 1600);
++  ctx.scale(esc, esc);
++  ctx.fillStyle = COL.verde;
++  ctx.beginPath();
++  ctx.moveTo(14, 0); ctx.lineTo(20, 11); ctx.lineTo(17, 11); ctx.lineTo(22, 21); ctx.lineTo(19, 21);
++  ctx.lineTo(25, 32); ctx.lineTo(3, 32); ctx.lineTo(9, 21); ctx.lineTo(6, 21); ctx.lineTo(11, 11); ctx.lineTo(8, 11);
++  ctx.closePath();
++  ctx.fill();
++  ctx.fillRect(12, 31, 4, 7);
++  ctx.restore();
++  texto(ctx, 'El Pinar', x0 + wp + gap, 1658, { size, peso: 400, color: COL.tinta, align: 'left', fuente: SERIF });
++}
++
++// Vista "del día": una sola tarjeta con los horarios libres, separados por líneas finas.
++function cuerpoDia(ctx, dia) {
++  const filas = dia.turnos.filter((t) => t.libres.length && !t.cerrado);
++  const alto = filas.length > 2 ? 124 : 140;
++  const y0 = 1040;
++  const total = filas.length * alto;
++  ctx.fillStyle = COL.tarjeta;
++  rect(ctx, 100, y0, 880, total, 44);
++  ctx.fill();
++  ctx.strokeStyle = COL.borde;
++  ctx.lineWidth = 4;
++  rect(ctx, 100, y0, 880, total, 44);
++  ctx.stroke();
++  filas.forEach((t, i) => {
++    const y = y0 + i * alto;
++    if (i > 0) {
++      ctx.save();
++      ctx.globalAlpha = 0.22;
++      ctx.strokeStyle = COL.borde;
++      ctx.lineWidth = 3;
++      ctx.beginPath();
++      ctx.moveTo(150, y);
++      ctx.lineTo(930, y);
++      ctx.stroke();
++      ctx.restore();
++    }
++    ctx.fillStyle = COL.verde;
++    ctx.beginPath();
++    ctx.arc(190, y + alto / 2, 15, 0, Math.PI * 2);
++    ctx.fill();
++    texto(ctx, `${t.hora} hs`, 560, y + alto / 2 + 28, { size: 80, peso: 700 });
++  });
++}
++
++// Vista "de la semana": una fila por día, con los horarios libres escritos en una sola línea.
++function cuerpoSemana(ctx, dias) {
++  const conLibres = dias.filter((d) => d.turnos.some((t) => t.libres.length && !t.cerrado));
++  const n = Math.max(conLibres.length, 1);
++  const sep = 22;
++  const alto = Math.min(150, Math.floor((510 - (n - 1) * sep) / n));
++  conLibres.forEach((d, i) => {
++    const y = 1030 + i * (alto + sep);
++    // día
++    ctx.fillStyle = COL.diaFondo;
++    rect(ctx, 80, y, 200, alto, alto / 2);
++    ctx.fill();
++    texto(ctx, d.diaCorto, 180, y + alto * 0.46, { size: Math.min(42, alto * 0.28), peso: 700, color: COL.diaTexto, espaciado: 2 });
++    texto(ctx, d.diaNum, 180, y + alto * 0.8, { size: Math.min(46, alto * 0.3), peso: 700, color: COL.diaTexto });
++    // horarios libres en una línea
++    ctx.fillStyle = COL.chip;
++    rect(ctx, 300, y, 700, alto, alto / 2);
++    ctx.fill();
++    const horas = d.turnos.filter((t) => t.libres.length && !t.cerrado).map((t) => t.hora);
++    const linea = horas.join('   ·   ');
++    let size = Math.min(60, alto * 0.42);
++    ctx.font = `700 ${size}px ${FUENTE}`;
++    while (ctx.measureText(linea).width > 620 && size > 30) { size -= 2; ctx.font = `700 ${size}px ${FUENTE}`; }
++    texto(ctx, linea, 650, y + alto / 2 + size * 0.34, { size, peso: 700, color: COL.textoChip || COL.tinta });
++  });
++}
++
++// ¿hay algún turno libre para mostrar? (si no, no tiene sentido armar la historia)
++export function hayTurnosLibres(dias) {
++  return (dias || []).some((d) => d.turnos.some((t) => t.libres.length && !t.cerrado));
++}
++
++/**
++ * datos = {
++ *   modo: 'dia' | 'semana',
++ *   subtitulo: string ("MARTES 4 DE NOVIEMBRE" / "DEL 3 AL 5 DE NOVIEMBRE"),
++ *   dias: [{ fecha, diaCorto, diaNum, turnos: [{ hora, libres: ['C1','C2'], cerrado }] }],
++ *   estilo: 'claro' | 'azul' | 'dorado' (por defecto 'claro'),
++ * }
++ * Solo se dibujan los turnos libres: lo reservado no se muestra.
++ */
++export async function dibujarHistoria(canvas, datos) {
++  try {
++    await Promise.all([
++      document.fonts.load(`700 100px Satoshi`),
++      document.fonts.load(`500 40px Satoshi`),
++      document.fonts.load(`400 40px "DM Serif Display"`),
++    ]);
++  } catch { /* si no cargan, se usan las de respaldo */ }
++
++  COL = TEMAS[datos.estilo] || TEMAS.claro;
++  canvas.width = HISTORIA_W;
++  canvas.height = HISTORIA_H;
++  const ctx = canvas.getContext('2d');
++  fondo(ctx);
++  encabezado(ctx, datos.subtitulo);
++  if (datos.modo === 'dia' && datos.dias[0]) cuerpoDia(ctx, datos.dias[0]);
++  else cuerpoSemana(ctx, datos.dias);
++  pie(ctx);
++}
++
++// ---- armado de los datos a partir de la agenda del panel ----
++
++// 'YYYY-MM-DD' + 'HH:MM:SS' ya pasó (hora del celular, que en el complejo es la de Paraná)
++function yaPaso(fecha, horaInicio, ahora = new Date()) {
++  const [h, m] = horaInicio.split(':').map(Number);
++  const f = desdeISO(fecha);
++  f.setHours(h, m, 0, 0);
++  return f.getTime() <= ahora.getTime();
++}
++
++// agenda = respuesta de GET /api/admin/agenda/:fecha
++export function turnosDeAgenda(fecha, agenda, ahora = new Date()) {
++  const horarios = agenda.futbol.C1.map((s) => s.turn);
++  return horarios.map((turn) => {
++    const c1 = agenda.futbol.C1.find((s) => s.turn === turn);
++    const c2 = agenda.futbol.C2.find((s) => s.turn === turn);
++    const cerrado = yaPaso(fecha, c1.start, ahora);
++    const libres = [];
++    if (c1.status === 'libre') libres.push('C1');
++    if (c2.status === 'libre') libres.push('C2');
++    return { hora: c1.start.slice(0, 5), fin: c1.end.slice(0, 5), libres, cerrado };
++  });
++}
++
++export function etiquetasDia(fecha) {
++  const p = partesFecha(fecha);
++  return {
++    diaCorto: DIA_CORTO_MAYUS[p.diaSemana] || p.diaSemana.slice(0, 3).toUpperCase(),
++    diaNum: `${p.diaNum}/${String(desdeISO(fecha).getMonth() + 1).padStart(2, '0')}`,
++  };
++}
++
++export function subtituloDia(fecha) {
++  return fechaLargaCompleta(fecha).toUpperCase();
++}
++
++export function subtituloSemana(fechas) {
++  if (!fechas.length) return 'DE LA SEMANA';
++  const a = partesFecha(fechas[0]);
++  const b = partesFecha(fechas[fechas.length - 1]);
++  if (fechas.length === 1) return `${a.diaNum} DE ${a.mes.toUpperCase()}`;
++  return a.mes === b.mes
++    ? `DEL ${a.diaNum} AL ${b.diaNum} DE ${b.mes.toUpperCase()}`
++    : `DEL ${a.diaNum} DE ${a.mes.toUpperCase()} AL ${b.diaNum} DE ${b.mes.toUpperCase()}`;
++}
+diff --git a/frontend/src/pages/AdminPanel.jsx b/frontend/src/pages/AdminPanel.jsx
+index 73baae7..703d801 100644
+--- a/frontend/src/pages/AdminPanel.jsx
++++ b/frontend/src/pages/AdminPanel.jsx
+@@ -9,6 +9,7 @@ import { DeshacerProvider, useDeshacer } from '../components/panel/Deshacer';
+ import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
+ import Info from '../components/panel/Info';
+ import Visitas from '../components/panel/Visitas';
++import HistoriaTurnos from '../components/panel/HistoriaTurnos';
+ import {
+   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
+   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
+@@ -3169,7 +3170,7 @@ function AdminPanelInterno() {
+   const inicial = paramsUrl();
+   const desHecho = useDeshacer();
+   const [tab, setTab] = useState(
+-    ['hoy', 'agenda', 'contactos', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : 'hoy'
++    ['hoy', 'agenda', 'contactos', 'historia', 'fijos', 'suspender', 'stats'].includes(inicial.tab) ? inicial.tab : 'hoy'
+   );
+   const [codigo, setCodigo] = useState('');
+   const [resultado, setResultado] = useState(null);
+@@ -3343,6 +3344,7 @@ function AdminPanelInterno() {
+     { id: 'hoy', label: 'Hoy', ico: <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /> },
+     { id: 'agenda', label: 'Agenda', ico: <path d="M3 4h18v17H3zM3 9h18M8 2v4M16 2v4" /> },
+     { id: 'contactos', label: 'Contactos', ico: <path d="M9 8a3.2 3.2 0 1 0 0-.1M3.5 20c.6-3.4 3-5 5.5-5s4.9 1.6 5.5 5M16 8.5a3 3 0 0 0 0-1M17 20c-.2-2.4-1-4-2.3-5" /> },
++    { id: 'historia', label: 'Historia de IG', ico: <path d="M4 4h16v16H4zM4 15l4-4 4 4 3-3 5 5M15.5 8.5h.01" /> },
+     { id: 'fijos', label: 'Turnos fijos', ico: <path d="M12 7v5l3 2M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" /> },
+     { id: 'suspender', label: 'Eventos especiales', ico: <path d="M4 15a4 4 0 0 1 1-7.5A5.5 5.5 0 0 1 16 6a4 4 0 0 1 1 8.9M8 19l-1 2M12 19l-1 2M16 19l-1 2" /> },
+     { id: 'stats', label: 'Estadísticas', ico: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /> },
+@@ -3468,6 +3470,7 @@ function AdminPanelInterno() {
+         />
+       )}
+       {tab === 'agenda' && <AgendaPanel destino={destinoAgenda} />}
++      {tab === 'historia' && <HistoriaTurnos Navegador={NavegadorFecha} />}
+       {tab === 'suspender' && (
+         <>
+           <SuspensionPanel />
+diff --git a/frontend/src/styles.css b/frontend/src/styles.css
+index 09aaf19..47f470b 100644
+--- a/frontend/src/styles.css
++++ b/frontend/src/styles.css
+@@ -2730,3 +2730,17 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
+ }
+ .login-olvide:hover { color: var(--p-oro); }
+ .login-olvide:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; border-radius: var(--pr-s); }
++
++
++/* ===== Panel: Historia de Instagram (turnos libres) ===== */
++.historia-vista { margin: 16px auto 0; width: min(100%, 340px); }
++.historia-canvas {
++  display: block; width: 100%; height: auto; aspect-ratio: 9 / 16;
++  border-radius: 18px; border: 1px solid rgba(243, 238, 225, 0.14); background: #0F2436;
++  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
++}
++.historia-vista[aria-busy="true"] .historia-canvas { opacity: 0.55; }
++.historia-acciones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
++.historia-acciones .btn { min-width: 160px; }
++.historia-ayuda { text-align: center; color: var(--p-mut); font-size: var(--pt-chico); margin: 12px auto 0; max-width: 340px; }
++.historia-estilo { margin: 16px auto 0; width: fit-content; }

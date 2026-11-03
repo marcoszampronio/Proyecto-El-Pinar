@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import CampoClave from '../components/panel/CampoClave';
 
 export default function AdminLogin({ errorInicial = null }) {
   const [email, setEmail] = useState('');
@@ -38,7 +39,7 @@ export default function AdminLogin({ errorInicial = null }) {
         </div>
         <div className="field">
           <label>Contraseña</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <CampoClave value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </div>
         {error && <p className="error-msg">{error}</p>}
         {aviso && <p style={{ color: 'var(--p-ok)', fontSize: 'var(--pt-chico)', margin: '0 0 10px' }}>{aviso}</p>}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import CampoClave from '../components/panel/CampoClave';
 
 // Pantalla para elegir la contraseña propia: se muestra cuando alguien llega desde el link de una invitación
 // (empleado nuevo) o de "¿Olvidaste tu contraseña?". La contraseña la escribe la persona; nadie más la ve.
@@ -35,15 +36,12 @@ export default function ElegirClave({ alTerminar }) {
         <form onSubmit={guardar}>
           <div className="field">
             <label>Contraseña nueva</label>
-            <input type={mostrar ? 'text' : 'password'} value={clave} onChange={(e) => setClave(e.target.value)} autoComplete="new-password" required minLength={8} />
+            <CampoClave value={clave} onChange={(e) => setClave(e.target.value)} autoComplete="new-password" required minLength={8} mostrar={mostrar} onMostrar={setMostrar} />
           </div>
           <div className="field">
             <label>Repetila</label>
-            <input type={mostrar ? 'text' : 'password'} value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required minLength={8} />
+            <CampoClave value={repetida} onChange={(e) => setRepetida(e.target.value)} autoComplete="new-password" required minLength={8} mostrar={mostrar} onMostrar={setMostrar} />
           </div>
-          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', marginBottom: 12 }}>
-            <input type="checkbox" checked={mostrar} onChange={(e) => setMostrar(e.target.checked)} /> Mostrar contraseña
-          </label>
           {error && <p className="error-msg">{error}</p>}
           <button className="btn btn-primary" style={{ width: '100%' }} disabled={cargando}>
             {cargando ? 'Guardando...' : 'Guardar y entrar'}

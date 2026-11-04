@@ -969,6 +969,19 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .pnav-usuario span { font-size: var(--pt-micro); }
 
 .pmain { padding: 24px 28px 56px; min-width: 0; }
+/* Pantalla grande (compu): el contenido va en una columna centrada y legible, en vez de estirarse de punta a punta.
+   Los botones "de ancho completo" del celular, las grillas de turnos y los campos tienen un ancho máximo cómodo. */
+@media (min-width: 821px) {
+  .pmain { width: 100%; max-width: 800px; margin-inline: auto; }
+  /* la hoja de la semana (calendario) sí necesita ancho para que se lean los nombres de los equipos */
+  .pmain:has(.sem) { max-width: 1120px; }
+  .pmain .btn[style*="width: 100%"] { max-width: 460px; }
+  .hoy-grilla, .grilla, .est-mapa { max-width: 620px; }
+  .buscador { max-width: 460px; }
+  .selector-doble { max-width: 380px; }
+  .agenda-nav-row { max-width: 460px; }
+  .pmain .field { max-width: 560px; }
+}
 .admin-header { display: none; }
 .tabs { display: none; }
 

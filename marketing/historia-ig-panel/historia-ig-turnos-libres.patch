@@ -448,7 +448,7 @@ index 0000000..9930cc4
 +}
 diff --git a/frontend/src/lib/historiaTurnos.js b/frontend/src/lib/historiaTurnos.js
 new file mode 100644
-index 0000000..3c8011a
+index 0000000..5e6490b
 --- /dev/null
 +++ b/frontend/src/lib/historiaTurnos.js
 @@ -0,0 +1,395 @@
@@ -749,7 +749,7 @@ index 0000000..3c8011a
 +      texto(ctx, f.valor, 940, y + alto / 2 + size * 0.34, { size, peso: 700, align: 'right' });
 +    }
 +  });
-+  texto(ctx, 'Nos falta un equipo para completar el partido', 540, 1510, { size: 34, peso: 500, color: COL.gris });
++  texto(ctx, 'Nos falta un equipo para jugar', 540, 1514, { size: 40, peso: 700, color: COL.tinta });
 +}
 +
 +/**

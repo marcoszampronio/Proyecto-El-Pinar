@@ -2764,4 +2764,12 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
 .clave-ojo svg { width: 22px; height: 22px; }
 .clave-ojo:hover, .clave-ojo.activo { color: var(--p-oro); }
 .clave-ojo:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 1px; }
+
+/* vista previa de las imágenes de historia de Instagram (modal de "Busco rival") */
+.historia-vista { margin: 16px auto 0; width: min(100%, 340px); }
+.historia-canvas {
+  display: block; width: 100%; height: auto; aspect-ratio: 9 / 16;
+  border-radius: 18px; border: 1px solid rgba(243, 238, 225, 0.14); background: #0F2436;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
 .login-olvide:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; border-radius: var(--pr-s); }

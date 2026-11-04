@@ -1,5 +1,5 @@
 diff --git a/frontend/src/components/ImagenBuscoRival.jsx b/frontend/src/components/ImagenBuscoRival.jsx
-index 4fd83bc..573d5a1 100644
+index 4fd83bc..2eca577 100644
 --- a/frontend/src/components/ImagenBuscoRival.jsx
 +++ b/frontend/src/components/ImagenBuscoRival.jsx
 @@ -1,28 +1,18 @@
@@ -34,7 +34,7 @@ index 4fd83bc..573d5a1 100644
  // "2026-09-26" -> "Sábado 26/09"
  function diaCorto(iso) {
    if (!iso) return '';
-@@ -31,154 +21,80 @@ function diaCorto(iso) {
+@@ -31,154 +21,65 @@ function diaCorto(iso) {
    return `${nombre.charAt(0).toUpperCase()}${nombre.slice(1)} ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}`;
  }
  
@@ -141,18 +141,10 @@ index 4fd83bc..573d5a1 100644
 -    </div>
 -  );
 -});
-+// El estilo se comparte con la pestaña "Historia de IG": el que se elige en una vale para la otra.
-+function estiloGuardado() {
-+  try {
-+    const g = localStorage.getItem('panel-historia-estilo');
-+    return ['claro', 'azul', 'dorado'].includes(g) ? g : 'dorado';
-+  } catch { return 'dorado'; }
-+}
- 
+-
  export default function ImagenBuscoRivalModal({ reserva, fecha, nombreCancha, onCerrar }) {
    const [equipo, setEquipo] = useState(nombreEquipo(reserva.team_name));
 -  const [generando, setGenerando] = useState(false);
-+  const [estilo, setEstilo] = useState(estiloGuardado);
    const [error, setError] = useState(null);
 -  const [escala, setEscala] = useState(0.25);
 -  const cajaRef = useRef(null);
@@ -170,7 +162,6 @@ index 4fd83bc..573d5a1 100644
 +  const canvasRef = useRef(null);
  
    const datos = {
-+    estilo,
      equipo: nombreEquipo(equipo),
 -    cancha: `Fútbol 11\n${nombreCancha || reserva.court}`,
 +    cancha: nombreCancha || reserva.court,
@@ -179,16 +170,11 @@ index 4fd83bc..573d5a1 100644
 +    handle: HANDLE,
    };
  
-+  function elegirEstilo(e) {
-+    setEstilo(e);
-+    try { localStorage.setItem('panel-historia-estilo', e); } catch { /* sin almacenamiento: no pasa nada */ }
-+  }
-+
-+  // la vista previa se redibuja cada vez que cambia el nombre, el estilo o los datos
++  // la vista previa se redibuja cada vez que cambia el nombre o los datos
 +  useEffect(() => {
 +    if (canvasRef.current) dibujarBuscoRival(canvasRef.current, datos);
 +    // eslint-disable-next-line react-hooks/exhaustive-deps
-+  }, [estilo, equipo, fecha, nombreCancha, reserva.court, reserva.start_time]);
++  }, [equipo, fecha, nombreCancha, reserva.court, reserva.start_time]);
 +
 +  // ¿el celular permite compartir un archivo directo (por ejemplo a WhatsApp)?
 +  useEffect(() => {
@@ -244,7 +230,7 @@ index 4fd83bc..573d5a1 100644
      }
    }
  
-@@ -195,25 +111,22 @@ export default function ImagenBuscoRivalModal({ reserva, fecha, nombreCancha, on
+@@ -195,25 +96,16 @@ export default function ImagenBuscoRivalModal({ reserva, fecha, nombreCancha, on
            <input value={equipo} maxLength={40} onChange={(e) => setEquipo(e.target.value)} placeholder="Ej: Los Pibes FC" />
          </div>
  
@@ -258,12 +244,6 @@ index 4fd83bc..573d5a1 100644
 -          <div style={{ position: 'absolute', top: 0, left: 0, width: 1080, height: 1920, transform: `scale(${escala})`, transformOrigin: 'top left' }}>
 -            <Afiche ref={aficheRef} {...datos} />
 -          </div>
-+        <div className="vista-toggle historia-estilo" role="tablist" aria-label="Estilo de la imagen">
-+          {[['claro', 'Claro'], ['azul', 'Azul'], ['dorado', 'Dorado']].map(([id, nombre]) => (
-+            <button key={id} type="button" role="tab" aria-selected={estilo === id} className={estilo === id ? 'on' : ''} onClick={() => elegirEstilo(id)}>{nombre}</button>
-+          ))}
-+        </div>
-+
 +        <div className="historia-vista" style={{ width: 'min(100%, 270px)' }}>
 +          <canvas ref={canvasRef} className="historia-canvas" role="img" aria-label="Vista previa de la imagen de Busco rival" />
          </div>
@@ -282,10 +262,10 @@ index 4fd83bc..573d5a1 100644
      </div>,
 diff --git a/frontend/src/components/panel/HistoriaTurnos.jsx b/frontend/src/components/panel/HistoriaTurnos.jsx
 new file mode 100644
-index 0000000..5ab9807
+index 0000000..9930cc4
 --- /dev/null
 +++ b/frontend/src/components/panel/HistoriaTurnos.jsx
-@@ -0,0 +1,196 @@
+@@ -0,0 +1,180 @@
 +import { useEffect, useRef, useState } from 'react';
 +import { api } from '../../api';
 +import {
@@ -303,8 +283,8 @@ index 0000000..5ab9807
 +  return dow === 0 || dow >= 5 ? sumarDias(lunes, 7) : lunes;
 +}
 +
-+function nombreArchivo(modo, ref, estilo) {
-+  return `turnos-libres-${modo === 'dia' ? ref : `semana-${ref}`}-${estilo}.png`;
++function nombreArchivo(modo, ref) {
++  return `turnos-libres-${modo === 'dia' ? ref : `semana-${ref}`}.png`;
 +}
 +
 +// Arma la historia de Instagram con los turnos libres del día o de la semana, lista para descargar o compartir.
@@ -312,13 +292,6 @@ index 0000000..5ab9807
 +export default function HistoriaTurnos({ Navegador }) {
 +  const [modo, setModo] = useState(() => {
 +    try { return localStorage.getItem('panel-historia-modo') === 'semana' ? 'semana' : 'dia'; } catch { return 'dia'; }
-+  });
-+  const [estilo, setEstilo] = useState(() => {
-+    // por defecto "dorado"; si ya eligió otro en este celular, se respeta
-+    try {
-+      const guardado = localStorage.getItem('panel-historia-estilo');
-+      return ['claro', 'azul', 'dorado'].includes(guardado) ? guardado : 'dorado';
-+    } catch { return 'dorado'; }
 +  });
 +  const [fecha, setFecha] = useState(() => proximoDiaHabilitado(hoyISO()));
 +  const [lunes, setLunes] = useState(semanaInicial);
@@ -328,10 +301,6 @@ index 0000000..5ab9807
 +  const [puedeCompartir, setPuedeCompartir] = useState(false);
 +  const canvasRef = useRef(null);
 +
-+  function elegirEstilo(e) {
-+    setEstilo(e);
-+    try { localStorage.setItem('panel-historia-estilo', e); } catch { /* sin almacenamiento: no pasa nada */ }
-+  }
 +  function elegirModo(m) {
 +    setModo(m);
 +    try { localStorage.setItem('panel-historia-modo', m); } catch { /* sin almacenamiento: no pasa nada */ }
@@ -375,8 +344,8 @@ index 0000000..5ab9807
 +  useEffect(() => {
 +    if (!dias || !dias.length || !hayTurnosLibres(dias) || !canvasRef.current) return;
 +    const subtitulo = modo === 'dia' ? subtituloDia(dias[0].fecha) : subtituloSemana(dias.map((d) => d.fecha));
-+    dibujarHistoria(canvasRef.current, { modo, estilo, subtitulo, dias });
-+  }, [dias, modo, estilo]);
++    dibujarHistoria(canvasRef.current, { modo, subtitulo, dias });
++  }, [dias, modo]);
 +
 +  // ¿el celular permite compartir un archivo directo a Instagram?
 +  useEffect(() => {
@@ -396,7 +365,7 @@ index 0000000..5ab9807
 +    const url = URL.createObjectURL(b);
 +    const a = document.createElement('a');
 +    a.href = url;
-+    a.download = nombreArchivo(modo, ref, estilo);
++    a.download = nombreArchivo(modo, ref);
 +    document.body.appendChild(a);
 +    a.click();
 +    a.remove();
@@ -405,7 +374,7 @@ index 0000000..5ab9807
 +
 +  async function compartir() {
 +    const b = await blob();
-+    const archivo = new File([b], nombreArchivo(modo, ref, estilo), { type: 'image/png' });
++    const archivo = new File([b], nombreArchivo(modo, ref), { type: 'image/png' });
 +    try {
 +      await navigator.share({ files: [archivo] });
 +    } catch (e) {
@@ -462,11 +431,6 @@ index 0000000..5ab9807
 +
 +      {hayDias && hayLibres && (
 +        <>
-+          <div className="vista-toggle historia-estilo" role="tablist" aria-label="Estilo de la imagen">
-+            <button type="button" role="tab" aria-selected={estilo === 'claro'} className={estilo === 'claro' ? 'on' : ''} onClick={() => elegirEstilo('claro')}>Claro</button>
-+            <button type="button" role="tab" aria-selected={estilo === 'azul'} className={estilo === 'azul' ? 'on' : ''} onClick={() => elegirEstilo('azul')}>Azul</button>
-+            <button type="button" role="tab" aria-selected={estilo === 'dorado'} className={estilo === 'dorado' ? 'on' : ''} onClick={() => elegirEstilo('dorado')}>Dorado</button>
-+          </div>
 +          <div className="historia-vista" aria-busy={cargando}>
 +            <canvas ref={canvasRef} className="historia-canvas" role="img" aria-label="Vista previa de la historia de turnos libres" />
 +          </div>
@@ -484,10 +448,10 @@ index 0000000..5ab9807
 +}
 diff --git a/frontend/src/lib/historiaTurnos.js b/frontend/src/lib/historiaTurnos.js
 new file mode 100644
-index 0000000..23c7737
+index 0000000..3c8011a
 --- /dev/null
 +++ b/frontend/src/lib/historiaTurnos.js
-@@ -0,0 +1,416 @@
+@@ -0,0 +1,395 @@
 +// Dibuja la imagen de "turnos libres" para subir a una historia de Instagram (1080×1920).
 +// Se hace con canvas (sin librerías): el dibujo es siempre el mismo y se descarga como PNG.
 +// Zona segura de Instagram: arriba ~250 px y abajo ~300 px quedan tapados por la app, ahí no va nada importante.
@@ -496,26 +460,12 @@ index 0000000..23c7737
 +export const HISTORIA_W = 1080;
 +export const HISTORIA_H = 1920;
 +
-+// Tres estilos: "claro" (fondo crema), "azul" (azul pino) y "dorado" (azul pino con el dorado de la marca).
-+const TEMAS = {
-+  claro: {
-+    fondo: '#FAF8F3', tinta: '#0F2436', verde: '#5BAE6B', sobreVerde: '#0F2436', gris: '#6B7A86',
-+    lineas: 'rgba(91,174,107,0.16)', tarjeta: '#FFFFFF', chip: '#DDEFD9', borde: '#0F2436',
-+    pildora: '#0F2436', pildoraTexto: '#FAF8F3', diaFondo: '#0F2436', diaTexto: '#FAF8F3',
-+  },
-+  azul: {
-+    fondo: '#0F2436', tinta: '#F3EEE1', verde: '#5BAE6B', sobreVerde: '#0F2436', gris: '#9FB6C9',
-+    lineas: 'rgba(243,238,225,0.08)', tarjeta: 'rgba(243,238,225,0.08)', chip: 'rgba(91,174,107,0.30)', borde: 'rgba(243,238,225,0.55)',
-+    pildora: '#F3EEE1', pildoraTexto: '#0F2436', diaFondo: '#F3EEE1', diaTexto: '#0F2436', degrade: true,
-+  },
-+  // azul pino con el dorado de la marca (el de los videos de "Busco rival")
-+  dorado: {
-+    fondo: '#0F2436', tinta: '#F3EEE1', verde: '#F2C14E', sobreVerde: '#0F2436', gris: '#9FB6C9',
-+    lineas: 'rgba(243,238,225,0.08)', tarjeta: 'rgba(243,238,225,0.08)', chip: '#F2C14E', textoChip: '#0F2436', borde: 'rgba(243,238,225,0.55)',
-+    pildora: '#F3EEE1', pildoraTexto: '#0F2436', diaFondo: '#F3EEE1', diaTexto: '#0F2436', degrade: true,
-+  },
++// Estilo único: azul pino con el dorado de la marca (el de los videos de "Busco rival").
++const COL = {
++  fondo: '#0F2436', tinta: '#F3EEE1', verde: '#F2C14E', sobreVerde: '#0F2436', gris: '#9FB6C9',
++  lineas: 'rgba(243,238,225,0.08)', tarjeta: 'rgba(243,238,225,0.08)', chip: '#F2C14E', textoChip: '#0F2436', borde: 'rgba(243,238,225,0.55)',
++  pildora: '#F3EEE1', pildoraTexto: '#0F2436', diaFondo: '#F3EEE1', diaTexto: '#0F2436',
 +};
-+let COL = TEMAS.claro;
 +
 +const FUENTE = 'Satoshi, system-ui, sans-serif';
 +const SERIF = '"DM Serif Display", Georgia, serif';
@@ -567,14 +517,10 @@ index 0000000..23c7737
 +}
 +
 +function fondo(ctx) {
-+  if (COL.degrade) {
-+    const g = ctx.createLinearGradient(0, 0, 0, HISTORIA_H);
-+    g.addColorStop(0, '#12304A');
-+    g.addColorStop(1, '#0B1B2A');
-+    ctx.fillStyle = g;
-+  } else {
-+    ctx.fillStyle = COL.fondo;
-+  }
++  const g = ctx.createLinearGradient(0, 0, 0, HISTORIA_H);
++  g.addColorStop(0, '#12304A');
++  g.addColorStop(1, '#0B1B2A');
++  ctx.fillStyle = g;
 +  ctx.fillRect(0, 0, HISTORIA_W, HISTORIA_H);
 +  // líneas de cancha muy suaves: círculo central y línea de mitad de cancha, que pasa justo por su centro
 +  const cx = 860;
@@ -722,7 +668,6 @@ index 0000000..23c7737
 + *   modo: 'dia' | 'semana',
 + *   subtitulo: string ("MARTES 4 DE NOVIEMBRE" / "DEL 3 AL 5 DE NOVIEMBRE"),
 + *   dias: [{ fecha, diaCorto, diaNum, turnos: [{ hora, libres: ['C1','C2'], cerrado }] }],
-+ *   estilo: 'claro' | 'azul' | 'dorado' (por defecto 'dorado'),
 + * }
 + * Solo se dibujan los turnos libres: lo reservado no se muestra.
 + */
@@ -735,7 +680,6 @@ index 0000000..23c7737
 +    ]);
 +  } catch { /* si no cargan, se usan las de respaldo */ }
 +
-+  COL = TEMAS[datos.estilo] || TEMAS.dorado;
 +  canvas.width = HISTORIA_W;
 +  canvas.height = HISTORIA_H;
 +  const ctx = canvas.getContext('2d');
@@ -810,7 +754,7 @@ index 0000000..23c7737
 +
 +/**
 + * Imagen de historia para una reserva que busca rival (misma estética que "Turnos libres").
-+ * datos = { estilo, equipo, cancha: 'Cancha 2', dia: 'Jueves 22/11', hora: '21:30 hs', handle: '@elpinarcomplejo' }
++ * datos = { equipo, cancha: 'Cancha 2', dia: 'Jueves 22/11', hora: '21:30 hs', handle: '@elpinarcomplejo' }
 + */
 +export async function dibujarBuscoRival(canvas, datos) {
 +  try {
@@ -821,7 +765,6 @@ index 0000000..23c7737
 +    ]);
 +  } catch { /* si no cargan, se usan las de respaldo */ }
 +
-+  COL = TEMAS[datos.estilo] || TEMAS.dorado;
 +  canvas.width = HISTORIA_W;
 +  canvas.height = HISTORIA_H;
 +  const ctx = canvas.getContext('2d');
@@ -942,10 +885,10 @@ index 73baae7..703d801 100644
          <>
            <SuspensionPanel />
 diff --git a/frontend/src/styles.css b/frontend/src/styles.css
-index 09aaf19..47f470b 100644
+index 09aaf19..4788b07 100644
 --- a/frontend/src/styles.css
 +++ b/frontend/src/styles.css
-@@ -2730,3 +2730,17 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
+@@ -2730,3 +2730,16 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
  }
  .login-olvide:hover { color: var(--p-oro); }
  .login-olvide:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 2px; border-radius: var(--pr-s); }
@@ -962,4 +905,3 @@ index 09aaf19..47f470b 100644
 +.historia-acciones { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
 +.historia-acciones .btn { min-width: 160px; }
 +.historia-ayuda { text-align: center; color: var(--p-mut); font-size: var(--pt-chico); margin: 12px auto 0; max-width: 340px; }
-+.historia-estilo { margin: 16px auto 0; width: fit-content; }

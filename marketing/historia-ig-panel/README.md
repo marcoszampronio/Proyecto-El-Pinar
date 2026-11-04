@@ -19,7 +19,7 @@ cd frontend && npm run build
 El generador de la imagen para Instagram de una reserva que busca rival (`frontend/src/components/ImagenBuscoRival.jsx`, el modal del panel)
 se rehizo con el mismo diseño de "Turnos libres": titular "BUSCAMOS / RIVAL", pastilla con el nombre del equipo, tarjeta con cancha, día y hora,
 y la marca abajo con el @ del complejo (para que quien la suba etiquete). Se dibuja en canvas con `dibujarBuscoRival` (en `historiaTurnos.js`),
-tiene los mismos tres estilos (el elegido se comparte con "Historia de IG"; por defecto Dorado) y suma el botón Compartir. Mantiene los mismos
+usa el mismo estilo único (Dorado) y suma el botón Compartir. Mantiene los mismos
 props y el mismo nombre de archivo que antes (`busca-rival-<equipo>.png`). Vista previa: `vista-previa-busco-rival.png`.
 Con esto `html-to-image` quedó sin uso en `frontend/package.json` (no lo toqué; se puede quitar aparte).
 
@@ -38,10 +38,8 @@ Con esto `html-to-image` quedó sin uso en `frontend/package.json` (no lo toqué
 - Si no queda nada libre, el panel avisa en vez de armar la imagen.
 - Solo fútbol por ahora; el pádel se puede sumar si Mateo lo pide.
 
-## Estilos (selector Claro / Azul / Dorado, se recuerda por celular)
-- Claro: fondo crema, bloque verde detrás de "LIBRES".
-- Azul: azul pino con verde.
-- **Dorado**: azul pino con el dorado `#F2C14E` de los videos de "Busco rival" (la última versión mostrada). **Es el estilo por defecto** (si alguien ya eligió otro en su celular, se respeta).
+## Estilo (único)
+**Dorado**: azul pino con el dorado `#F2C14E` de los videos de "Busco rival". No hay selector: Marcos pidió dejar solo este estilo, en "Historia de IG" y en la imagen de "Busco rival".
 
 ## Pendiente
 1. Probarlo en el panel real (login de Mateo, reservas reales) y en un celular Android: hasta ahora solo se vio con datos de ejemplo.

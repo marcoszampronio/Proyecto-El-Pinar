@@ -15,8 +15,17 @@ git apply --check /tmp/historia.patch && git apply /tmp/historia.patch   # si ma
 cd frontend && npm run build
 ```
 
-## Qué incluye (4 archivos)
-- `frontend/src/lib/historiaTurnos.js`: dibuja la imagen en un canvas (sin librerías nuevas) y arma los datos a partir de la agenda del panel.
+## También incluye: imagen de "Busco rival" rehecha
+El generador de la imagen para Instagram de una reserva que busca rival (`frontend/src/components/ImagenBuscoRival.jsx`, el modal del panel)
+se rehizo con el mismo diseño de "Turnos libres": titular "BUSCAMOS / RIVAL", pastilla con el nombre del equipo, tarjeta con cancha, día y hora,
+y la marca abajo con el @ del complejo (para que quien la suba etiquete). Se dibuja en canvas con `dibujarBuscoRival` (en `historiaTurnos.js`),
+tiene los mismos tres estilos (el elegido se comparte con "Historia de IG"; por defecto Dorado) y suma el botón Compartir. Mantiene los mismos
+props y el mismo nombre de archivo que antes (`busca-rival-<equipo>.png`). Vista previa: `vista-previa-busco-rival.png`.
+Con esto `html-to-image` quedó sin uso en `frontend/package.json` (no lo toqué; se puede quitar aparte).
+
+## Qué incluye (5 archivos)
+- `frontend/src/components/ImagenBuscoRival.jsx`: modal de la imagen de Busco rival (rehecho).
+- `frontend/src/lib/historiaTurnos.js`: dibuja las imágenes en un canvas (sin librerías nuevas) y arma los datos a partir de la agenda del panel.
 - `frontend/src/components/panel/HistoriaTurnos.jsx`: la pantalla del panel (modo, fecha o semana, estilo, vista previa, botones).
 - `frontend/src/pages/AdminPanel.jsx`: pestaña nueva "Historia de IG" (admin y empleados); se le pasa `NavegadorFecha` como prop.
 - `frontend/src/styles.css`: unas pocas clases al final (`.historia-*`).

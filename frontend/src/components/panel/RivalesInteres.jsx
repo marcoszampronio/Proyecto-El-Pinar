@@ -3,6 +3,7 @@ import { api } from '../../api';
 import { fechaLargaCompleta, hhmm } from '../../lib/fechas';
 import { nombreEquipo } from '../../lib/equipo';
 import Info from './Info';
+import Desplegable from './Desplegable';
 
 const CANCHA = { C1: 'Cancha 1', C2: 'Cancha 2', PAD: 'Pádel' };
 const fechaLinda = (iso) => { const f = fechaLargaCompleta(iso); return f.charAt(0).toUpperCase() + f.slice(1); };
@@ -21,9 +22,9 @@ export default function RivalesInteres() {
   if (!d) return <div className="stat-card"><p className="est-cargando">Contando toques…</p></div>;
 
   return (
-    <section className="stat-card vis">
-      <div className="est-cab">
-        <h3 className="est-titulo">Interés en Busco rival</h3>
+    <Desplegable titulo="Interés en Busco rival" resumen={`${d.hoy.toques} hoy · ${d.ult7.toques} en 7 días · ${d.ult30.toques} en 30 días`} className="vis">
+      <div className="est-cab" style={{ marginTop: 12 }}>
+        <span style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>Cómo se cuenta</span>
         <Info etiqueta="Cómo se cuenta el interés en Busco rival">
           Cuenta las veces que alguien toca "Me interesa" (o "Escribiles por WhatsApp") en la página para escribirle a un equipo que busca rival.
           No dice si después mandó el mensaje ni quién es: solo que tocó el botón. Si la misma persona toca lo mismo varias veces seguidas, cuenta una.
@@ -58,6 +59,6 @@ export default function RivalesInteres() {
           </p>
         </>
       )}
-    </section>
+    </Desplegable>
   );
 }

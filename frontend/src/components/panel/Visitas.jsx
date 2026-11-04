@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api';
 import Info from './Info';
+import Desplegable from './Desplegable';
 
 const DIA_CORTO = (iso) => iso.split('-').reverse().slice(0, 2).join('/');
 
@@ -21,9 +22,9 @@ export default function Visitas() {
   const conversion = d.ult30 > 0 ? Math.round((d.pedidos30 / d.ult30) * 100) : 0;
 
   return (
-    <section className="stat-card vis">
-      <div className="est-cab">
-        <h3 className="est-titulo">Visitas a la página</h3>
+    <Desplegable titulo="Visitas a la página" resumen={`${d.hoy} hoy · ${d.ult7} en 7 días · ${d.ult30} en 30 días`} className="vis">
+      <div className="est-cab" style={{ marginTop: 12 }}>
+        <span style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>Cómo se cuentan</span>
         <Info etiqueta="Cómo se cuentan las visitas">
           Cuenta personas distintas que entraron a la página de reservas, una vez por sesión. Es anónimo: no guarda nombres, teléfonos ni IP.
         </Info>
@@ -65,6 +66,6 @@ export default function Visitas() {
           </p>
         </>
       )}
-    </section>
+    </Desplegable>
   );
 }

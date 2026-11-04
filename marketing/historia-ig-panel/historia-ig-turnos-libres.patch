@@ -484,7 +484,7 @@ index 0000000..5ab9807
 +}
 diff --git a/frontend/src/lib/historiaTurnos.js b/frontend/src/lib/historiaTurnos.js
 new file mode 100644
-index 0000000..6b822fb
+index 0000000..23c7737
 --- /dev/null
 +++ b/frontend/src/lib/historiaTurnos.js
 @@ -0,0 +1,416 @@
@@ -761,9 +761,9 @@ index 0000000..6b822fb
 +
 +function cuerpoRival(ctx, d) {
 +  const filas = [
-+    { etiqueta: 'CANCHA', valor: d.cancha },
 +    { etiqueta: 'DÍA', valor: d.dia },
 +    { etiqueta: 'HORA', valor: d.hora, chip: true },
++    { etiqueta: 'CANCHA', valor: d.cancha },
 +  ];
 +  const alto = 132;
 +  const y0 = 1040;

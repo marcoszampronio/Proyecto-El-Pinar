@@ -184,8 +184,16 @@ export const api = {
   adminBackupAhora: () => requestAdmin('/admin/export/backup-ahora', { method: 'POST' }),
   registrarVisita: (payload) =>
     requestPublico('/visitas', { method: 'POST', body: JSON.stringify(payload), keepalive: true }),
+  // Alguien tocó "Me interesa" en Busco rival. Solo se cuenta el toque. Sale con sendBeacon como texto simple
+  // (en un solo paso, aunque el celular salte a WhatsApp enseguida); no se espera respuesta.
+  registrarToqueRival: (payload) => {
+    const cuerpo = JSON.stringify(payload);
+    try { if (typeof navigator !== 'undefined' && navigator.sendBeacon && navigator.sendBeacon(`${API_URL}/rivals/toque`, cuerpo)) return Promise.resolve({ ok: true }); } catch { /* se usa fetch */ }
+    return requestPublico('/rivals/toque', { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: cuerpo, keepalive: true });
+  },
   adminYo: () => requestAdmin('/admin/yo'),
   adminVisitas: () => requestAdmin('/admin/visitas'),
+  adminRivalesInteres: () => requestAdmin('/admin/rivales/interes'),
   adminDispositivo: (payload) =>
     requestAdmin('/admin/dispositivo', { method: 'POST', body: JSON.stringify(payload) }),
   adminDispositivos: () => requestAdmin('/admin/dispositivos'),

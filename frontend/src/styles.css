@@ -2684,6 +2684,13 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
 .vis-numeros b { font-size: var(--pt-display); letter-spacing: -0.02em; color: var(--p-oro); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .vis-numeros span { font-size: var(--pt-micro); color: var(--p-mut); }
 .vis-vacio { margin: 12px 0 0; font-size: var(--pt-chico); color: var(--p-mut); }
+/* "Interés en Busco rival": una fila por turno */
+.rival-int { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--p-linea); }
+.rival-int > div:first-child { min-width: 0; }
+.rival-int b { display: block; font-size: var(--pt-chico); color: var(--p-txt); overflow-wrap: anywhere; }
+.rival-int span { display: block; font-size: var(--pt-micro); color: var(--p-mut); }
+.rival-int-n { flex: none; text-align: right; }
+.rival-int-n b { font-size: var(--pt-lead); color: var(--p-oro); font-variant-numeric: tabular-nums; }
 .vis-barras { display: flex; align-items: flex-end; gap: 3px; height: 64px; margin-top: 14px; }
 .vis-col { flex: 1; height: 100%; display: flex; align-items: flex-end; }
 .vis-col i { display: block; width: 100%; background: var(--p-oro); border-radius: 3px 3px 0 0; }

@@ -10,6 +10,7 @@ import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
 import Info from '../components/panel/Info';
 import Visitas from '../components/panel/Visitas';
 import BotonHistoriaIG from '../components/panel/BotonHistoriaIG';
+import RivalesInteres from '../components/panel/RivalesInteres';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -3534,6 +3535,7 @@ function AdminPanelInterno() {
           )}
           <EstadisticasDecidir cargarCsv={cargarCsv} />
           <Visitas />
+          <RivalesInteres />
           {stats && (
           <div className="stat-card">
             <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>

@@ -976,7 +976,7 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
   .pmain { width: 100%; max-width: 900px; margin-inline: auto; }
   .pmain .btn[style*="width: 100%"] { display: block; max-width: 460px; margin-inline: auto; }
   .hoy-grilla, .grilla, .est-mapa { max-width: 620px; margin-inline: auto; }
-  .agenda-nav-row { max-width: 540px; margin-inline: auto; }
+  .agenda-nav-row { max-width: 540px; margin-inline: 0 auto; }
   .selector-doble { max-width: 380px; margin-inline: auto; }
   .hoy-mas { display: block; margin-inline: auto; }
 }

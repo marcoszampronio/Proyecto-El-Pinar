@@ -969,18 +969,16 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .pnav-usuario span { font-size: var(--pt-micro); }
 
 .pmain { padding: 24px 28px 56px; min-width: 0; }
-/* Pantalla grande (compu): el contenido va en una columna centrada y legible, en vez de estirarse de punta a punta.
-   Los botones "de ancho completo" del celular, las grillas de turnos y los campos tienen un ancho máximo cómodo. */
+/* Pantalla grande (compu): el contenido va en una columna centrada y legible (la misma en todas las pantallas,
+   también en la Agenda: Día y Semana), en vez de estirarse de punta a punta. Lo que tiene un ancho máximo
+   (botones, grillas, selectores) va CENTRADO en su bloque, no pegado a la izquierda. */
 @media (min-width: 821px) {
-  .pmain { width: 100%; max-width: 800px; margin-inline: auto; }
-  /* la hoja de la semana (calendario) sí necesita ancho para que se lean los nombres de los equipos */
-  .pmain:has(.sem) { max-width: 1120px; }
-  .pmain .btn[style*="width: 100%"] { max-width: 460px; }
-  .hoy-grilla, .grilla, .est-mapa { max-width: 620px; }
-  .buscador { max-width: 460px; }
-  .selector-doble { max-width: 380px; }
-  .agenda-nav-row { max-width: 460px; }
-  .pmain .field { max-width: 560px; }
+  .pmain { width: 100%; max-width: 900px; margin-inline: auto; }
+  .pmain .btn[style*="width: 100%"] { display: block; max-width: 460px; margin-inline: auto; }
+  .hoy-grilla, .grilla, .est-mapa { max-width: 620px; margin-inline: auto; }
+  .agenda-nav-row { max-width: 540px; margin-inline: auto; }
+  .selector-doble { max-width: 380px; margin-inline: auto; }
+  .hoy-mas { display: block; margin-inline: auto; }
 }
 .admin-header { display: none; }
 .tabs { display: none; }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { hoyISO } from '../../lib/fechas';
 import { analizar, parseCsv, rangoSemanas, DIAS_JUEGO, NOMBRE_DIA, TURNOS } from '../../lib/estadisticas';
+import Desplegable from './Desplegable';
 
 const nivel = (pct) => (pct >= 70 ? 'alto' : pct >= 40 ? 'medio' : 'bajo');
 
@@ -42,9 +43,9 @@ export default function EstadisticasDecidir({ cargarCsv }) {
   const celdaSel = nube?.tipo === 'celda' ? r.mapa.find((x) => x.dow === nube.dow && x.turno === nube.turno) : null;
 
   return (
-    <section className="stat-card est" ref={caja}>
-      <div className="est-cab">
-        <h3 className="est-titulo">Qué horarios se llenan</h3>
+    <Desplegable titulo="Qué horarios se llenan" resumen="Mapa de las últimas 4 semanas" className="est" innerRef={caja}>
+      <div className="est-cab" style={{ marginTop: 12 }}>
+        <span style={{ fontSize: 'var(--pt-chico)', color: 'var(--p-mut)' }}>Cómo se lee</span>
         <button
           type="button"
           className={`est-info ${nube?.tipo === 'ayuda' ? 'abierto' : ''}`}
@@ -127,6 +128,6 @@ export default function EstadisticasDecidir({ cargarCsv }) {
           ))}
         </div>
       )}
-    </section>
+    </Desplegable>
   );
 }

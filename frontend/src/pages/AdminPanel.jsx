@@ -10,6 +10,8 @@ import EstadisticasDecidir from '../components/panel/EstadisticasDecidir';
 import Info from '../components/panel/Info';
 import Visitas from '../components/panel/Visitas';
 import BotonHistoriaIG from '../components/panel/BotonHistoriaIG';
+import RivalesInteres from '../components/panel/RivalesInteres';
+import Desplegable from '../components/panel/Desplegable';
 import {
   hoyISO, proximoDiaHabilitado, fechaLargaCompleta, partesFecha,
   hhmm, sumarDias, esDiaHabilitado, lunesDeLaSemana,
@@ -2868,28 +2870,32 @@ function QuienTieneQue() {
   if (!d) return null;
   const fila = { padding: '7px 0', borderTop: '1px solid var(--p-linea)' };
   const sub = { fontSize: 'var(--pt-micro)', color: 'var(--p-mut)' };
+  const cuenta = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
   return (
-    <section style={DENTRO_DEL_ESTADO}>
-      <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Quién tiene los avisos</h3>
-      {d.avisos.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie activó los avisos.</p>}
-      {d.avisos.map((a, k) => (
-        <div key={k} style={fila}>
-          <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{nombreCorto(a.email)} · {a.dispositivo}</div>
-          <div style={sub}>Activó los avisos el {cuando(a.desde)}</div>
-        </div>
-      ))}
-      <h3 className="hoy-titulo" style={{ margin: '16px 0 6px' }}>Quién usa la app instalada<Info>Se ve quién abrió la app al menos una vez. Quien la instaló y nunca la abrió no aparece.</Info></h3>
-      {d.app.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie abrió el panel desde la app instalada.</p>}
-      {d.app.map((a, k) => (
-        <div key={k} style={fila}>
-          <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{nombreCorto(a.email)} · {a.dispositivo}</div>
-          <div style={sub}>
-            {a.ultimoUso ? 'Último uso: ' + cuando(a.ultimoUso) : 'Instalada, todavía sin abrir'}
-            {a.instaladaEn ? ' · instalada el ' + cuando(a.instaladaEn) : ''}
+    <>
+      <Desplegable anidado titulo="Quién tiene los avisos" resumen={d.avisos.length === 0 ? 'Nadie todavía' : cuenta(d.avisos.length, 'dispositivo', 'dispositivos')}>
+        {d.avisos.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie activó los avisos.</p>}
+        {d.avisos.map((a, k) => (
+          <div key={k} style={fila}>
+            <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{nombreCorto(a.email)} · {a.dispositivo}</div>
+            <div style={sub}>Activó los avisos el {cuando(a.desde)}</div>
           </div>
-        </div>
-      ))}
-    </section>
+        ))}
+      </Desplegable>
+      <Desplegable anidado titulo="Quién usa la app instalada" resumen={d.app.length === 0 ? 'Nadie todavía' : cuenta(d.app.length, 'dispositivo', 'dispositivos')}>
+        <p style={{ ...sub, margin: '0 0 6px' }}>Se ve quién abrió la app al menos una vez. Quien la instaló y nunca la abrió no aparece.</p>
+        {d.app.length === 0 && <p style={{ ...sub, margin: 0 }}>Todavía nadie abrió el panel desde la app instalada.</p>}
+        {d.app.map((a, k) => (
+          <div key={k} style={fila}>
+            <div style={{ fontSize: 'var(--pt-chico)', fontWeight: 600 }}>{nombreCorto(a.email)} · {a.dispositivo}</div>
+            <div style={sub}>
+              {a.ultimoUso ? 'Último uso: ' + cuando(a.ultimoUso) : 'Instalada, todavía sin abrir'}
+              {a.instaladaEn ? ' · instalada el ' + cuando(a.instaladaEn) : ''}
+            </div>
+          </div>
+        ))}
+      </Desplegable>
+    </>
   );
 }
 
@@ -2937,11 +2943,9 @@ function PreferenciasAvisos() {
   );
 }
 
-// Avisos al celular: van dentro de "Estado del sistema" (Estadísticas), separados por una línea.
-// Cada persona los activa en su propio dispositivo.
-const DENTRO_DEL_ESTADO = { marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--p-linea)' };
+// Avisos al celular: van dentro de "Estado del sistema" (Estadísticas), en un desplegable. Cada persona los activa en su propio dispositivo.
+// `suelta`: se muestra directo, sin desplegable (el empleado lo ve en la pantalla Hoy).
 function AvisosCelular({ suelta = false }) {
-  const estiloSeccion = suelta ? {} : DENTRO_DEL_ESTADO;
   const [estado, setEstado] = useState(null);
   const [trabajando, setTrabajando] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -2964,10 +2968,19 @@ function AvisosCelular({ suelta = false }) {
 
   if (!estado) return null;
   const aviso = { fontSize: 'var(--pt-chico)', color: 'var(--p-mut)', margin: '4px 0 0', lineHeight: 1.45 };
+  const RESUMEN = {
+    activado: 'Activados en este celular',
+    'sin-activar': 'Todavía sin activar',
+    bloqueado: 'Bloqueados en este celular',
+    'iphone-sin-instalar': 'Primero instalá el panel',
+    'no-soportado': 'No disponible en este navegador',
+    'sin-configurar': 'Sin activar en el servidor',
+  };
+  const envolver = (contenido) => (suelta ? contenido : <Desplegable anidado titulo="Avisos al celular" resumen={RESUMEN[estado]}>{contenido}</Desplegable>);
 
   if (estado === 'activado') {
-    return (
-      <section style={estiloSeccion}>
+    return envolver(
+      <section>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 'var(--pt-chico)', fontWeight: 600, color: 'var(--p-ok)', marginRight: 'auto' }}>✓ Avisos al celular activados</span>
           <button className="btn btn-ghost" style={{ padding: '6px 14px' }} disabled={trabajando}
@@ -2994,9 +3007,11 @@ function AvisosCelular({ suelta = false }) {
     'sin-configurar': { corto: 'Todavía no están activados en el servidor.' },
   };
 
-  return (
-    <section style={estiloSeccion}>
-      <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular<Info>Recibí una notificación en este celular cada vez que entra una reserva nueva.</Info></h3>
+  return envolver(
+    <section>
+      {suelta
+        ? <h3 className="hoy-titulo" style={{ marginBottom: 6 }}>Avisos al celular<Info>Recibí una notificación en este celular cada vez que entra una reserva nueva.</Info></h3>
+        : <p style={{ ...aviso, margin: '0 0 8px' }}>Recibí una notificación en este celular cada vez que entra una reserva nueva.</p>}
       {textos[estado] && (
         <p style={{ ...aviso, margin: 0, color: estado === 'bloqueado' ? 'var(--p-bad)' : 'var(--p-mut)' }}>
           {textos[estado].corto}
@@ -3507,6 +3522,7 @@ function AdminPanelInterno() {
 
       {tab === 'stats' && (
         <div className="stats">
+          <EstadoSistema />
           {stats && (
           <details className="stat-card estado-sistema">
             <summary>
@@ -3534,10 +3550,13 @@ function AdminPanelInterno() {
           )}
           <EstadisticasDecidir cargarCsv={cargarCsv} />
           <Visitas />
+          <RivalesInteres />
           {stats && (
-          <div className="stat-card">
-            <h3 style={{ marginTop: 0 }}>Últimos 30 días</h3>
-            <div className="stat-grid">
+          <Desplegable
+            titulo="Últimos 30 días"
+            resumen={`${stats.historico30.totalActivas} reservas · ${stats.historico30.clientesUnicos} clientes · ${stats.historico30.canceladas} cancelaciones`}
+          >
+            <div className="stat-grid" style={{ marginTop: 12 }}>
               <Cifra titulo="Reservas" valor={stats.historico30.totalActivas} />
               <Cifra titulo="Clientes distintos" valor={stats.historico30.clientesUnicos} />
               <Cifra titulo="Cancelaciones" valor={stats.historico30.canceladas} sub={`${stats.historico30.tasaCancelacionPct}% del total`} />
@@ -3557,11 +3576,10 @@ function AdminPanelInterno() {
                 );
               })}
             </div>
-          </div>
+          </Desplegable>
           )}
           <Movimientos />
           <ExportPanel />
-          <EstadoSistema />
         </div>
       )}
       </main>

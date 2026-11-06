@@ -5,6 +5,7 @@ import {
 } from '../lib/fechas';
 import { IconoWhatsapp } from './Iconos';
 import { nombreEquipo } from '../lib/equipo';
+import { registrarToqueRival } from '../lib/visitas';
 
 const DIAS_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const MESES_CORTO = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -129,6 +130,7 @@ function RivalCard({ r, hora }) {
       target="_blank"
       rel="noreferrer"
       title={r.linkWhatsapp ? 'Escribir por WhatsApp' : 'Sin número de contacto'}
+      onClick={() => { if (r.linkWhatsapp) registrarToqueRival(r); }}
     >
       {hora && <span className="rival-cel-hora">{hora} hs</span>}
       <span className="rival-cel-nom">

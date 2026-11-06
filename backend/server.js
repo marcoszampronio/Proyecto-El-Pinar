@@ -49,6 +49,9 @@ app.use(express.json());
 // El aviso "apretó Enviar WhatsApp" llega como texto simple (sendBeacon, sin "permiso previo" entre dominios):
 // se lee como texto y la ruta lo convierte a objeto. Los clientes viejos lo siguen mandando como JSON.
 app.use('/api/reservations/whatsapp-enviado', express.text({ type: 'text/plain', limit: '4kb' }));
+// ... y lo mismo para el aviso "tocó Me interesa" de Busco rival (con un límite bajo por visitante: solo es un contador).
+app.use('/api/rivals/toque', express.text({ type: 'text/plain', limit: '4kb' }));
+app.use('/api/rivals/toque', rateLimit({ keyGenerator: clienteDe, windowMs: 60 * 60 * 1000, max: 60, standardHeaders: true, legacyHeaders: false, message: { ok: true } }));
 
 // Si una respuesta sale con error del servidor (5xx), se avisa al mantenedor (mail + celular).
 // Se ignora el 503 de "avisos no configurados". Se agrupa por ruta (sin códigos) y avisa 1 vez por hora.

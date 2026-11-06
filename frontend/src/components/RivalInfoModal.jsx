@@ -1,6 +1,7 @@
 import { fechaLargaCompleta, hhmm } from '../lib/fechas';
 import { IconoWhatsapp } from './Iconos';
 import { nombreEquipo } from '../lib/equipo';
+import { registrarToqueRival } from '../lib/visitas';
 
 // Info de un equipo que reservó y busca rival (se abre desde la grilla).
 export default function RivalInfoModal({ rival, onCerrar }) {
@@ -29,6 +30,7 @@ export default function RivalInfoModal({ rival, onCerrar }) {
               href={rival.linkWhatsapp}
               target="_blank"
               rel="noreferrer"
+              onClick={() => registrarToqueRival(rival)}
             >
               <IconoWhatsapp size={16} /> Escribiles por WhatsApp
             </a>

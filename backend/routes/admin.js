@@ -1042,6 +1042,44 @@ const ETIQUETA_ORIGEN = (o) => {
   if (/pages\.dev|elpinar|^directo$/.test(s)) return 'Directo';
   return s;
 };
+// GET /api/admin/rivales/interes - cuántas veces tocaron "Me interesa" en "Busco rival" (solo toques, anónimo).
+router.get('/rivales/interes', async (req, res) => {
+  const hoy = hoyART();
+  const restarDias = (iso, n) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - n * 86400000).toISOString().slice(0, 10);
+  const desde30 = restarDias(hoy, 29);
+  const desde7 = restarDias(hoy, 6);
+  const { data, error } = await supabaseAdmin
+    .from('rival_toques')
+    .select('created_at, dia, reservation_date, start_time, court, equipo, visitante')
+    .gte('dia', desde30)
+    .order('created_at', { ascending: false })
+    .limit(20000);
+  if (error) return res.status(500).json({ error: error.message });
+
+  // personas distintas: un toque sin código de navegador cuenta como una persona
+  const filas = (data || []).map((r, i) => ({ ...r, persona: r.visitante || `anon-${i}` }));
+  const personas = (arr) => new Set(arr.map((r) => r.persona)).size;
+  const de = (desde) => filas.filter((r) => r.dia >= desde);
+
+  const porTurno = new Map();
+  for (const r of filas) {
+    const clave = `${r.reservation_date}|${r.start_time}|${r.court}`;
+    if (!porTurno.has(clave)) porTurno.set(clave, { fecha: r.reservation_date, hora: r.start_time.slice(0, 5), cancha: r.court, equipo: r.equipo, ultimo: r.created_at, filas: [] });
+    porTurno.get(clave).filas.push(r);
+  }
+  const turnos = [...porTurno.values()]
+    .map((t) => ({ fecha: t.fecha, hora: t.hora, cancha: t.cancha, equipo: t.equipo, ultimo: t.ultimo, toques: t.filas.length, personas: personas(t.filas) }))
+    .sort((a, b) => (a.ultimo < b.ultimo ? 1 : -1))
+    .slice(0, 12);
+
+  res.json({
+    hoy: { toques: de(hoy).length, personas: personas(de(hoy)) },
+    ult7: { toques: de(desde7).length, personas: personas(de(desde7)) },
+    ult30: { toques: filas.length, personas: personas(filas) },
+    turnos,
+  });
+});
+
 router.get('/visitas', async (req, res) => {
   const hoy = hoyART();
   const restarDias = (iso, n) => new Date(new Date(`${iso}T12:00:00Z`).getTime() - n * 86400000).toISOString().slice(0, 10);

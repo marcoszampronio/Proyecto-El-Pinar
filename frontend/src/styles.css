@@ -2348,17 +2348,17 @@ input[type="date"], input[type="time"] { font-family: inherit; color: var(--p-tx
 .pnav-fondo { display: none; }
 
 /* "Estado del sistema": plegado por defecto (es información técnica) */
-.estado-sistema summary {
+:is(.estado-sistema, .sub-desplegable) > summary {
   display: flex; justify-content: space-between; align-items: center; gap: 10px;
   cursor: pointer; list-style: none; font-weight: 700; color: var(--p-txt);
 }
-.estado-sistema summary::-webkit-details-marker { display: none; }
-.estado-sistema summary::after {
+:is(.estado-sistema, .sub-desplegable) > summary::-webkit-details-marker { display: none; }
+:is(.estado-sistema, .sub-desplegable) > summary::after {
   content: "›"; margin-left: auto; font-size: var(--pt-titulo); line-height: 1; color: var(--p-mut);
   transition: transform .18s ease;
 }
-.estado-sistema[open] summary::after { transform: rotate(90deg); }
-.estado-sistema summary:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 4px; border-radius: var(--pr-s); }
+:is(.estado-sistema, .sub-desplegable)[open] > summary::after { transform: rotate(90deg); }
+:is(.estado-sistema, .sub-desplegable) > summary:focus-visible { outline: 2px solid var(--p-oro); outline-offset: 4px; border-radius: var(--pr-s); }
 
 @media (max-width: 820px) {
   /* una sola columna: la barra de arriba mide lo suyo y el contenido se lleva el resto (sin esto, con poco contenido la barra se estiraba) */
@@ -2695,6 +2695,13 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
 .vis-numeros b { font-size: var(--pt-display); letter-spacing: -0.02em; color: var(--p-oro); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .vis-numeros span { font-size: var(--pt-micro); color: var(--p-mut); }
 .vis-vacio { margin: 12px 0 0; font-size: var(--pt-chico); color: var(--p-mut); }
+/* "Interés en Busco rival": una fila por turno */
+.rival-int { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--p-linea); }
+.rival-int > div:first-child { min-width: 0; }
+.rival-int b { display: block; font-size: var(--pt-chico); color: var(--p-txt); overflow-wrap: anywhere; }
+.rival-int span { display: block; font-size: var(--pt-micro); color: var(--p-mut); }
+.rival-int-n { flex: none; text-align: right; }
+.rival-int-n b { font-size: var(--pt-lead); color: var(--p-oro); font-variant-numeric: tabular-nums; }
 .vis-barras { display: flex; align-items: flex-end; gap: 3px; height: 64px; margin-top: 14px; }
 .vis-col { flex: 1; height: 100%; display: flex; align-items: flex-end; }
 .vis-col i { display: block; width: 100%; background: var(--p-oro); border-radius: 3px 3px 0 0; }
@@ -2751,10 +2758,14 @@ button.hoy-celda:focus-visible, .hoy-padel-ver:focus-visible { outline: 2px soli
 .est-punto--bajo { background: rgba(229, 143, 107, 0.85); }
 
 /* bloques plegables de Estadísticas: título + una línea de resumen cuando están cerrados */
-.estado-sistema .resumen-bloque { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.estado-sistema .resumen-bloque b { font-size: var(--pt-lead); }
-.estado-sistema .resumen-bloque small { font-size: var(--pt-chico); font-weight: 500; color: var(--p-mut); }
-.estado-sistema[open] .resumen-bloque small { display: none; }
+:is(.estado-sistema, .sub-desplegable) > summary .resumen-bloque { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+:is(.estado-sistema, .sub-desplegable) > summary .resumen-bloque b { font-size: var(--pt-lead); }
+.sub-desplegable > summary .resumen-bloque b { font-size: var(--pt-cuerpo); }
+:is(.estado-sistema, .sub-desplegable) > summary .resumen-bloque small { font-size: var(--pt-chico); font-weight: 500; color: var(--p-mut); }
+:is(.estado-sistema, .sub-desplegable)[open] > summary .resumen-bloque small { display: none; }
+/* desplegable dentro de otro (ej.: dentro de "Estado del sistema"): sin tarjeta propia, separado por una línea */
+.sub-desplegable { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--p-linea); }
+.sub-desplegable[open] > summary { margin-bottom: 10px; }
 .estado-sistema[open] > .stat-grid { margin-top: 14px; }
 
 /* "¿Olvidaste tu contraseña?" en el login del panel: texto discreto, no botón */

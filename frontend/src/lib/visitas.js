@@ -27,6 +27,22 @@ function origenDeLaVisita() {
   return 'directo';
 }
 
+// Alguien tocó "Me interesa" para escribirle a un equipo que busca rival (rival = fila de la lista pública de rivales).
+// Solo cuenta el toque; misma regla que las visitas: anónimo, y no cuenta al equipo ni las pruebas en la compu.
+export function registrarToqueRival(rival) {
+  try {
+    if (import.meta.env.DEV) return;
+    if (esInterno() || navigator.webdriver || /bot|crawl|spider|lighthouse|headless/i.test(navigator.userAgent)) return;
+    if (!rival || !rival.reservation_date || !rival.start_time || !rival.court) return;
+    let v = localStorage.getItem('elpinar-v');
+    if (!v) {
+      v = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now();
+      localStorage.setItem('elpinar-v', v);
+    }
+    api.registrarToqueRival({ f: rival.reservation_date, h: rival.start_time, c: rival.court, v }).catch(() => {});
+  } catch { /* contar nunca debe romper la página */ }
+}
+
 export function registrarVisita() {
   try {
     if (import.meta.env.DEV) return; // las pruebas en la compu no cuentan

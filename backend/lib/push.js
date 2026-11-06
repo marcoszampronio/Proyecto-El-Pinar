@@ -36,6 +36,10 @@ async function contarPendientes() {
   return count || 0;
 }
 
+// Cuánto tiempo guarda el servicio de push (Apple / Google) un aviso si el celular no tiene señal: si vuelve antes de este
+// tiempo, el aviso le llega; si vuelve después, se descarta. 5 horas cubre una mañana sin señal sin que lleguen avisos viejísimos.
+export const TTL_AVISO_SEGUNDOS = 5 * 3600;
+
 // Manda un aviso a todos los dispositivos suscriptos (o solo a los de un mail) que no tengan apagado ese `tipo`.
 // Borra las suscripciones que el servicio de push da por vencidas (404/410).
 // Nunca lanza error: devuelve un resumen. Espera como máximo `limiteMs` para no demorar al cliente.
@@ -57,7 +61,7 @@ export async function enviarPush(payload, { email = null, limiteMs = 4000, tipo 
     let enviados = 0;
     await Promise.all(subs.map(async (s) => {
       try {
-        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, cuerpo, { TTL: 3600, urgency: 'high' });
+        await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, cuerpo, { TTL: TTL_AVISO_SEGUNDOS, urgency: 'high' });
         enviados++;
         await supabaseAdmin.from('push_suscripciones').update({ ultimo_envio_ok: new Date().toISOString() }).eq('id', s.id);
       } catch (e) {

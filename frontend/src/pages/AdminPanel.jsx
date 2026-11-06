@@ -1771,7 +1771,7 @@ function ContactosYEquipos({ soloVer = false }) {
   const [vista, setVista] = useState('contactos');
   return (
     <>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+      <div className="selector-doble" style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
         <button className={`btn ${vista === 'contactos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('contactos')}>Contactos</button>
         <button className={`btn ${vista === 'equipos' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setVista('equipos')}>Equipos</button>
       </div>
